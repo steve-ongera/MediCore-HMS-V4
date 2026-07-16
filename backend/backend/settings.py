@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "inpatient",
     "mch",
     "emergency",
+    "insurance",
 ]
 
 MIDDLEWARE = [
