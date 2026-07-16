@@ -33,6 +33,14 @@ const NAV_GROUPS = [
     links: [{ to: "/queue", label: "Queue Board", icon: "bi-hourglass-split" }],
   },
   {
+    label: "Emergency",
+    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
+    links: [
+      { to: "/emergency", label: "ED Board", icon: "bi-heart-pulse-fill" },
+      { to: "/emergency/register", label: "Register Emergency", icon: "bi-plus-circle-fill" },
+    ],
+  },
+  {
     label: "Inpatient",
     roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
     links: [
