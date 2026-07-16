@@ -72,6 +72,12 @@ import EmergencyBoard from "./pages/emergency/EmergencyBoard.jsx";
 import RegisterEmergency from "./pages/emergency/RegisterEmergency.jsx";
 import EmergencyVisitDetail from "./pages/emergency/EmergencyVisitDetail.jsx";
 
+import Insurers from "./pages/insurance/Insurers.jsx";
+import PatientPolicies from "./pages/insurance/PatientPolicies.jsx";
+import ClaimsList from "./pages/insurance/ClaimsList.jsx";
+import FileClaim from "./pages/insurance/FileClaim.jsx";
+import ClaimDetail from "./pages/insurance/ClaimDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -494,6 +500,12 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/insurance/insurers" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Insurers /></ProtectedRoute>} />
+        <Route path="/insurance/policies" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.CASHIER, ROLES.ACCOUNTANT]}><PatientPolicies /></ProtectedRoute>} />
+        <Route path="/insurance/claims" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><ClaimsList /></ProtectedRoute>} />
+        <Route path="/insurance/claims/new" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST]}><FileClaim /></ProtectedRoute>} />
+        <Route path="/insurance/claims/:id" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><ClaimDetail /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route
