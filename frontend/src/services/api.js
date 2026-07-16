@@ -356,6 +356,38 @@ export const getAntenatalProfileBilling = (id) => unwrap(client.get(`/antenatal-
 export const addAntenatalCharge = (id, payload) => unwrap(client.post(`/antenatal-profiles/${id}/add-charge/`, payload));
 export const addDeliveryCharge = (deliveryId, payload) => unwrap(client.post(`/delivery-records/${deliveryId}/add-charge/`, payload));
 
+// ===========================================================================
+// EMERGENCY DEPARTMENT
+// ===========================================================================
+export const getEmergencyBays = (params) => unwrap(client.get(`/emergency-bays/${qs(params)}`));
+export const getAvailableEmergencyBays = () => unwrap(client.get("/emergency-bays/available/"));
+
+export const getEmergencyVisits = (params) => unwrap(client.get(`/emergency-visits/${qs(params)}`));
+export const getActiveEmergencyVisits = () => unwrap(client.get("/emergency-visits/active/"));
+export const getEmergencyVisit = (id) => unwrap(client.get(`/emergency-visits/${id}/`));
+export const registerEmergencyVisit = (payload) => unwrap(client.post("/emergency-visits/", payload));
+export const getEmergencyBilling = (id) => unwrap(client.get(`/emergency-visits/${id}/billing/`));
+export const addEmergencyCharge = (id, payload) => unwrap(client.post(`/emergency-visits/${id}/add-charge/`, payload));
+export const orderEmergencyProcedure = (id, payload) => unwrap(client.post(`/emergency-visits/${id}/order-procedure/`, payload));
+export const dischargeHome = (id, payload) => unwrap(client.post(`/emergency-visits/${id}/discharge-home/`, payload));
+export const transferToAdmission = (id, payload) => unwrap(client.post(`/emergency-visits/${id}/transfer-to-admission/`, payload));
+export const emergencyLama = (id, payload) => unwrap(client.post(`/emergency-visits/${id}/lama/`, payload));
+export const emergencyDeceased = (id, payload) => unwrap(client.post(`/emergency-visits/${id}/deceased/`, payload));
+
+export const getTriageVitals = (params) => unwrap(client.get(`/triage-vitals/${qs(params)}`));
+export const saveTriageVitals = (payload) => unwrap(client.post("/triage-vitals/", payload));
+
+export const getEmergencyNotes = (params) => unwrap(client.get(`/emergency-notes/${qs(params)}`));
+export const createEmergencyNote = (payload) => unwrap(client.post("/emergency-notes/", payload));
+
+export const getEmergencyProcedureCatalog = (params) => unwrap(client.get(`/emergency-procedure-catalog/${qs(params)}`));
+export const completeEmergencyProcedure = (id) => unwrap(client.post(`/emergency-procedures/${id}/complete/`));
+
+export const getEmergencyMedicationOrders = (params) => unwrap(client.get(`/emergency-medication-orders/${qs(params)}`));
+export const createEmergencyMedicationOrder = (payload) => unwrap(client.post("/emergency-medication-orders/", payload));
+export const recordEmergencyMedicationAdministration = (payload) => unwrap(client.post("/emergency-medication-administrations/", payload));
+
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
