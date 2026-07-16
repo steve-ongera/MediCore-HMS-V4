@@ -68,6 +68,10 @@ import RevenueReport from "./pages/reports/RevenueReport.jsx";
 import DrugConsumptionReport from "./pages/reports/DrugConsumptionReport.jsx";
 import DiseaseStatisticsReport from "./pages/reports/DiseaseStatisticsReport.jsx";
 
+import EmergencyBoard from "./pages/emergency/EmergencyBoard.jsx";
+import RegisterEmergency from "./pages/emergency/RegisterEmergency.jsx";
+import EmergencyVisitDetail from "./pages/emergency/EmergencyVisitDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -462,6 +466,31 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}>
               <ChildDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/emergency"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}>
+              <EmergencyBoard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/emergency/register"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}>
+              <RegisterEmergency />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/emergency/:id"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}>
+              <EmergencyVisitDetail />
             </ProtectedRoute>
           }
         />
