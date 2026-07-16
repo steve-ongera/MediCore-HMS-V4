@@ -246,6 +246,7 @@ class InvoiceSourceType(models.TextChoices):
     INPATIENT = "INPATIENT", "Inpatient"
     PROCEDURE = "PROCEDURE", "Procedure"
     MCH = "MCH", "Maternal & Child Health"
+    EMERGENCY = "EMERGENCY", "Emergency"
 
 
 class InvoiceStatus(models.TextChoices):
