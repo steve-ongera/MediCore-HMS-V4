@@ -177,3 +177,8 @@ CORS_ALLOW_CREDENTIALS = True
 # Hospital branding used on receipts / PDFs
 HOSPITAL_NAME = config("HOSPITAL_NAME", default="City General Hospital")
 HOSPITAL_LOGO_PATH = BASE_DIR / "static" / "logo.png"
+
+SHA_ENVIRONMENT = config("SHA_ENVIRONMENT", default="sandbox")  # "sandbox" | "production"
+SHA_API_BASE_URL = config("SHA_API_BASE_URL", default="")
+SHA_API_KEY = config("SHA_API_KEY", default="")
+SHA_FACILITY_CODE = config("SHA_FACILITY_CODE", default="")
