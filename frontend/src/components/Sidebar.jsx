@@ -109,6 +109,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Insurance / SHA",
+    roles: [ROLES.RECEPTIONIST, ROLES.CASHIER, ROLES.ACCOUNTANT],
+    links: [
+      { to: "/insurance/policies", label: "Patient Policies", icon: "bi-shield-check" },
+      { to: "/insurance/claims", label: "Claims", icon: "bi-file-earmark-medical" },
+      { to: "/insurance/claims/new", label: "File Claim", icon: "bi-file-earmark-plus" },
+      { to: "/insurance/insurers", label: "Insurers", icon: "bi-building", roles: [] },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
