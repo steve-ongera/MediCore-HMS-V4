@@ -8,6 +8,14 @@ import {
   getAvailableBeds, getWards, getUsers, addEmergencyCharge,
 } from "../../services/api";
 
+const TRIAGE_META = {
+  1: { label: "Resuscitation", badge: "badge-danger" },
+  2: { label: "Emergent", badge: "badge-warning" },
+  3: { label: "Urgent", badge: "badge-primary" },
+  4: { label: "Less Urgent", badge: "badge-info" },
+  5: { label: "Non-Urgent", badge: "badge-neutral" },
+};
+
 export default function EmergencyVisitDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -272,24 +280,29 @@ export default function EmergencyVisitDetail() {
   const getStatusBadge = (status) => {
     const statusMap = {
       "IN_ED": "badge-primary",
-      "DISCHARGED_HOME": "badge-success",
       "ADMITTED": "badge-info",
-      "DAMA": "badge-warning",
+      "DISCHARGED": "badge-success",
+      "TRANSFERRED_OUT": "badge-info",
+      "LAMA": "badge-warning",
       "DECEASED": "badge-danger",
     };
     return statusMap[status] || "badge-neutral";
   };
 
-  const getTriageBadge = (level) => {
-    const triageMap = {
-      "RESUSCITATION": "badge-danger",
-      "EMERGENCY": "badge-warning",
-      "URGENT": "badge-primary",
-      "SEMI_URGENT": "badge-info",
-      "NON_URGENT": "badge-neutral"
+  const getStatusLabel = (status) => {
+    const labelMap = {
+      "IN_ED": "In ED",
+      "ADMITTED": "Admitted",
+      "DISCHARGED": "Discharged",
+      "TRANSFERRED_OUT": "Transferred Out",
+      "LAMA": "Left Against Medical Advice",
+      "DECEASED": "Deceased",
     };
-    return triageMap[level] || "badge-neutral";
+    return labelMap[status] || status;
   };
+
+  const triage = TRIAGE_META[ed.triage_level] || { label: "—", badge: "badge-neutral" };
+  const durationHours = Number(ed.duration_hours) || 0;
 
   return (
     <>
@@ -338,13 +351,13 @@ export default function EmergencyVisitDetail() {
                 <span>•</span>
                 <span className={`badge ${getStatusBadge(ed.status)}`}>
                   <span className="badge-dot"></span>
-                  {ed.status.replace("_", " ")}
+                  {getStatusLabel(ed.status)}
                 </span>
               </div>
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock me-1"></i> {ed.duration_hours} hrs
+                <i className="bi bi-clock me-1"></i> {durationHours.toFixed(1)} hrs
               </span>
             </div>
           </div>
@@ -353,9 +366,9 @@ export default function EmergencyVisitDetail() {
             <div className="info-item">
               <div className="info-item__label">Triage Level</div>
               <div className="info-item__value">
-                <span className={`badge ${getTriageBadge(ed.triage_level)}`}>
+                <span className={`badge ${triage.badge}`}>
                   <span className="badge-dot"></span>
-                  {ed.triage_level?.replace("_", " ") || "—"}
+                  {triage.label}
                 </span>
               </div>
             </div>
