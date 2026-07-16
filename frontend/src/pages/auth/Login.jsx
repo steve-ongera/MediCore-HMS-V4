@@ -1,5 +1,5 @@
 // src/pages/auth/Login.jsx
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
@@ -14,28 +14,6 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/dashboard";
-
-  useEffect(() => {
-    const applyBackground = (el) => {
-      if (!el) return null;
-      const prev = el.style.background;
-      el.style.backgroundImage = "url(/login_background.png)";
-      el.style.backgroundSize = "cover";
-      el.style.backgroundPosition = "center";
-      el.style.backgroundRepeat = "no-repeat";
-      el.style.backgroundAttachment = "fixed";
-      return prev;
-    };
-
-    const rootEl = document.getElementById("root");
-    const prevBody = applyBackground(document.body);
-    const prevRoot = applyBackground(rootEl);
-
-    return () => {
-      document.body.style.background = prevBody;
-      if (rootEl) rootEl.style.background = prevRoot;
-    };
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
