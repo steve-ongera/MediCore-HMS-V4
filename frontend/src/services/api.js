@@ -388,6 +388,26 @@ export const createEmergencyMedicationOrder = (payload) => unwrap(client.post("/
 export const recordEmergencyMedicationAdministration = (payload) => unwrap(client.post("/emergency-medication-administrations/", payload));
 
 
+// ===========================================================================
+// INSURANCE / SHA
+// ===========================================================================
+export const getInsurers = (params) => unwrap(client.get(`/insurers/${qs(params)}`));
+export const createInsurer = (payload) => unwrap(client.post("/insurers/", payload));
+export const updateInsurer = (id, payload) => unwrap(client.patch(`/insurers/${id}/`, payload));
+
+export const getInsurancePolicies = (params) => unwrap(client.get(`/insurance-policies/${qs(params)}`));
+export const createInsurancePolicy = (payload) => unwrap(client.post("/insurance-policies/", payload));
+export const verifyEligibility = (policyId) => unwrap(client.post(`/insurance-policies/${policyId}/verify-eligibility/`));
+export const getEligibilityHistory = (policyId) => unwrap(client.get(`/insurance-policies/${policyId}/eligibility-history/`));
+
+export const getInsuranceClaims = (params) => unwrap(client.get(`/insurance-claims/${qs(params)}`));
+export const getInsuranceClaim = (id) => unwrap(client.get(`/insurance-claims/${id}/`));
+export const createInsuranceClaim = (payload) => unwrap(client.post("/insurance-claims/", payload));
+export const submitInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/submit/`));
+export const applyClaimResponse = (id, payload) => unwrap(client.post(`/insurance-claims/${id}/apply-response/`, payload));
+export const settleInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/settle/`));
+export const cancelInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/cancel/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
