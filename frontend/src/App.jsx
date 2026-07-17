@@ -78,6 +78,9 @@ import ClaimsList from "./pages/insurance/ClaimsList.jsx";
 import FileClaim from "./pages/insurance/FileClaim.jsx";
 import ClaimDetail from "./pages/insurance/ClaimDetail.jsx";
 
+import FiscalizedReceipts from "./pages/etims/FiscalizedReceipts.jsx";
+import ETIMSConfig from "./pages/etims/ETIMSConfig.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -506,6 +509,9 @@ export default function App() {
         <Route path="/insurance/claims" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><ClaimsList /></ProtectedRoute>} />
         <Route path="/insurance/claims/new" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST]}><FileClaim /></ProtectedRoute>} />
         <Route path="/insurance/claims/:id" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><ClaimDetail /></ProtectedRoute>} />
+
+        <Route path="/etims/receipts" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT]}><FiscalizedReceipts /></ProtectedRoute>} />
+        <Route path="/etims/config" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ETIMSConfig /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route
