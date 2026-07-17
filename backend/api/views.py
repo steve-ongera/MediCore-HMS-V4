@@ -706,6 +706,12 @@ class OTCSaleViewSet(BaseModelViewSet):
             qr_payload = f"OTC:{sale.sale_number}|AMOUNT:{sale.total_amount}"
             sale.qr_code = generate_qr_code(qr_payload, f"otc_receipt_{sale.sale_number}")
             sale.save(update_fields=["qr_code"])
+            
+        from etims.services import fiscalize_otc_sale
+        try:
+            fiscalize_otc_sale(sale, user=request.user)
+        except Exception:
+            pass  # never block the sale on a fiscalization failure; retry via UI
 
         return Response(
             OTCSaleSerializer(sale, context={"request": request}).data,
