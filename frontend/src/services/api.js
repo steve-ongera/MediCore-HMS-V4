@@ -408,6 +408,17 @@ export const applyClaimResponse = (id, payload) => unwrap(client.post(`/insuranc
 export const settleInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/settle/`));
 export const cancelInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/cancel/`));
 
+// ===========================================================================
+// eTIMS / KRA FISCALIZATION
+// ===========================================================================
+export const getFiscalizationConfig = () => unwrap(client.get("/fiscalization-config/"));
+export const updateFiscalizationConfig = (id, payload) => unwrap(client.patch(`/fiscalization-config/${id}/`, payload));
+export const createFiscalizationConfig = (payload) => unwrap(client.post("/fiscalization-config/", payload));
+
+export const getFiscalizedReceipts = (params) => unwrap(client.get(`/fiscalized-receipts/${qs(params)}`));
+export const getFailedFiscalizations = () => unwrap(client.get("/fiscalized-receipts/failed/"));
+export const retryFiscalization = (id) => unwrap(client.post(`/fiscalized-receipts/${id}/retry/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
