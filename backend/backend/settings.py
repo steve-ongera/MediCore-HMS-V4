@@ -183,3 +183,10 @@ SHA_ENVIRONMENT = config("SHA_ENVIRONMENT", default="sandbox")  # "sandbox" | "p
 SHA_API_BASE_URL = config("SHA_API_BASE_URL", default="")
 SHA_API_KEY = config("SHA_API_KEY", default="")
 SHA_FACILITY_CODE = config("SHA_FACILITY_CODE", default="")
+
+ETIMS_ENVIRONMENT = config("ETIMS_ENVIRONMENT", default="sandbox")  # "sandbox" | "production"
+ETIMS_API_BASE_URL = config("ETIMS_API_BASE_URL", default="")
+ETIMS_API_KEY = config("ETIMS_API_KEY", default="")
+ETIMS_KRA_PIN = config("ETIMS_KRA_PIN", default="")
+ETIMS_BRANCH_ID = config("ETIMS_BRANCH_ID", default="00")
+ETIMS_CU_SERIAL = config("ETIMS_CU_SERIAL", default="")
