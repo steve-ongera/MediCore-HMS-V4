@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getPatients, getInsurancePolicies, getInvoices, createInsuranceClaim } from "../../services/api";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getPatient, getPatients, getInsurancePolicies, getInvoices, createInsuranceClaim } from "../../services/api";
 
 export default function FileClaim() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const patientIdParam = searchParams.get("patient");
+  const invoiceIdParam = searchParams.get("invoice");
 
   const [patientQuery, setPatientQuery] = useState("");
   const [patientResults, setPatientResults] = useState([]);
@@ -17,6 +20,26 @@ export default function FileClaim() {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [initializing, setInitializing] = useState(!!patientIdParam);
+
+  // Arrived from Billing.jsx with ?patient=xxx&invoice=yyy — load that
+  // patient directly instead of making staff search for them again.
+  useEffect(() => {
+    if (patientIdParam) {
+      loadPatientFromParam(patientIdParam);
+    }
+  }, [patientIdParam]);
+
+  const loadPatientFromParam = async (patientId) => {
+    try {
+      const patient = await getPatient(patientId);
+      setSelectedPatient(patient);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setInitializing(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedPatient) {
@@ -24,6 +47,14 @@ export default function FileClaim() {
       loadInvoices(selectedPatient.id);
     }
   }, [selectedPatient]);
+
+  // Once invoices load, if we arrived with a specific ?invoice= target,
+  // pre-check it automatically.
+  useEffect(() => {
+    if (invoiceIdParam && invoices.some((inv) => inv.id === invoiceIdParam)) {
+      setSelectedInvoiceIds((prev) => (prev.includes(invoiceIdParam) ? prev : [...prev, invoiceIdParam]));
+    }
+  }, [invoices, invoiceIdParam]);
 
   const handlePatientSearch = async (e) => {
     e.preventDefault();
@@ -73,6 +104,15 @@ export default function FileClaim() {
     } catch (err) { setError(err.message); } finally { setSubmitting(false); }
   };
 
+  if (initializing) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading patient...</span>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="page-header">
@@ -98,103 +138,103 @@ export default function FileClaim() {
         </div>
       )}
 
-      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
-        <div className="card-header">
-          <h5 className="card-title">
-            <i className="bi bi-search me-2"></i> Step 1: Find Patient
-          </h5>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handlePatientSearch}>
-            <div className="field-row">
-              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
-                <label className="field-label">Search Patient</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Search by name / phone / hospital number"
-                  value={patientQuery}
-                  onChange={(e) => setPatientQuery(e.target.value)}
-                />
-              </div>
-              <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
-                <button type="submit" className="btn btn-primary">
-                  <i className="bi bi-search me-2"></i> Search
-                </button>
-              </div>
-            </div>
-          </form>
-
-          {patientResults.length > 0 && (
-            <div style={{ marginTop: "var(--space-4)" }}>
-              <div className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
-                Search Results ({patientResults.length})
-              </div>
-              <div className="table-scroll">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Hospital #</th>
-                      <th>Phone</th>
-                      <th className="cell-actions"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {patientResults.map((p) => (
-                      <tr key={p.id}>
-                        <td className="cell-primary">{p.full_name}</td>
-                        <td className="cell-mono">{p.hospital_number}</td>
-                        <td>{p.phone}</td>
-                        <td className="cell-actions">
-                          <button
-                            type="button"
-                            className="btn btn-primary btn-sm"
-                            onClick={() => setSelectedPatient(p)}
-                          >
-                            <i className="bi bi-check me-1"></i> Select
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {selectedPatient && (
-            <div className="card" style={{ borderColor: "var(--success)", background: "var(--success-soft)", marginTop: "var(--space-4)" }}>
-              <div className="card-body">
-                <div className="flex items-center gap-3">
-                  <div className="avatar avatar-sm">
-                    <i className="bi bi-person-check fs-xl"></i>
-                  </div>
-                  <div>
-                    <div className="text-sm text-success font-semibold">
-                      <i className="bi bi-check-circle me-1"></i> Selected Patient
-                    </div>
-                    <div className="font-bold">{selectedPatient.full_name}</div>
-                    <div className="text-sm text-muted">
-                      {selectedPatient.hospital_number} • {selectedPatient.phone}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm ml-auto"
-                    onClick={() => setSelectedPatient(null)}
-                  >
-                    <i className="bi bi-x me-1"></i> Change
+      {!patientIdParam && (
+        <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+          <div className="card-header">
+            <h5 className="card-title">
+              <i className="bi bi-search me-2"></i> Step 1: Find Patient
+            </h5>
+          </div>
+          <div className="card-body">
+            <form onSubmit={handlePatientSearch}>
+              <div className="field-row">
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Search Patient</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Search by name / phone / hospital number"
+                    value={patientQuery}
+                    onChange={(e) => setPatientQuery(e.target.value)}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
+                  <button type="submit" className="btn btn-primary">
+                    <i className="bi bi-search me-2"></i> Search
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            </form>
+
+            {patientResults.length > 0 && (
+              <div style={{ marginTop: "var(--space-4)" }}>
+                <div className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
+                  Search Results ({patientResults.length})
+                </div>
+                <div className="table-scroll">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Hospital #</th>
+                        <th>Phone</th>
+                        <th className="cell-actions"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {patientResults.map((p) => (
+                        <tr key={p.id}>
+                          <td className="cell-primary">{p.full_name}</td>
+                          <td className="cell-mono">{p.hospital_number}</td>
+                          <td>{p.phone}</td>
+                          <td className="cell-actions">
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              onClick={() => setSelectedPatient(p)}
+                            >
+                              <i className="bi bi-check me-1"></i> Select
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {selectedPatient && (
         <>
+          <div className="card" style={{ borderColor: "var(--success)", background: "var(--success-soft)", marginBottom: "var(--space-6)" }}>
+            <div className="card-body">
+              <div className="flex items-center gap-3">
+                <div className="avatar avatar-sm">
+                  <i className="bi bi-person-check fs-xl"></i>
+                </div>
+                <div>
+                  <div className="text-sm text-success font-semibold">
+                    <i className="bi bi-check-circle me-1"></i> Selected Patient
+                  </div>
+                  <div className="font-bold">{selectedPatient.full_name}</div>
+                  <div className="text-sm text-muted">
+                    {selectedPatient.hospital_number} • {selectedPatient.phone}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm ml-auto"
+                  onClick={() => { navigate("/insurance/claims/new"); setSelectedPatient(null); }}
+                >
+                  <i className="bi bi-x me-1"></i> Change Patient
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <h5 className="card-title">
@@ -202,28 +242,38 @@ export default function FileClaim() {
               </h5>
             </div>
             <div className="card-body">
-              <div className="field">
-                <label className="field-label">Insurance Policy <span className="required">*</span></label>
-                <select
-                  className="select"
-                  value={selectedPolicy}
-                  onChange={(e) => setSelectedPolicy(e.target.value)}
-                  required
-                >
-                  <option value="">Select policy</option>
-                  {policies.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.insurer_name} — {p.member_number} 
-                      {!p.is_currently_valid && " (EXPIRED)"}
-                    </option>
-                  ))}
-                </select>
-                {policies.length === 0 && (
-                  <div className="text-sm text-muted" style={{ marginTop: "var(--space-2)" }}>
-                    <i className="bi bi-info-circle me-1"></i> No active insurance policies found for this patient.
+              {policies.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state__icon">
+                    <i className="bi bi-file-earmark-text"></i>
                   </div>
-                )}
-              </div>
+                  <h3 className="empty-state__title">No insurance policy found</h3>
+                  <p className="empty-state__desc">
+                    This patient has no registered insurance policy yet.
+                  </p>
+                  <Link to="/insurance/policies" className="btn btn-primary">
+                    <i className="bi bi-plus-circle me-2"></i> Register Policy
+                  </Link>
+                </div>
+              ) : (
+                <div className="field">
+                  <label className="field-label">Insurance Policy <span className="required">*</span></label>
+                  <select
+                    className="select"
+                    value={selectedPolicy}
+                    onChange={(e) => setSelectedPolicy(e.target.value)}
+                    required
+                  >
+                    <option value="">Select policy</option>
+                    {policies.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.insurer_name} — {p.member_number} 
+                        {!p.is_currently_valid && " (EXPIRED)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
@@ -349,7 +399,7 @@ export default function FileClaim() {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={submitting || !selectedPatient || !selectedPolicy || selectedInvoiceIds.length === 0}
+                    disabled={submitting || !selectedPatient || !selectedPolicy || selectedInvoiceIds.length === 0 || policies.length === 0}
                   >
                     {submitting ? (
                       <>

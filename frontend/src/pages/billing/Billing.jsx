@@ -92,13 +92,21 @@ export default function Billing() {
       key: "actions",
       label: "",
       render: (row) => (
-        <div className="d-flex gap-1 justify-content-end">
+        <div className="flex gap-1 justify-end">
           <Link
             to={`/billing/payments?invoice=${row.id}`}
-            className="btn btn-sm btn-primary"
+            className="btn btn-primary btn-sm"
           >
-            <i className="bi bi-cash"></i> Pay
+            <i className="bi bi-cash me-1"></i> Pay
           </Link>
+          {row.balance > 0 && (
+            <Link
+              to={`/insurance/claims/new?patient=${row.patient}&invoice=${row.id}`}
+              className="btn btn-secondary btn-sm"
+            >
+              <i className="bi bi-shield-check me-1"></i> Claim
+            </Link>
+          )}
         </div>
       ),
     },
@@ -114,6 +122,15 @@ export default function Billing() {
 
   const totalBalance = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
 
+  if (loading && invoices.length === 0) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading invoices...</span>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="page-header">
@@ -123,6 +140,9 @@ export default function Billing() {
           <p className="page-subtitle">Manage patient invoices and payments</p>
         </div>
         <div className="page-header__actions">
+          <button className="btn btn-secondary" onClick={() => { setPage(1); loadInvoices(); }}>
+            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+          </button>
           <Link to="/billing/payments" className="btn btn-success">
             <i className="bi bi-cash-stack me-2"></i>
             Process Payment
@@ -131,7 +151,7 @@ export default function Billing() {
       </div>
 
       {/* Stats */}
-      <div className="stat-grid mb-4">
+      <div className="stat-grid" style={{ marginBottom: "var(--space-4)" }}>
         <StatCard
           label="Total Invoices"
           value={total}
@@ -160,7 +180,7 @@ export default function Billing() {
 
       <div className="card">
         <div className="card-header">
-          <div className="d-flex align-items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             <SearchBar
               placeholder="Search invoices..."
               onSearch={(val) => {
@@ -169,24 +189,26 @@ export default function Billing() {
               }}
               delay={400}
             />
-            <select
-              className="select"
-              style={{ width: 160 }}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              {statusOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <select
+                className="select"
+                style={{ width: 160 }}
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                {statusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div>
-            <span className="text-muted text-sm">
+            <span className="text-tertiary text-sm">
               {total} invoice{total !== 1 ? "s" : ""}
             </span>
           </div>
