@@ -119,6 +119,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "eTIMS (KRA)",
+    roles: [ROLES.ACCOUNTANT],
+    links: [
+      { to: "/etims/receipts", label: "Fiscalized Receipts", icon: "bi-qr-code" },
+      { to: "/etims/config", label: "eTIMS Settings", icon: "bi-gear-fill", roles: [] },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
