@@ -2,4 +2,8 @@ from django.apps import AppConfig
 
 
 class EtimsConfig(AppConfig):
-    name = 'etims'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "etims"
+
+    def ready(self):
+        from . import signals  # noqa: F401
