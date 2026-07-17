@@ -1,5 +1,7 @@
 from api.models import Department, ConsultationType, VisitStatus, Visit, Invoice, InvoiceSourceType
 
+# Emergency Registration fee varies from Hospitals to Hospitals 300-1000
+
 REGISTRATION_FEE = 1000
 
 
