@@ -87,6 +87,12 @@ import AssetDetail from "./pages/assets/AssetDetail.jsx";
 import AssetMaintenance from "./pages/assets/AssetMaintenance.jsx";
 import AssetCategories from "./pages/assets/AssetCategories.jsx";
 
+import Requisitions from "./pages/procurement/Requisitions.jsx";
+import PurchaseOrders from "./pages/procurement/PurchaseOrders.jsx";
+import PurchaseOrderDetail from "./pages/procurement/PurchaseOrderDetail.jsx";
+import GoodsReceipts from "./pages/procurement/GoodsReceipts.jsx";
+import SupplierInvoices from "./pages/procurement/SupplierInvoices.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -524,6 +530,8 @@ export default function App() {
         <Route path="/assets/:id" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetDetail /></ProtectedRoute>} />
         <Route path="/assets/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetMaintenance /></ProtectedRoute>} />
         <Route path="/assets/categories" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><AssetCategories /></ProtectedRoute>} />
+
+        
 
         {/* Profile - any authenticated user */}
         <Route
