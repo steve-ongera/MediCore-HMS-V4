@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -83,11 +84,18 @@ class Asset(BaseModel):
 
     @property
     def current_value(self):
-        """Straight-line depreciation, floored at salvage_value."""
+        """Straight-line depreciation, floored at salvage_value.
+
+        Everything here is kept in Decimal on purpose: purchase_cost and
+        salvage_value are DecimalFields, and Decimal * float raises
+        TypeError. Building years_elapsed as a Decimal (instead of dividing
+        .days, an int, by 365.25, a float) avoids that.
+        """
         if not self.purchase_date or self.effective_useful_life_years <= 0:
             return self.purchase_cost
 
-        years_elapsed = (date.today() - self.purchase_date).days / 365.25
+        days_elapsed = (date.today() - self.purchase_date).days
+        years_elapsed = Decimal(days_elapsed) / Decimal("365.25")
         depreciable_amount = self.purchase_cost - self.salvage_value
         annual_depreciation = depreciable_amount / self.effective_useful_life_years
         accumulated = min(annual_depreciation * years_elapsed, depreciable_amount)

@@ -1,11 +1,12 @@
 from django.db import transaction
+from django.db.models import Count
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
 from api.views import BaseModelViewSet
-from api.permissions import ReadOnlyOrSuperAdmin, IsSuperAdmin
+from api.permissions import ReadOnlyOrSuperAdmin
 
 from .models import (
     AssetCategory, Asset, AssetStatus, AssetMaintenance, MaintenanceStatus,
@@ -26,7 +27,7 @@ class AssetCategoryViewSet(BaseModelViewSet):
 
 
 class AssetViewSet(BaseModelViewSet):
-    queryset = Asset.objects.select_related("category", "supplier", "department", "assigned_to").all()
+    queryset = Asset.objects.select_related("category", "supplier", "department", "assigned_to").order_by("-created_at")
     filterset_fields = ["category", "department", "status", "condition"]
     search_fields = ["asset_tag", "name", "serial_number", "manufacturer"]
 
@@ -43,7 +44,7 @@ class AssetViewSet(BaseModelViewSet):
         qs = self.get_queryset()
         total_assets = qs.count()
         total_value = sum((a.current_value for a in qs), start=0)
-        by_status = list(qs.values("status").annotate(count=__import__("django.db.models", fromlist=["Count"]).Count("id")))
+        by_status = list(qs.values("status").annotate(count=Count("id")))
         under_warranty = len([a for a in qs if a.is_under_warranty])
         under_maintenance = qs.filter(status=AssetStatus.UNDER_MAINTENANCE).count()
 
@@ -116,7 +117,7 @@ class AssetViewSet(BaseModelViewSet):
 
 
 class AssetMaintenanceViewSet(BaseModelViewSet):
-    queryset = AssetMaintenance.objects.select_related("asset").all()
+    queryset = AssetMaintenance.objects.select_related("asset").order_by("-scheduled_date")
     serializer_class = AssetMaintenanceSerializer
     filterset_fields = ["asset", "status", "maintenance_type"]
 
@@ -124,7 +125,7 @@ class AssetMaintenanceViewSet(BaseModelViewSet):
         maintenance = serializer.save(logged_by=self.request.user)
         if maintenance.status in (MaintenanceStatus.SCHEDULED, MaintenanceStatus.IN_PROGRESS):
             asset = maintenance.asset
-            asset.status = "UNDER_MAINTENANCE"
+            asset.status = AssetStatus.UNDER_MAINTENANCE
             asset.save(update_fields=["status"])
 
     @action(detail=True, methods=["post"], url_path="complete")
@@ -136,7 +137,9 @@ class AssetMaintenanceViewSet(BaseModelViewSet):
         maintenance.save(update_fields=["status", "completed_date"])
 
         asset = maintenance.asset
-        if not asset.maintenance_records.filter(status__in=[MaintenanceStatus.SCHEDULED, MaintenanceStatus.IN_PROGRESS]).exclude(pk=maintenance.pk).exists():
+        if not asset.maintenance_records.filter(
+            status__in=[MaintenanceStatus.SCHEDULED, MaintenanceStatus.IN_PROGRESS]
+        ).exclude(pk=maintenance.pk).exists():
             asset.status = AssetStatus.IN_USE if asset.assigned_to else AssetStatus.IN_STORE
             asset.save(update_fields=["status"])
 
@@ -144,14 +147,14 @@ class AssetMaintenanceViewSet(BaseModelViewSet):
 
 
 class AssetTransferViewSet(BaseModelViewSet):
-    queryset = AssetTransfer.objects.select_related("asset", "from_department", "to_department").all()
+    queryset = AssetTransfer.objects.select_related("asset", "from_department", "to_department").order_by("-transferred_at")
     serializer_class = AssetTransferSerializer
     filterset_fields = ["asset"]
-    http_method_names = ["get", "head", "options"]  # created only via AssetViewSet.transfer
+    http_method_names = ["get", "head", "options"]
 
 
 class AssetDisposalViewSet(BaseModelViewSet):
-    queryset = AssetDisposal.objects.select_related("asset").all()
+    queryset = AssetDisposal.objects.select_related("asset").order_by("-disposal_date")
     serializer_class = AssetDisposalSerializer
     filterset_fields = ["disposal_method"]
-    http_method_names = ["get", "head", "options"]  # created only via AssetViewSet.dispose
+    http_method_names = ["get", "head", "options"]
