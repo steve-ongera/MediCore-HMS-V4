@@ -9,6 +9,7 @@ export default function AssetForm() {
   const [suppliers, setSuppliers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
@@ -18,10 +19,17 @@ export default function AssetForm() {
   });
 
   useEffect(() => {
-    loadCategories();
-    loadSuppliers();
-    loadDepartments();
+    loadFormData();
   }, []);
+
+  const loadFormData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([loadCategories(), loadSuppliers(), loadDepartments()]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadCategories = async () => {
     try {
