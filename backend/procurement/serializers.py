@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from .serializers import GoodsReceiptSerializer
 from .models import (
     PurchaseRequisition, RequisitionItem, PurchaseOrder, PurchaseOrderItem,
     GoodsReceipt, GoodsReceiptItem, SupplierInvoice, SupplierPayment,
@@ -77,13 +77,14 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
     items = PurchaseOrderItemSerializer(many=True, read_only=True)
     total_amount = serializers.SerializerMethodField()
+    goods_receipts = GoodsReceiptSerializer(many=True, read_only=True)
 
     class Meta:
         model = PurchaseOrder
         fields = [
             "id", "po_number", "requisition", "requisition_number", "supplier", "supplier_name",
             "status", "order_date", "expected_delivery_date", "notes", "created_by",
-            "created_by_name", "items", "total_amount", "created_at",
+            "created_by_name", "items", "total_amount", "created_at", "goods_receipts" ,
         ]
         read_only_fields = ["id", "po_number", "status", "order_date", "created_by", "created_at"]
 
