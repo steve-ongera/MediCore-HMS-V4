@@ -81,6 +81,12 @@ import ClaimDetail from "./pages/insurance/ClaimDetail.jsx";
 import FiscalizedReceipts from "./pages/etims/FiscalizedReceipts.jsx";
 import ETIMSConfig from "./pages/etims/ETIMSConfig.jsx";
 
+import AssetRegister from "./pages/assets/AssetRegister.jsx";
+import AssetForm from "./pages/assets/AssetForm.jsx";
+import AssetDetail from "./pages/assets/AssetDetail.jsx";
+import AssetMaintenance from "./pages/assets/AssetMaintenance.jsx";
+import AssetCategories from "./pages/assets/AssetCategories.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
