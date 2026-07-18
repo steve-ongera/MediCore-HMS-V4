@@ -127,6 +127,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Asset Management",
+    roles: [ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN],
+    links: [
+      { to: "/assets", label: "Asset Register", icon: "bi-box-seam-fill" },
+      { to: "/assets/register", label: "Register Asset", icon: "bi-plus-square" },
+      { to: "/assets/maintenance", label: "Maintenance", icon: "bi-tools" },
+      { to: "/assets/categories", label: "Categories", icon: "bi-tags", roles: [] },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
