@@ -137,6 +137,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Procurement",
+    roles: [ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN],
+    links: [
+      { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check" },
+      { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4" },
+      { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down" },
+      { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
