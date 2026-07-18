@@ -519,6 +519,12 @@ export default function App() {
         <Route path="/etims/receipts" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT]}><FiscalizedReceipts /></ProtectedRoute>} />
         <Route path="/etims/config" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ETIMSConfig /></ProtectedRoute>} />
 
+        <Route path="/assets" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetRegister /></ProtectedRoute>} />
+        <Route path="/assets/register" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetForm /></ProtectedRoute>} />
+        <Route path="/assets/:id" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetDetail /></ProtectedRoute>} />
+        <Route path="/assets/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetMaintenance /></ProtectedRoute>} />
+        <Route path="/assets/categories" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><AssetCategories /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
