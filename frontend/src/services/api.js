@@ -441,6 +441,31 @@ export const completeAssetMaintenance = (id) => unwrap(client.post(`/asset-maint
 export const getAssetTransfers = (params) => unwrap(client.get(`/asset-transfers/${qs(params)}`));
 export const getAssetDisposals = (params) => unwrap(client.get(`/asset-disposals/${qs(params)}`));
 
+// ===========================================================================
+// PROCUREMENT
+// ===========================================================================
+export const getRequisitions = (params) => unwrap(client.get(`/purchase-requisitions/${qs(params)}`));
+export const getPendingRequisitions = () => unwrap(client.get("/purchase-requisitions/pending-approval/"));
+export const createRequisition = (payload) => unwrap(client.post("/purchase-requisitions/", payload));
+export const approveRequisition = (id) => unwrap(client.post(`/purchase-requisitions/${id}/approve/`));
+export const rejectRequisition = (id, payload) => unwrap(client.post(`/purchase-requisitions/${id}/reject/`, payload));
+
+export const getPurchaseOrders = (params) => unwrap(client.get(`/purchase-orders/${qs(params)}`));
+export const getOpenPurchaseOrders = () => unwrap(client.get("/purchase-orders/open/"));
+export const getPurchaseOrder = (id) => unwrap(client.get(`/purchase-orders/${id}/`));
+export const createPurchaseOrder = (payload) => unwrap(client.post("/purchase-orders/", payload));
+export const cancelPurchaseOrder = (id) => unwrap(client.post(`/purchase-orders/${id}/cancel/`));
+
+export const getGoodsReceipts = (params) => unwrap(client.get(`/goods-receipts/${qs(params)}`));
+export const createGoodsReceipt = (payload) => unwrap(client.post("/goods-receipts/", payload));
+
+export const getSupplierInvoices = (params) => unwrap(client.get(`/supplier-invoices/${qs(params)}`));
+export const getOutstandingSupplierInvoices = () => unwrap(client.get("/supplier-invoices/outstanding/"));
+export const createSupplierInvoice = (payload) => unwrap(client.post("/supplier-invoices/", payload));
+
+export const getSupplierPayments = (params) => unwrap(client.get(`/supplier-payments/${qs(params)}`));
+export const createSupplierPayment = (payload) => unwrap(client.post("/supplier-payments/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
