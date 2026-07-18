@@ -531,7 +531,11 @@ export default function App() {
         <Route path="/assets/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetMaintenance /></ProtectedRoute>} />
         <Route path="/assets/categories" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><AssetCategories /></ProtectedRoute>} />
 
-        
+        <Route path="/procurement/requisitions" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><Requisitions /></ProtectedRoute>} />
+        <Route path="/procurement/orders" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><PurchaseOrders /></ProtectedRoute>} />
+        <Route path="/procurement/orders/:id" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><PurchaseOrderDetail /></ProtectedRoute>} />
+        <Route path="/procurement/receipts" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><GoodsReceipts /></ProtectedRoute>} />
+        <Route path="/procurement/invoices" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><SupplierInvoices /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route
