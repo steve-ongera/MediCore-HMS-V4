@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "insurance",
     "etims",
     "assets",
+    "procurement",
 ]
 
 MIDDLEWARE = [
