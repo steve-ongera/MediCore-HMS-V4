@@ -1,127 +1,327 @@
-# Medicore V4  HMIS Backend — Hospital Management Information System
+# MediCore HMS V4 — Hospital Management Information System
 
-A comprehensive Hospital Management Information System (HMIS) built as a **single-app Django REST Framework backend** that manages the complete patient journey—from **registration, billing, queue management, triage, consultation, laboratory and radiology services, pharmacy, to reporting**. Developed with **Python 3.13, Django 5, Django REST Framework, and PostgreSQL**, the system features **JWT authentication**, **Role-Based Access Control (RBAC)**, **soft deletes**, **audit logging**, **QR-coded receipts**, and **OpenAPI/Swagger documentation**. Designed with simplicity and maintainability in mind, all backend functionality is contained within a single Django application (`api`), providing a secure, scalable, and efficient foundation for modern healthcare management.
+A comprehensive Hospital Management Information System (HMIS) built as a **modular Django REST Framework backend** that manages the complete patient journey — from **registration, billing, queue management, triage, consultation, laboratory and radiology services, pharmacy, inpatient wards, emergency, maternal & child health (MCH), insurance/SHA claims, and eTIMS/KRA fiscalization** — paired with a **React 19 frontend**. Built with **Python 3.13, Django 5, Django REST Framework, and SQLite/PostgreSQL**, the system features **JWT authentication with silent refresh**, **Role-Based Access Control (RBAC)**, **soft deletes**, **audit logging**, **QR-coded receipts**, **M-Pesa integration**, and **OpenAPI/Swagger documentation**.
 
+Unlike earlier single-app iterations, V4 splits functionality into focused Django apps — `api` (core: patients, visits, billing, queue, pharmacy, lab, radiology), `assets` (asset register, maintenance, transfers, disposals), `emergency` (ED bays, triage, procedures), `etims` (KRA fiscalization gateway), `inpatient` (wards, beds, admissions, medication administration), `insurance` (SHA and other payer claims), and `mch` (antenatal, delivery, postnatal, child immunization) — while keeping the frontend as a single React app with one page tree and one `services/api.js`.
 
 ---
 
 ## Project Structure
 
 ```
-hmis4/
+MediCore HMS V4/
 │
-├── hmis_backend/                       # Django REST Framework (single "api" app)
+├── backend/                            # Django project root
 │   ├── manage.py
 │   ├── requirements.txt
-│   ├── .env.example
+│   ├── .env
+│   ├── .gitignore
+│   ├── db.sqlite3
 │   │
 │   ├── backend/                        # Project config
 │   │   ├── __init__.py
 │   │   ├── settings.py                 # DB, DRF, JWT, CORS, Swagger
-│   │   └── urls.py                     # Root URLConf + Swagger/Redoc
+│   │   ├── urls.py                     # Root URLConf + Swagger/Redoc
+│   │   ├── asgi.py
+│   │   └── wsgi.py
 │   │
-│   ├── api/                            # ⭐ Everything lives here
-│   │   ├── __init__.py
-│   │   ├── apps.py
+│   ├── api/                            # ⭐ Core app: patients → reports
 │   │   ├── admin.py
-│   │   ├── models.py                   # All tables (patients → reports)
-│   │   ├── serializers.py
-│   │   ├── views.py                    # ViewSets + auth/dashboard/report views
-│   │   ├── urls.py                     # DRF router
-│   │   ├── permissions.py              # RBAC per role
+│   │   ├── apps.py
+│   │   ├── exceptions.py
 │   │   ├── filters.py
-│   │   ├── signals.py                  # Audit log + workflow automation
 │   │   ├── managers.py                 # Soft delete
 │   │   ├── middleware.py
-│   │   ├── exceptions.py
+│   │   ├── models.py                   # Users, Departments, Patients, Visits,
+│   │   │                                #   Billing, Queue, Vitals, Consultation,
+│   │   │                                #   Prescriptions, Lab, Radiology, Pharmacy,
+│   │   │                                #   OTC Sales, AuditLog
+│   │   ├── permissions.py              # RBAC per role
+│   │   ├── serializers.py
+│   │   ├── signals.py                  # Audit log + workflow automation
+│   │   ├── tests.py
+│   │   ├── urls.py                     # DRF router
 │   │   ├── utils.py                    # Number/QR/BMI generators
+│   │   ├── views.py                    # ViewSets + auth/dashboard/report views
 │   │   ├── management/commands/
+│   │   │   └── seed_data.py
 │   │   └── migrations/
+│   │       ├── 0001_initial.py
+│   │       ├── 0002_otcsale_otcsaleitem.py
+│   │       └── 0003–0006_alter_invoice_source_type.py
 │   │
-│   ├── media/                          # Uploads (lab results, QR receipts, radiology images)
-│   └── static/                         # Hospital logo, static assets
+│   ├── assets/                         # Asset register & lifecycle management
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py                   # AssetCategory, Asset, AssetMaintenance,
+│   │   │                                #   AssetTransfer, AssetDisposal
+│   │   ├── serializers.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── utils.py                    # Asset tag generator
+│   │   ├── views.py                    # Transfer/dispose actions, warranty alerts
+│   │   ├── management/commands/
+│   │   │   └── seed_assets.py
+│   │   └── migrations/
+│   │       └── 0001_initial.py
+│   │
+│   ├── emergency/                      # Emergency department
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py                   # Bays, Visits, Triage Vitals, Notes,
+│   │   │                                #   Procedures, Medication Orders
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── utils.py
+│   │   ├── views.py                    # Discharge home / LAMA / deceased / admit
+│   │   ├── management/commands/
+│   │   │   └── seed_emergency.py
+│   │   └── migrations/
+│   │       └── 0001_initial.py
+│   │
+│   ├── etims/                          # KRA eTIMS fiscalization
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py                   # FiscalizationConfig, FiscalizedReceipt
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── signals.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── views.py                    # Retry failed fiscalizations
+│   │   ├── gateways/
+│   │   │   ├── base.py
+│   │   │   └── kra.py                  # KRA eTIMS gateway integration
+│   │   ├── management/commands/
+│   │   │   └── seed_fiscalization.py
+│   │   └── migrations/
+│   │       └── 0001_initial.py
+│   │
+│   ├── inpatient/                      # Wards, beds, admissions
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py                   # Ward, Bed, Admission, WardRound,
+│   │   │                                #   NursingNote, MedicationOrder/Admin,
+│   │   │                                #   BedCharge, ProcedureCatalog
+│   │   ├── scheduler.py                # Recurring bed-charge generation
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── signals.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── views.py                    # Discharge, transfer bed, billing
+│   │   ├── management/commands/
+│   │   │   ├── backfill_admission_visits.py
+│   │   │   ├── generate_bed_charges.py
+│   │   │   ├── seed_inpatient.py
+│   │   │   └── seed_procedure_catalog.py
+│   │   └── migrations/
+│   │       ├── 0001_initial.py
+│   │       ├── 0002_medicationorder_quantity.py
+│   │       ├── 0003_medicationadministration_batch_and_more.py
+│   │       └── 0004_procedurecatalog_inpatientprocedure.py
+│   │
+│   ├── insurance/                      # Payer / SHA claims
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py                   # Insurer, InsurancePolicy, InsuranceClaim
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── utils.py
+│   │   ├── views.py                    # Eligibility check, submit/settle/cancel claim
+│   │   ├── gateways/
+│   │   │   ├── base.py
+│   │   │   ├── factory.py
+│   │   │   ├── generic.py
+│   │   │   └── sha.py                  # SHA (Social Health Authority) gateway
+│   │   ├── management/commands/
+│   │   │   └── seed_insurance.py
+│   │   └── migrations/
+│   │       └── 0001_initial.py
+│   │
+│   ├── mch/                             # Maternal & Child Health
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py                   # AntenatalProfile, ANCVisit, DeliveryRecord,
+│   │   │                                #   PostnatalVisit, Child, Immunization,
+│   │   │                                #   GrowthRecord, DeliveryCharge
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── utils.py
+│   │   ├── views.py                    # Record delivery, due immunizations
+│   │   ├── management/commands/
+│   │   │   └── seed_mch_records.py
+│   │   └── migrations/
+│   │       ├── 0001_initial.py
+│   │       └── 0002_deliverycharge.py
+│   │
+│   ├── media/                          # Uploads
+│   │   ├── lab_results/
+│   │   ├── otc_receipts/qr/
+│   │   ├── radiology_images/
+│   │   ├── radiology_reports/
+│   │   └── receipts/qr/
+│   │
+│   └── static/
+│       └── logo.png
 │
-└── hmis_frontend/                      # React 19 (JSX)
+└── frontend/                           # React 19 (JSX + Vite)
     ├── package.json
     ├── vite.config.js
     ├── index.html
-    ├── .env.example                    # VITE_API_BASE_URL=...
+    ├── .env
     │
     └── src/
+        ├── App.jsx                     # ⭐ All routes defined here
         ├── main.jsx
-        ├── App.jsx                     # ⭐ ALL routes defined here
-        │__ styles/main.css
-        ├── components/                 # Reusable, dumb/presentational
-        │   ├── Navbar.jsx
-        │   ├── Sidebar.jsx
-        │   ├── DataTable.jsx
-        │   ├── SearchBar.jsx
-        │   ├── Pagination.jsx
-        │   ├── StatusBadge.jsx
-        │   ├── StatCard.jsx
-        │   ├── Modal.jsx
+        ├── App.css
+        ├── index.css
+        │
+        ├── assets/                     # Static images
+        │   ├── hero.png
+        │   ├── medicore_logo.png
+        │   ├── react.svg
+        │   └── vite.svg
+        │
+        ├── components/                 # Reusable, presentational
         │   ├── ConfirmDialog.jsx
+        │   ├── DataTable.jsx
         │   ├── LoadingSpinner.jsx
-        │   ├── SkeletonLoader.jsx
+        │   ├── Modal.jsx
+        │   ├── Navbar.jsx
+        │   ├── PageContent.jsx
+        │   ├── PageHeader.jsx
+        │   ├── Pagination.jsx
+        │   ├── PrintableReceipt.jsx
         │   ├── ProtectedRoute.jsx      # Role-based route guard
-        │   └── PrintableReceipt.jsx    # Receipt w/ QR + logo
+        │   ├── ReceiptModal.jsx
+        │   ├── SearchBar.jsx
+        │   ├── Sidebar.jsx
+        │   ├── SkeletonLoader.jsx
+        │   ├── StatCard.jsx
+        │   └── StatusBadge.jsx
+        │
+        ├── context/
+        │   ├── AuthContext.jsx         # user, token, login/logout, role
+        │   ├── SidebarContext.jsx
+        │   ├── ToastContext.jsx
+        │   └── toast.css
+        │
+        ├── hooks/
+        │   ├── index.js
+        │   ├── useApi.js
+        │   ├── useAuth.js
+        │   ├── useClickOutside.js
+        │   ├── useDebounce.js
+        │   ├── useForm.js
+        │   ├── useLocalStorage.js
+        │   └── usePagination.js
         │
         ├── layouts/
-        │   ├── DashboardLayout.jsx     # Navbar + Sidebar shell
-        │   └── AuthLayout.jsx          # Centered login shell
+        │   ├── AuthLayout.jsx          # Centered login shell
+        │   └── DashboardLayout.jsx     # Navbar + Sidebar shell
         │
         ├── pages/
+        │   ├── NotFound.jsx
+        │   ├── assets/
+        │   │   ├── AssetCategories.jsx
+        │   │   ├── AssetDetail.jsx
+        │   │   ├── AssetForm.jsx
+        │   │   ├── AssetMaintenance.jsx
+        │   │   └── AssetRegister.jsx
         │   ├── auth/
         │   │   ├── Login.jsx
         │   │   └── Unauthorized.jsx
-        │   ├── reception/
-        │   │   ├── PatientList.jsx
-        │   │   ├── RegisterPatient.jsx
-        │   │   └── RegisterVisit.jsx
         │   ├── billing/
         │   │   ├── Billing.jsx
-        │   │   └── Payments.jsx
-        │   ├── queue/
-        │   │   └── QueueBoard.jsx
-        │   ├── nurse/
-        │   │   └── NurseDashboard.jsx  # Triage / vitals
+        │   │   ├── Payments.jsx
+        │   │   └── WalkInSale.jsx
+        │   ├── dashboard/
+        │   │   └── Dashboard.jsx
         │   ├── doctor/
-        │   │   ├── DoctorDashboard.jsx # "My Queue"
-        │   │   └── Consultation.jsx    # History, ICD10, Rx, Lab/Radiology orders
+        │   │   ├── Consultation.jsx
+        │   │   ├── ConsultationDetail.jsx
+        │   │   ├── ConsultationList.jsx
+        │   │   └── DoctorDashboard.jsx
+        │   ├── emergency/
+        │   │   ├── EmergencyBoard.jsx
+        │   │   ├── EmergencyVisitDetail.jsx
+        │   │   └── RegisterEmergency.jsx
+        │   ├── etims/
+        │   │   ├── ETIMSConfig.jsx
+        │   │   └── FiscalizedReceipts.jsx
+        │   ├── inpatient/
+        │   │   ├── AdmissionDetail.jsx
+        │   │   ├── AdmissionList.jsx
+        │   │   ├── AdmitPatient.jsx
+        │   │   ├── BedManagement.jsx
+        │   │   └── WardBoard.jsx
+        │   ├── insurance/
+        │   │   ├── ClaimDetail.jsx
+        │   │   ├── ClaimsList.jsx
+        │   │   ├── FileClaim.jsx
+        │   │   ├── Insurers.jsx
+        │   │   └── PatientPolicies.jsx
+        │   ├── inventory/
+        │   │   └── Inventory.jsx
         │   ├── laboratory/
         │   │   └── Laboratory.jsx
-        │   ├── radiology/
-        │   │   └── Radiology.jsx
+        │   ├── mch/
+        │   │   ├── ANCProfileDetail.jsx
+        │   │   ├── AntenatalRegister.jsx
+        │   │   ├── ChildDetail.jsx
+        │   │   ├── ChildRegister.jsx
+        │   │   └── MCHDashboard.jsx
+        │   ├── nurse/
+        │   │   └── NurseDashboard.jsx
         │   ├── pharmacy/
-        │   │   └── Pharmacy.jsx
-        │   ├── inventory/
-        │   │   └── Inventory.jsx       # Medicines, suppliers, batches, stock
-        │   ├── reports/
-        │   │   └── Reports.jsx
-        │   ├── dashboard/
-        │   │   └── Dashboard.jsx       # Cards + charts
-        │   ├── settings/
-        │   │   └── Settings.jsx
+        │   │   ├── Pharmacy.jsx
+        │   │   └── Suppliers.jsx
         │   ├── profile/
         │   │   └── Profile.jsx
-        │   └── NotFound.jsx
+        │   ├── queue/
+        │   │   └── QueueBoard.jsx
+        │   ├── radiology/
+        │   │   └── Radiology.jsx
+        │   ├── reception/
+        │   │   ├── EditPatient.jsx
+        │   │   ├── PatientList.jsx
+        │   │   ├── PatientProfile.jsx
+        │   │   ├── PatientVisits.jsx
+        │   │   ├── RegisterPatient.jsx
+        │   │   └── RegisterVisit.jsx
+        │   ├── reports/
+        │   │   ├── DailyOPDReport.jsx
+        │   │   ├── DiseaseStatisticsReport.jsx
+        │   │   ├── DrugConsumptionReport.jsx
+        │   │   ├── IPDReport.jsx
+        │   │   ├── MCHReport.jsx
+        │   │   ├── Reports.jsx
+        │   │   └── RevenueReport.jsx
+        │   └── settings/
+        │       ├── AuditLog.jsx
+        │       ├── Departments.jsx
+        │       ├── Settings.jsx
+        │       ├── TestCatalog.jsx
+        │       └── Users.jsx
         │
         ├── services/
         │   └── api.js                  # ⭐ ONLY file that calls axios — every endpoint
         │
-        ├── context/
-        │   ├── AuthContext.jsx         # user, token, login/logout, role
-        │   └── ToastContext.jsx        # (or use react-toastify directly)
-        │
-        ├── hooks/
-        │   ├── useAuth.js
-        │   ├── usePagination.js
-        │   └── useDebounce.js          # For search inputs
+        ├── styles/
+        │   └── main.css
         │
         └── utils/
-            ├── roles.js                 # Role constants + page-access map
-            ├── formatters.js            # Currency, date formatting
-            └── validators.js            # Frontend form validation helpers
+            ├── formatters.js           # Currency, date formatting
+            ├── reportExport.js
+            ├── roles.js                # Role constants + page-access map
+            └── validators.js           # Frontend form validation helpers
 ```
 
 ---
@@ -130,38 +330,52 @@ hmis4/
 
 ### 1. Create a virtual environment & install dependencies
 ```bash
-python3 -m venv venv
-source venv/bin/activate            # Windows: venv\Scripts\activate
+python -m venv venv
+venv\Scripts\activate               # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ### 2. Configure environment variables
 ```bash
-cp .env.example .env
-# then edit .env with your real SECRET_KEY and PostgreSQL credentials
+copy .env.example .env              # macOS/Linux: cp .env.example .env
+# then edit .env with your real SECRET_KEY and database credentials
 ```
 
-### 3. Create the PostgreSQL database
+### 3. Run migrations (per app)
 ```bash
-createdb hmis_db
-```
-
-### 4. Run migrations
-```bash
-python manage.py makemigrations api
+python manage.py makemigrations api assets emergency etims inpatient insurance mch
 python manage.py migrate
 ```
 
-### 5. Create a Super Admin
+### 4. Create a Super Admin
 ```bash
 python manage.py createsuperuser
 ```
 (Note: `role` isn't prompted by `createsuperuser` — set it via `/admin/` or the shell:
 `User.objects.filter(username="you").update(role="SUPER_ADMIN")`)
 
+### 5. Seed demo data (optional)
+```bash
+python manage.py seed_data
+python manage.py seed_assets
+python manage.py seed_emergency
+python manage.py seed_fiscalization
+python manage.py seed_inpatient
+python manage.py seed_procedure_catalog
+python manage.py seed_insurance
+python manage.py seed_mch_records
+```
+
 ### 6. Run the server
 ```bash
 python manage.py runserver
+```
+
+### 7. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
@@ -181,26 +395,24 @@ Once running, the full interactive API reference is available at:
 
 ## Key Endpoint Groups (under `/api/`)
 
-| Group | Base path | Notes |
-|---|---|---|
-| Auth | `auth/login/`, `auth/refresh/`, `auth/me/`, `auth/change-password/` | JWT via SimpleJWT |
-| Users | `users/` | Super Admin only |
-| Departments | `departments/` | Consultation fees per department |
-| Patients | `patients/`, `patients/search/?q=`, `patients/{id}/summary/` | Duplicate-check search built in |
-| Visits | `visits/` | Auto-generates a consultation invoice on creation |
-| Billing | `invoices/`, `payments/`, `payments/{id}/receipt/` | Payments auto-update invoice balance + push to Nurse queue |
-| Queue | `queue/`, `queue/my-queue/`, `queue/{id}/call-next/` | Nurse/Doctor/Lab/Radiology/Pharmacy queues |
-| Triage | `vitals/` | Auto-computes BMI, moves patient to Doctor queue |
-| ICD-10 | `icd10/`, `icd10/lookup/?q=` | Autocomplete by code or description |
-| Consultation | `consultations/`, `.../pause/`, `.../resume/`, `.../complete/`, `.../add-diagnosis/` | Full clinical workflow incl. pause/resume |
-| Prescriptions | `prescriptions/` | Linked to Pharmacy dispensing |
-| Laboratory | `lab-tests-catalog/`, `lab-orders/`, `lab-orders/pending/`, `lab-results/` | Blocks result entry until payment confirmed |
-| Radiology | `radiology-tests-catalog/`, `radiology-orders/`, `radiology-results/` | Same payment-gate pattern |
-| Pharmacy | `medicines/`, `medicine-batches/`, `pharmacy-dispenses/` | FEFO batch selection, auto stock deduction & invoicing |
-| Inventory | `suppliers/`, `stock-transactions/` | Stock in/out audit trail |
-| Reports | `reports/?type=...` | daily/doctor/department/consultation/lab/radiology revenue, patient stats, medicine sales |
-| Dashboard | `dashboard/` | Today's cards + 7-day revenue/visits charts + department breakdown |
-| Audit Log | `audit-logs/` | Read-only, Super Admin only |
+| Group | App | Base path | Notes |
+|---|---|---|---|
+| Auth | api | `auth/login/`, `auth/refresh/`, `auth/me/`, `auth/change-password/` | JWT via SimpleJWT with silent refresh |
+| Users / Departments | api | `users/`, `departments/` | Super Admin only for users |
+| Patients / Visits | api | `patients/`, `patients/search/?q=`, `visits/` | Auto-generates consultation invoice on visit |
+| Billing | api | `invoices/`, `payments/`, `payments/{id}/receipt/` | Payments auto-update invoice balance |
+| Queue / Triage | api | `queue/`, `queue/my-queue/`, `vitals/` | Nurse/Doctor/Lab/Radiology/Pharmacy queues |
+| Consultation / Rx | api | `consultations/`, `prescriptions/` | Pause/resume/complete, ICD-10 diagnoses |
+| Laboratory / Radiology | api | `lab-orders/`, `radiology-orders/` | Payment-gated result entry |
+| Pharmacy / OTC | api | `medicines/`, `pharmacy-dispenses/`, `otc-sales/` | FEFO batch selection, auto stock deduction |
+| Assets | assets | `asset-categories/`, `assets/`, `asset-maintenance/`, `asset-transfers/`, `asset-disposals/` | Transfer/dispose actions, warranty alerts |
+| Emergency | emergency | `emergency-bays/`, `emergency-visits/`, `triage-vitals/` | Discharge home / LAMA / deceased / admit |
+| Inpatient | inpatient | `wards/`, `beds/`, `admissions/`, `ward-rounds/`, `bed-charges/` | Bed transfers, recurring bed charges |
+| Insurance | insurance | `insurers/`, `insurance-policies/`, `insurance-claims/` | Eligibility check, submit/settle/cancel |
+| MCH | mch | `antenatal-profiles/`, `anc-visits/`, `delivery-records/`, `children/`, `child-immunizations/` | Delivery recording, immunization due-list |
+| eTIMS | etims | `fiscalization-config/`, `fiscalized-receipts/` | KRA fiscalization, retry on failure |
+| Reports / Dashboard | api | `reports/?type=...`, `dashboard/` | Revenue, patient, and department stats |
+| Audit Log | api | `audit-logs/` | Read-only, Super Admin only |
 
 ---
 
@@ -212,14 +424,16 @@ Once running, the full interactive API reference is available at:
 
 ---
 
-## Automated Business Flow (via `api/signals.py`)
+## Automated Business Flow (via each app's `signals.py`)
 
 1. **Visit created** → consultation invoice auto-generated.
 2. **Invoice paid in full** → patient auto-enters the Nurse queue.
 3. **Vitals recorded** → patient auto-moves to the Doctor queue.
-4. **Lab/Radiology order placed** → invoice auto-generated; results are blocked until `is_paid=True`.
+4. **Lab/Radiology order placed** → invoice auto-generated; results blocked until `is_paid=True`.
 5. **Consultation completed** → visit marked completed; prescriptions push patient to the Pharmacy queue.
-6. **Every create/update/delete** on clinical/financial models is written to `AuditLog` automatically.
+6. **Admission created** → bed marked occupied; discharge/transfer keeps bed status in sync.
+7. **Invoice fiscalized** → eTIMS gateway called; failed fiscalizations are retryable.
+8. **Every create/update/delete** on clinical/financial models is written to `AuditLog` automatically.
 
 ---
 
@@ -228,6 +442,11 @@ Once running, the full interactive API reference is available at:
 - All primary keys are UUIDs.
 - Deletes are **soft** (`is_deleted` + `deleted_at`) — nothing is hard-deleted by the API.
 - Pagination, search, and filtering are enabled globally via DRF defaults + `django-filter`.
-- This backend intentionally uses **one app (`api`)** instead of the originally-proposed
-  multi-app layout (`accounts/`, `patients/`, `visits/`, ...) per your request — all of that
-  logic is organized by *file* within `api/` instead of by separate Django apps.
+- V4 splits functionality into **focused Django apps** (`api`, `assets`, `emergency`, `etims`, `inpatient`, `insurance`, `mch`) instead of a single monolithic app, while the frontend remains one React app with a single route tree and one `services/api.js`.
+
+---
+
+## Author
+
+**Steve Ongera**
+Phone: 0112284093
