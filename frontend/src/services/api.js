@@ -419,6 +419,28 @@ export const getFiscalizedReceipts = (params) => unwrap(client.get(`/fiscalized-
 export const getFailedFiscalizations = () => unwrap(client.get("/fiscalized-receipts/failed/"));
 export const retryFiscalization = (id) => unwrap(client.post(`/fiscalized-receipts/${id}/retry/`));
 
+// ===========================================================================
+// ASSET MANAGEMENT
+// ===========================================================================
+export const getAssetCategories = (params) => unwrap(client.get(`/asset-categories/${qs(params)}`));
+export const createAssetCategory = (payload) => unwrap(client.post("/asset-categories/", payload));
+
+export const getAssets = (params) => unwrap(client.get(`/assets/${qs(params)}`));
+export const getAsset = (id) => unwrap(client.get(`/assets/${id}/`));
+export const createAsset = (payload) => unwrap(client.post("/assets/", payload));
+export const updateAsset = (id, payload) => unwrap(client.patch(`/assets/${id}/`, payload));
+export const getAssetSummary = () => unwrap(client.get("/assets/summary/"));
+export const transferAsset = (id, payload) => unwrap(client.post(`/assets/${id}/transfer/`, payload));
+export const disposeAsset = (id, payload) => unwrap(client.post(`/assets/${id}/dispose/`, payload));
+export const getWarrantyExpiring = () => unwrap(client.get("/assets/warranty-expiring/"));
+
+export const getAssetMaintenanceRecords = (params) => unwrap(client.get(`/asset-maintenance/${qs(params)}`));
+export const createAssetMaintenance = (payload) => unwrap(client.post("/asset-maintenance/", payload));
+export const completeAssetMaintenance = (id) => unwrap(client.post(`/asset-maintenance/${id}/complete/`));
+
+export const getAssetTransfers = (params) => unwrap(client.get(`/asset-transfers/${qs(params)}`));
+export const getAssetDisposals = (params) => unwrap(client.get(`/asset-disposals/${qs(params)}`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
