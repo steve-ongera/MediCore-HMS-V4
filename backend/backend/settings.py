@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "emergency",
     "insurance",
     "etims",
+    "assets",
 ]
 
 MIDDLEWARE = [

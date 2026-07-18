@@ -13,7 +13,7 @@ from django.dispatch import receiver
 
 from api.models import Payment, OTCSale
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) 
 
 
 @receiver(post_save, sender=Payment)
