@@ -106,6 +106,10 @@ import RequestDispatch from "./pages/ambulance/RequestDispatch.jsx";
 import DispatchDetail from "./pages/ambulance/DispatchDetail.jsx";
 import FleetManagement from "./pages/ambulance/FleetManagement.jsx";
 
+import MortuaryRegister from "./pages/mortuary/MortuaryRegister.jsx";
+import AdmitDeceased from "./pages/mortuary/AdmitDeceased.jsx";
+import MortuaryCaseDetail from "./pages/mortuary/MortuaryCaseDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
