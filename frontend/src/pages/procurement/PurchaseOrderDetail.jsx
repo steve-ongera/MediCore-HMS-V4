@@ -87,97 +87,336 @@ export default function PurchaseOrderDetail() {
     } catch (err) { setError(err.message); }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      "OPEN": "badge-primary",
+      "PARTIALLY_RECEIVED": "badge-warning",
+      "FULLY_RECEIVED": "badge-success",
+      "CANCELLED": "badge-neutral",
+    };
+    return statusMap[status] || "badge-neutral";
+  };
+
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "KES 0.00";
+    return `KES ${Number(amount).toFixed(2)}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading purchase order...</span>
+      </div>
+    );
+  }
+
   if (!po) return null;
 
   const hasOutstandingItems = po.items.some((it) => it.quantity_outstanding > 0);
 
   return (
-    <div>
-      <button type="button" onClick={() => navigate("/procurement/orders")}>&larr; Back</button>
-      <h1>{po.po_number}</h1>
-      {error && <p>Error: {error}</p>}
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-eyebrow">Procurement</div>
+          <h1 className="page-title">{po.po_number}</h1>
+          <p className="page-subtitle">{po.supplier_name}</p>
+        </div>
+        <div className="page-header__actions">
+          <button className="btn btn-secondary" onClick={() => navigate("/procurement/orders")}>
+            <i className="bi bi-arrow-left me-2"></i> Back to Orders
+          </button>
+          <button className="btn btn-secondary" onClick={load}>
+            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+          </button>
+        </div>
+      </div>
 
-      <section>
-        <p>Supplier: {po.supplier_name}</p>
-        <p>Requisition: {po.requisition_number || "—"}</p>
-        <p>Status: {po.status}</p>
-        <p>Order Date: {po.order_date} — Expected Delivery: {po.expected_delivery_date || "—"}</p>
-        <p>Total: KES {po.total_amount}</p>
-        <p>Notes: {po.notes || "—"}</p>
-        {po.status !== "FULLY_RECEIVED" && po.status !== "CANCELLED" && (
-          <button type="button" onClick={handleCancel}>Cancel Purchase Order</button>
-        )}
-      </section>
+      {error && (
+        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
+          <div className="card-body">
+            <div className="text-danger">
+              <i className="bi bi-exclamation-circle me-2"></i> {error}
+            </div>
+          </div>
+        </div>
+      )}
 
-      <section>
-        <h2>Order Items</h2>
-        <table>
-          <thead><tr><th>Description</th><th>Type</th><th>Ordered</th><th>Received</th><th>Outstanding</th><th>Unit Cost</th><th>Line Total</th></tr></thead>
-          <tbody>
-            {po.items.map((it) => (
-              <tr key={it.id}>
-                <td>{it.description}</td><td>{it.item_type}</td>
-                <td>{it.quantity_ordered}</td><td>{it.quantity_received}</td><td>{it.quantity_outstanding}</td>
-                <td>KES {it.unit_cost}</td><td>KES {it.line_total}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-body">
+          <div className="patient-header">
+            <div className="avatar avatar-lg">
+              <i className="bi bi-file-earmark-text fs-2xl"></i>
+            </div>
+            <div className="patient-header__meta">
+              <div className="patient-header__name">{po.po_number}</div>
+              <div className="patient-header__sub">
+                <span className="patient-header__id">
+                  <i className="bi bi-building me-1"></i> {po.supplier_name}
+                </span>
+                <span>•</span>
+                <span className={`badge ${getStatusBadge(po.status)}`}>
+                  <span className="badge-dot"></span>
+                  {po.status.replace("_", " ")}
+                </span>
+              </div>
+            </div>
+            <div className="patient-header__actions">
+              <span className="text-sm font-bold">{formatCurrency(po.total_amount)}</span>
+            </div>
+          </div>
 
-      {hasOutstandingItems && (
-        <section>
-          <h2>Record Goods Receipt</h2>
-          <form onSubmit={submitReceipt}>
-            <input type="text" placeholder="Delivery note ref" value={receiptForm.delivery_note_ref} onChange={(e) => setReceiptForm((p) => ({ ...p, delivery_note_ref: e.target.value }))} />
-            <textarea placeholder="Notes" value={receiptForm.notes} onChange={(e) => setReceiptForm((p) => ({ ...p, notes: e.target.value }))} />
+          <div className="info-grid">
+            <div className="info-item">
+              <div className="info-item__label">Requisition</div>
+              <div className="info-item__value">{po.requisition_number || "—"}</div>
+            </div>
+            <div className="info-item">
+              <div className="info-item__label">Order Date</div>
+              <div className="info-item__value">{new Date(po.order_date).toLocaleDateString()}</div>
+            </div>
+            <div className="info-item">
+              <div className="info-item__label">Expected Delivery</div>
+              <div className="info-item__value">{po.expected_delivery_date || "—"}</div>
+            </div>
+            <div className="info-item" style={{ gridColumn: "span 2" }}>
+              <div className="info-item__label">Notes</div>
+              <div className="info-item__value">{po.notes || "—"}</div>
+            </div>
+          </div>
 
-            <table>
-              <thead><tr><th></th><th>Item</th><th>Qty Received</th><th>Batch #</th><th>Expiry (medicines)</th></tr></thead>
+          {po.status !== "FULLY_RECEIVED" && po.status !== "CANCELLED" && (
+            <div style={{ marginTop: "var(--space-3)" }}>
+              <button className="btn btn-danger" onClick={handleCancel}>
+                <i className="bi bi-x-circle me-2"></i> Cancel Purchase Order
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <div className="flex items-center gap-3 flex-wrap">
+            <i className="bi bi-list-ul me-1"></i>
+            <h5 className="card-title" style={{ marginBottom: 0 }}>Order Items</h5>
+          </div>
+          <div>
+            <span className="text-tertiary text-sm">
+              {po.items.length} item{po.items.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th className="cell-numeric">Ordered</th>
+                  <th className="cell-numeric">Received</th>
+                  <th className="cell-numeric">Outstanding</th>
+                  <th className="cell-numeric">Unit Cost</th>
+                  <th className="cell-numeric">Line Total</th>
+                </tr>
+              </thead>
               <tbody>
-                {po.items.filter((it) => it.quantity_outstanding > 0).map((it) => (
+                {po.items.map((it) => (
                   <tr key={it.id}>
+                    <td className="cell-primary">{it.description}</td>
                     <td>
-                      <input type="checkbox" checked={receiptItems[it.id]?.checked || false} onChange={handleReceiptItemChange(it.id, "checked")} />
+                      <span className="tag">{it.item_type}</span>
                     </td>
-                    <td>{it.description} (outstanding: {it.quantity_outstanding})</td>
-                    <td>
-                      <input type="number" max={it.quantity_outstanding} value={receiptItems[it.id]?.quantity_received || ""} onChange={handleReceiptItemChange(it.id, "quantity_received")} />
-                    </td>
-                    <td>
-                      <input type="text" value={receiptItems[it.id]?.batch_number || ""} onChange={handleReceiptItemChange(it.id, "batch_number")} />
-                    </td>
-                    <td>
-                      {it.item_type === "MEDICINE" && (
-                        <input type="date" value={receiptItems[it.id]?.expiry_date || ""} onChange={handleReceiptItemChange(it.id, "expiry_date")} />
-                      )}
-                    </td>
+                    <td className="cell-numeric">{it.quantity_ordered}</td>
+                    <td className="cell-numeric">{it.quantity_received}</td>
+                    <td className="cell-numeric">{it.quantity_outstanding}</td>
+                    <td className="cell-numeric">{formatCurrency(it.unit_cost)}</td>
+                    <td className="cell-numeric">{formatCurrency(it.line_total)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button type="submit">Record Receipt</button>
-          </form>
-        </section>
+          </div>
+        </div>
+      </div>
+
+      {hasOutstandingItems && (
+        <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+          <div className="card-header">
+            <h5 className="card-title">
+              <i className="bi bi-box-seam me-2"></i> Record Goods Receipt
+            </h5>
+          </div>
+          <div className="card-body">
+            <form onSubmit={submitReceipt}>
+              <div className="field-row">
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Delivery Note Reference</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Delivery note ref"
+                    value={receiptForm.delivery_note_ref}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, delivery_note_ref: e.target.value }))}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0, flex: 2 }}>
+                  <label className="field-label">Notes</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Receipt notes"
+                    value={receiptForm.notes}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, notes: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="table-scroll" style={{ marginTop: "var(--space-3)" }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "40px" }}></th>
+                      <th>Item</th>
+                      <th className="cell-numeric" style={{ width: "120px" }}>Qty Received</th>
+                      <th style={{ width: "150px" }}>Batch #</th>
+                      <th style={{ width: "150px" }}>Expiry (medicines)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {po.items.filter((it) => it.quantity_outstanding > 0).map((it) => (
+                      <tr key={it.id}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={receiptItems[it.id]?.checked || false}
+                            onChange={handleReceiptItemChange(it.id, "checked")}
+                          />
+                        </td>
+                        <td className="cell-primary">
+                          {it.description}
+                          <div className="text-2xs text-tertiary">Outstanding: {it.quantity_outstanding}</div>
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="input"
+                            max={it.quantity_outstanding}
+                            value={receiptItems[it.id]?.quantity_received || ""}
+                            onChange={handleReceiptItemChange(it.id, "quantity_received")}
+                            style={{ width: "100px" }}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder="Batch #"
+                            value={receiptItems[it.id]?.batch_number || ""}
+                            onChange={handleReceiptItemChange(it.id, "batch_number")}
+                            style={{ width: "140px" }}
+                          />
+                        </td>
+                        <td>
+                          {it.item_type === "MEDICINE" && (
+                            <input
+                              type="date"
+                              className="input"
+                              value={receiptItems[it.id]?.expiry_date || ""}
+                              onChange={handleReceiptItemChange(it.id, "expiry_date")}
+                              style={{ width: "140px" }}
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
+                <i className="bi bi-box-seam me-2"></i> Record Receipt
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
-      <section>
-        <h2>Goods Receipt History</h2>
-        {(po.goods_receipts || []).length === 0 ? <p>No goods received yet.</p> : (
-          <p>See full history under Goods Receipts.</p>
-        )}
-      </section>
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-clock-history me-2"></i> Goods Receipt History
+          </h5>
+        </div>
+        <div className="card-body">
+          {(po.goods_receipts || []).length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">
+                <i className="bi bi-box-seam"></i>
+              </div>
+              <h3 className="empty-state__title">No goods received yet</h3>
+              <p className="empty-state__desc">Record the first goods receipt above.</p>
+            </div>
+          ) : (
+            <div className="text-sm text-muted">
+              <i className="bi bi-info-circle me-1"></i> {po.goods_receipts.length} receipt(s) recorded.
+              <Link to={`/procurement/receipts?po=${po.id}`} className="btn btn-secondary btn-sm" style={{ marginLeft: "var(--space-2)" }}>
+                <i className="bi bi-eye me-1"></i> View All
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
 
-      <section>
-        <h2>Record Supplier Invoice</h2>
-        <form onSubmit={submitInvoice}>
-          <input type="text" placeholder="Supplier's invoice reference" value={invoiceForm.supplier_invoice_ref} onChange={(e) => setInvoiceForm((p) => ({ ...p, supplier_invoice_ref: e.target.value }))} />
-          <input type="number" placeholder="Amount" value={invoiceForm.amount} onChange={(e) => setInvoiceForm((p) => ({ ...p, amount: e.target.value }))} required />
-          <input type="date" placeholder="Due date" value={invoiceForm.due_date} onChange={(e) => setInvoiceForm((p) => ({ ...p, due_date: e.target.value }))} />
-          <button type="submit">Record Supplier Invoice</button>
-        </form>
-      </section>
-    </div>
+      <div className="card">
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-file-earmark-plus me-2"></i> Record Supplier Invoice
+          </h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={submitInvoice}>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Supplier Invoice Reference <span className="required">*</span></label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Invoice ref"
+                  value={invoiceForm.supplier_invoice_ref}
+                  onChange={(e) => setInvoiceForm((p) => ({ ...p, supplier_invoice_ref: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Amount <span className="required">*</span></label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="Amount"
+                  value={invoiceForm.amount}
+                  onChange={(e) => setInvoiceForm((p) => ({ ...p, amount: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Due Date</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={invoiceForm.due_date}
+                  onChange={(e) => setInvoiceForm((p) => ({ ...p, due_date: e.target.value }))}
+                />
+              </div>
+            </div>
+            <button type="submit" className="btn btn-primary">
+              <i className="bi bi-file-earmark-plus me-2"></i> Record Supplier Invoice
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
   );
 }
