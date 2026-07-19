@@ -558,6 +558,11 @@ export default function App() {
         <Route path="/hr/payroll" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Payroll /></ProtectedRoute>} />
         <Route path="/hr/payroll/:id" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><PayrollRunDetail /></ProtectedRoute>} />
 
+        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
+        <Route path="/ambulance/request" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><RequestDispatch /></ProtectedRoute>} />
+        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><DispatchDetail /></ProtectedRoute>} />
+        <Route path="/ambulance/fleet" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><FleetManagement /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
