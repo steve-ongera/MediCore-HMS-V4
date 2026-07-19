@@ -93,6 +93,14 @@ import PurchaseOrderDetail from "./pages/procurement/PurchaseOrderDetail.jsx";
 import GoodsReceipts from "./pages/procurement/GoodsReceipts.jsx";
 import SupplierInvoices from "./pages/procurement/SupplierInvoices.jsx";
 
+import Employees from "./pages/hr/Employees.jsx";
+import EmployeeForm from "./pages/hr/EmployeeForm.jsx";
+import EmployeeDetail from "./pages/hr/EmployeeDetail.jsx";
+import LeaveRequests from "./pages/hr/LeaveRequests.jsx";
+import Attendance from "./pages/hr/Attendance.jsx";
+import Payroll from "./pages/hr/Payroll.jsx";
+import PayrollRunDetail from "./pages/hr/PayrollRunDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
