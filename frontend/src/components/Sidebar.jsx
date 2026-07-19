@@ -158,6 +158,15 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Ambulance",
+    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
+    links: [
+      { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill" },
+      { to: "/ambulance/request", label: "Request Dispatch", icon: "bi-telephone-plus-fill" },
+      { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [] },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
