@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-ehv6%k&)3gc2dav3$k^d^m(#i5wa#po)@bp=2cn0@(xhasz_g!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -174,7 +174,7 @@ SPECTACULAR_SETTINGS = {
  
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:5173,http://localhost:3000",
+    default="http://localhost:5173,http://localhost:3000,http://192.168.181.92:3000",
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True
