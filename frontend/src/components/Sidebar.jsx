@@ -167,6 +167,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Mortuary",
+    roles: [ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST],
+    links: [
+      { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill" },
+      { to: "/mortuary/admit", label: "Admit Deceased", icon: "bi-file-earmark-plus" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
