@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from .serializers import GoodsReceiptSerializer
 from .models import (
     PurchaseRequisition, RequisitionItem, PurchaseOrder, PurchaseOrderItem,
     GoodsReceipt, GoodsReceiptItem, SupplierInvoice, SupplierPayment,
@@ -71,6 +70,34 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
         return str(obj.line_total)
 
 
+class GoodsReceiptItemSerializer(serializers.ModelSerializer):
+    item_description = serializers.CharField(source="po_item.description", read_only=True)
+    asset_tag = serializers.CharField(source="asset.asset_tag", read_only=True)
+
+    class Meta:
+        model = GoodsReceiptItem
+        fields = [
+            "id", "goods_receipt", "po_item", "item_description", "quantity_received",
+            "batch_number", "expiry_date", "medicine_batch", "asset", "asset_tag",
+        ]
+        read_only_fields = ["id", "goods_receipt", "medicine_batch", "asset"]
+
+
+class GoodsReceiptSerializer(serializers.ModelSerializer):
+    po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
+    supplier_name = serializers.CharField(source="purchase_order.supplier.name", read_only=True)
+    received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
+    items = GoodsReceiptItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = GoodsReceipt
+        fields = [
+            "id", "grn_number", "purchase_order", "po_number", "supplier_name",
+            "received_by", "received_by_name", "delivery_note_ref", "notes", "items", "received_at",
+        ]
+        read_only_fields = ["id", "grn_number", "received_by", "received_at"]
+
+
 class PurchaseOrderSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source="supplier.name", read_only=True)
     requisition_number = serializers.CharField(source="requisition.requisition_number", read_only=True)
@@ -84,7 +111,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         fields = [
             "id", "po_number", "requisition", "requisition_number", "supplier", "supplier_name",
             "status", "order_date", "expected_delivery_date", "notes", "created_by",
-            "created_by_name", "items", "total_amount", "created_at", "goods_receipts" ,
+            "created_by_name", "items", "total_amount", "created_at", "goods_receipts",
         ]
         read_only_fields = ["id", "po_number", "status", "order_date", "created_by", "created_at"]
 
@@ -123,34 +150,6 @@ class CreatePurchaseOrderSerializer(serializers.Serializer):
         if not value:
             raise serializers.ValidationError("At least one item is required.")
         return value
-
-
-class GoodsReceiptItemSerializer(serializers.ModelSerializer):
-    item_description = serializers.CharField(source="po_item.description", read_only=True)
-    asset_tag = serializers.CharField(source="asset.asset_tag", read_only=True)
-
-    class Meta:
-        model = GoodsReceiptItem
-        fields = [
-            "id", "goods_receipt", "po_item", "item_description", "quantity_received",
-            "batch_number", "expiry_date", "medicine_batch", "asset", "asset_tag",
-        ]
-        read_only_fields = ["id", "goods_receipt", "medicine_batch", "asset"]
-
-
-class GoodsReceiptSerializer(serializers.ModelSerializer):
-    po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
-    supplier_name = serializers.CharField(source="purchase_order.supplier.name", read_only=True)
-    received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
-    items = GoodsReceiptItemSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = GoodsReceipt
-        fields = [
-            "id", "grn_number", "purchase_order", "po_number", "supplier_name",
-            "received_by", "received_by_name", "delivery_note_ref", "notes", "items", "received_at",
-        ]
-        read_only_fields = ["id", "grn_number", "received_by", "received_at"]
 
 
 class ReceiptItemInputSerializer(serializers.Serializer):
