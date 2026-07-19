@@ -567,6 +567,10 @@ export default function App() {
         <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><DispatchDetail /></ProtectedRoute>} />
         <Route path="/ambulance/fleet" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><FleetManagement /></ProtectedRoute>} />
 
+        <Route path="/mortuary" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryRegister /></ProtectedRoute>} />
+        <Route path="/mortuary/admit" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><AdmitDeceased /></ProtectedRoute>} />
+        <Route path="/mortuary/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryCaseDetail /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
