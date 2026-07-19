@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "assets",
     "procurement",
     "hr",
+    "ambulance",
 ]
 
 MIDDLEWARE = [
