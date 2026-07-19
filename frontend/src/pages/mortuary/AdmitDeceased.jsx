@@ -13,6 +13,7 @@ export default function AdmitDeceased() {
   const [units, setUnits] = useState([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     deceased_name_freetext: "", gender: "UNKNOWN", estimated_age: "",
@@ -26,7 +27,11 @@ export default function AdmitDeceased() {
     try {
       const data = await getAvailableMortuaryUnits();
       setUnits(data);
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePatientSearch = async (e) => {
