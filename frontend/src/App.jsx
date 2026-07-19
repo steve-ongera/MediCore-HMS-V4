@@ -101,6 +101,11 @@ import Attendance from "./pages/hr/Attendance.jsx";
 import Payroll from "./pages/hr/Payroll.jsx";
 import PayrollRunDetail from "./pages/hr/PayrollRunDetail.jsx";
 
+import AmbulanceDispatchBoard from "./pages/ambulance/AmbulanceDispatchBoard.jsx";
+import RequestDispatch from "./pages/ambulance/RequestDispatch.jsx";
+import DispatchDetail from "./pages/ambulance/DispatchDetail.jsx";
+import FleetManagement from "./pages/ambulance/FleetManagement.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
