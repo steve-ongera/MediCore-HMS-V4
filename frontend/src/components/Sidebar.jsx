@@ -147,6 +147,17 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Human Resources",
+    roles: [ROLES.SUPER_ADMIN],
+    links: [
+      { to: "/hr/employees", label: "Employees", icon: "bi-people-fill" },
+      { to: "/hr/employees/register", label: "Register Employee", icon: "bi-person-plus-fill" },
+      { to: "/hr/leave", label: "Leave Requests", icon: "bi-calendar2-week" },
+      { to: "/hr/attendance", label: "Attendance", icon: "bi-clock-history" },
+      { to: "/hr/payroll", label: "Payroll", icon: "bi-cash-coin" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
