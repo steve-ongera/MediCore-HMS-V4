@@ -545,6 +545,14 @@ export default function App() {
         <Route path="/procurement/receipts" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><GoodsReceipts /></ProtectedRoute>} />
         <Route path="/procurement/invoices" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><SupplierInvoices /></ProtectedRoute>} />
 
+        <Route path="/hr/employees" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Employees /></ProtectedRoute>} />
+        <Route path="/hr/employees/register" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EmployeeForm /></ProtectedRoute>} />
+        <Route path="/hr/employees/:id" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EmployeeDetail /></ProtectedRoute>} />
+        <Route path="/hr/leave" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><LeaveRequests /></ProtectedRoute>} />
+        <Route path="/hr/attendance" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Attendance /></ProtectedRoute>} />
+        <Route path="/hr/payroll" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Payroll /></ProtectedRoute>} />
+        <Route path="/hr/payroll/:id" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><PayrollRunDetail /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
