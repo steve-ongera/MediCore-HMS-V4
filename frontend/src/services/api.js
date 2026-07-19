@@ -502,6 +502,30 @@ export const createPerformanceReview = (payload) => unwrap(client.post("/perform
 export const getDisciplinaryRecords = (params) => unwrap(client.get(`/disciplinary-records/${qs(params)}`));
 export const createDisciplinaryRecord = (payload) => unwrap(client.post("/disciplinary-records/", payload));
 
+// ===========================================================================
+// AMBULANCE
+// ===========================================================================
+export const getAmbulances = (params) => unwrap(client.get(`/ambulances/${qs(params)}`));
+export const getAvailableAmbulances = () => unwrap(client.get("/ambulances/available/"));
+export const createAmbulance = (payload) => unwrap(client.post("/ambulances/", payload));
+export const updateAmbulance = (id, payload) => unwrap(client.patch(`/ambulances/${id}/`, payload));
+
+export const getAmbulanceCrew = (params) => unwrap(client.get(`/ambulance-crew/${qs(params)}`));
+export const assignCrewMember = (payload) => unwrap(client.post("/ambulance-crew/", payload));
+
+export const getDispatches = (params) => unwrap(client.get(`/ambulance-dispatches/${qs(params)}`));
+export const getActiveDispatches = () => unwrap(client.get("/ambulance-dispatches/active/"));
+export const getDispatch = (id) => unwrap(client.get(`/ambulance-dispatches/${id}/`));
+export const requestDispatch = (payload) => unwrap(client.post("/ambulance-dispatches/", payload));
+export const assignAmbulanceToDispatch = (id, payload) => unwrap(client.post(`/ambulance-dispatches/${id}/assign-ambulance/`, payload));
+export const assignCrewToDispatch = (id, payload) => unwrap(client.post(`/ambulance-dispatches/${id}/assign-crew/`, payload));
+export const markPatientOnboard = (id) => unwrap(client.post(`/ambulance-dispatches/${id}/mark-patient-onboard/`));
+export const completeDispatch = (id, payload) => unwrap(client.post(`/ambulance-dispatches/${id}/complete/`, payload));
+export const cancelDispatch = (id) => unwrap(client.post(`/ambulance-dispatches/${id}/cancel/`));
+
+export const getAmbulanceMaintenanceLogs = (params) => unwrap(client.get(`/ambulance-maintenance/${qs(params)}`));
+export const createAmbulanceMaintenanceLog = (payload) => unwrap(client.post("/ambulance-maintenance/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

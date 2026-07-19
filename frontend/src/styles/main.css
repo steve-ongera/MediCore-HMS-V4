@@ -1438,6 +1438,7 @@ fieldset legend {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-4);
+  padding-bottom: var(--space-4);
 }
 
 .stat-card {
