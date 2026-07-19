@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { getPurchaseOrder, cancelPurchaseOrder, createGoodsReceipt, createSupplierInvoice } from "../../services/api";
 
 export default function PurchaseOrderDetail() {
