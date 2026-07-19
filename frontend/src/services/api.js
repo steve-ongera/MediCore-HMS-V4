@@ -466,6 +466,42 @@ export const createSupplierInvoice = (payload) => unwrap(client.post("/supplier-
 export const getSupplierPayments = (params) => unwrap(client.get(`/supplier-payments/${qs(params)}`));
 export const createSupplierPayment = (payload) => unwrap(client.post("/supplier-payments/", payload));
 
+// ===========================================================================
+// HUMAN RESOURCES
+// ===========================================================================
+export const getEmployees = (params) => unwrap(client.get(`/employees/${qs(params)}`));
+export const getActiveEmployees = () => unwrap(client.get("/employees/active/"));
+export const getEmployee = (id) => unwrap(client.get(`/employees/${id}/`));
+export const createEmployee = (payload) => unwrap(client.post("/employees/", payload));
+export const updateEmployee = (id, payload) => unwrap(client.patch(`/employees/${id}/`, payload));
+export const terminateEmployee = (id, payload) => unwrap(client.post(`/employees/${id}/terminate/`, payload));
+
+export const getLeaveTypes = (params) => unwrap(client.get(`/leave-types/${qs(params)}`));
+export const createLeaveType = (payload) => unwrap(client.post("/leave-types/", payload));
+
+export const getLeaveRequests = (params) => unwrap(client.get(`/leave-requests/${qs(params)}`));
+export const getPendingLeaveRequests = () => unwrap(client.get("/leave-requests/pending/"));
+export const createLeaveRequest = (payload) => unwrap(client.post("/leave-requests/", payload));
+export const approveLeaveRequest = (id) => unwrap(client.post(`/leave-requests/${id}/approve/`));
+export const rejectLeaveRequest = (id, payload) => unwrap(client.post(`/leave-requests/${id}/reject/`, payload));
+
+export const getAttendance = (params) => unwrap(client.get(`/attendance/${qs(params)}`));
+export const getTodaysAttendance = () => unwrap(client.get("/attendance/today/"));
+export const recordAttendance = (payload) => unwrap(client.post("/attendance/", payload));
+
+export const getPayrollRuns = (params) => unwrap(client.get(`/payroll-runs/${qs(params)}`));
+export const getPayrollRun = (id) => unwrap(client.get(`/payroll-runs/${id}/`));
+export const generatePayrollRun = (payload) => unwrap(client.post("/payroll-runs/", payload));
+export const processPayrollRun = (id) => unwrap(client.post(`/payroll-runs/${id}/process/`));
+export const markPayrollRunPaid = (id) => unwrap(client.post(`/payroll-runs/${id}/mark-paid/`));
+export const updatePayslip = (id, payload) => unwrap(client.patch(`/payslips/${id}/`, payload));
+
+export const getPerformanceReviews = (params) => unwrap(client.get(`/performance-reviews/${qs(params)}`));
+export const createPerformanceReview = (payload) => unwrap(client.post("/performance-reviews/", payload));
+
+export const getDisciplinaryRecords = (params) => unwrap(client.get(`/disciplinary-records/${qs(params)}`));
+export const createDisciplinaryRecord = (payload) => unwrap(client.post("/disciplinary-records/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
