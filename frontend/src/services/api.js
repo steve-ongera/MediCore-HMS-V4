@@ -526,6 +526,25 @@ export const cancelDispatch = (id) => unwrap(client.post(`/ambulance-dispatches/
 export const getAmbulanceMaintenanceLogs = (params) => unwrap(client.get(`/ambulance-maintenance/${qs(params)}`));
 export const createAmbulanceMaintenanceLog = (payload) => unwrap(client.post("/ambulance-maintenance/", payload));
 
+
+// ===========================================================================
+// MORTUARY
+// ===========================================================================
+export const getMortuaryUnits = (params) => unwrap(client.get(`/mortuary-units/${qs(params)}`));
+export const getAvailableMortuaryUnits = () => unwrap(client.get("/mortuary-units/available/"));
+
+export const getMortuaryServiceCatalog = (params) => unwrap(client.get(`/mortuary-service-catalog/${qs(params)}`));
+
+export const getMortuaryCases = (params) => unwrap(client.get(`/mortuary-admissions/${qs(params)}`));
+export const getInStorageCases = () => unwrap(client.get("/mortuary-admissions/in-storage/"));
+export const getMortuaryCase = (id) => unwrap(client.get(`/mortuary-admissions/${id}/`));
+export const registerMortuaryCase = (payload) => unwrap(client.post("/mortuary-admissions/", payload));
+export const getMortuaryBilling = (id) => unwrap(client.get(`/mortuary-admissions/${id}/billing/`));
+export const addMortuaryCharge = (id, payload) => unwrap(client.post(`/mortuary-admissions/${id}/add-charge/`, payload));
+export const orderMortuaryService = (id, payload) => unwrap(client.post(`/mortuary-admissions/${id}/order-service/`, payload));
+export const releaseBody = (id, payload) => unwrap(client.post(`/mortuary-admissions/${id}/release/`, payload));
+
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
