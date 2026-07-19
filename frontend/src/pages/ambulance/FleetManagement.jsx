@@ -73,82 +73,372 @@ export default function FleetManagement() {
     } catch (err) { setError(err.message); }
   };
 
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      "AVAILABLE": "badge-success",
+      "ON_CALL": "badge-primary",
+      "UNDER_MAINTENANCE": "badge-warning",
+      "OUT_OF_SERVICE": "badge-danger",
+    };
+    return statusMap[status] || "badge-neutral";
+  };
+
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "KES 0.00";
+    return `KES ${Number(amount).toFixed(2)}`;
+  };
+
+  if (loading && ambulances.length === 0) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading fleet data...</span>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1>Fleet Management</h1>
-      {error && <p>Error: {error}</p>}
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-eyebrow">Ambulance Services</div>
+          <h1 className="page-title">Fleet Management</h1>
+          <p className="page-subtitle">Manage ambulances and maintenance</p>
+        </div>
+        <div className="page-header__actions">
+          <button className="btn btn-secondary" onClick={() => { load(); loadLogs(); }}>
+            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+          </button>
+        </div>
+      </div>
 
-      <h2>Register Ambulance</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Registration Number" value={form.registration_number} onChange={handleFormChange("registration_number")} required />
-        <select value={form.ambulance_type} onChange={handleFormChange("ambulance_type")}>
-          <option value="BASIC">Basic Life Support (BLS)</option>
-          <option value="ADVANCED">Advanced Life Support (ALS)</option>
-          <option value="NEONATAL">Neonatal / ICU Transport</option>
-          <option value="PATIENT_TRANSPORT">Non-Emergency Patient Transport</option>
-        </select>
-        <input type="text" placeholder="Make / Model" value={form.make_model} onChange={handleFormChange("make_model")} />
-        <input type="number" placeholder="Capacity" value={form.capacity} onChange={handleFormChange("capacity")} required />
-        <input type="number" placeholder="Base callout fee (KES)" value={form.base_fee} onChange={handleFormChange("base_fee")} />
-        <input type="number" placeholder="Rate per km (KES)" value={form.rate_per_km} onChange={handleFormChange("rate_per_km")} />
-        <button type="submit">Register Ambulance</button>
-      </form>
-
-      <h2>Fleet</h2>
-      {loading ? <p>Loading...</p> : (
-        <table>
-          <thead><tr><th>Registration</th><th>Type</th><th>Capacity</th><th>Base Fee</th><th>Rate/km</th><th>Status</th></tr></thead>
-          <tbody>
-            {ambulances.map((a) => (
-              <tr key={a.id}>
-                <td>{a.registration_number}</td><td>{a.ambulance_type}</td><td>{a.capacity}</td>
-                <td>KES {a.base_fee}</td><td>KES {a.rate_per_km}</td>
-                <td>
-                  <select value={a.status} onChange={(e) => handleStatusChange(a.id, e.target.value)}>
-                    <option value="AVAILABLE">Available</option>
-                    <option value="ON_CALL">On Call</option>
-                    <option value="UNDER_MAINTENANCE">Under Maintenance</option>
-                    <option value="OUT_OF_SERVICE">Out of Service</option>
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {error && (
+        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
+          <div className="card-body">
+            <div className="text-danger">
+              <i className="bi bi-exclamation-circle me-2"></i> {error}
+            </div>
+          </div>
+        </div>
       )}
 
-      <h2>Log Maintenance</h2>
-      <form onSubmit={submitMaintenance}>
-        <select value={maintenanceForm.ambulance} onChange={handleMaintenanceChange("ambulance")} required>
-          <option value="">Select ambulance</option>
-          {ambulances.map((a) => <option key={a.id} value={a.id}>{a.registration_number}</option>)}
-        </select>
-        <select value={maintenanceForm.maintenance_type} onChange={handleMaintenanceChange("maintenance_type")}>
-          <option value="SERVICE">Routine Service</option>
-          <option value="REPAIR">Repair</option>
-          <option value="INSPECTION">Inspection</option>
-        </select>
-        <input type="date" value={maintenanceForm.service_date} onChange={handleMaintenanceChange("service_date")} required />
-        <input type="number" placeholder="Odometer reading" value={maintenanceForm.odometer_reading} onChange={handleMaintenanceChange("odometer_reading")} />
-        <input type="text" placeholder="Vendor" value={maintenanceForm.vendor} onChange={handleMaintenanceChange("vendor")} />
-        <input type="number" placeholder="Cost" value={maintenanceForm.cost} onChange={handleMaintenanceChange("cost")} />
-        <textarea placeholder="Description" value={maintenanceForm.description} onChange={handleMaintenanceChange("description")} />
-        <button type="submit">Log Maintenance</button>
-      </form>
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-plus-circle me-2"></i> Register Ambulance
+          </h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Registration Number <span className="required">*</span></label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g., KCA 123A"
+                  value={form.registration_number}
+                  onChange={handleFormChange("registration_number")}
+                  required
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1.5 }}>
+                <label className="field-label">Ambulance Type <span className="required">*</span></label>
+                <select className="select" value={form.ambulance_type} onChange={handleFormChange("ambulance_type")}>
+                  <option value="BASIC">Basic Life Support (BLS)</option>
+                  <option value="ADVANCED">Advanced Life Support (ALS)</option>
+                  <option value="NEONATAL">Neonatal / ICU Transport</option>
+                  <option value="PATIENT_TRANSPORT">Non-Emergency Patient Transport</option>
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Make / Model</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g., Toyota Hiace"
+                  value={form.make_model}
+                  onChange={handleFormChange("make_model")}
+                />
+              </div>
+            </div>
 
-      <h2>Maintenance History</h2>
-      <table>
-        <thead><tr><th>Ambulance</th><th>Type</th><th>Date</th><th>Vendor</th><th>Cost</th></tr></thead>
-        <tbody>
-          {logs.map((l) => (
-            <tr key={l.id}>
-              <td>{l.ambulance_registration}</td><td>{l.maintenance_type}</td>
-              <td>{l.service_date}</td><td>{l.vendor || "—"}</td><td>{l.cost ? `KES ${l.cost}` : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {logs.length === 0 && <p>No maintenance logs yet.</p>}
-    </div>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Capacity <span className="required">*</span></label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="Number of patients"
+                  value={form.capacity}
+                  onChange={handleFormChange("capacity")}
+                  required
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Base Callout Fee (KES)</label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="Base fee"
+                  value={form.base_fee}
+                  onChange={handleFormChange("base_fee")}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Rate per km (KES)</label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="Rate per km"
+                  value={form.rate_per_km}
+                  onChange={handleFormChange("rate_per_km")}
+                />
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">
+                <i className="bi bi-plus-circle me-2"></i> Register Ambulance
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <div className="flex items-center gap-3 flex-wrap">
+            <i className="bi bi-truck me-1"></i>
+            <h5 className="card-title" style={{ marginBottom: 0 }}>Fleet</h5>
+          </div>
+          <div>
+            <span className="text-tertiary text-sm">
+              {ambulances.length} ambulance{ambulances.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+        <div className="card-body p-0">
+          {ambulances.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">
+                <i className="bi bi-truck"></i>
+              </div>
+              <h3 className="empty-state__title">No ambulances registered</h3>
+              <p className="empty-state__desc">Register your first ambulance using the form above.</p>
+            </div>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Registration</th>
+                    <th>Type</th>
+                    <th className="cell-numeric">Capacity</th>
+                    <th className="cell-numeric">Base Fee</th>
+                    <th className="cell-numeric">Rate/km</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ambulances.map((a) => (
+                    <tr key={a.id}>
+                      <td className="cell-mono">{a.registration_number}</td>
+                      <td>{a.ambulance_type}</td>
+                      <td className="cell-numeric">{a.capacity}</td>
+                      <td className="cell-numeric">{formatCurrency(a.base_fee)}</td>
+                      <td className="cell-numeric">{formatCurrency(a.rate_per_km)}</td>
+                      <td>
+                        <select
+                          className="select"
+                          value={a.status}
+                          onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                          style={{ width: "180px" }}
+                        >
+                          <option value="AVAILABLE">Available</option>
+                          <option value="ON_CALL">On Call</option>
+                          <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+                          <option value="OUT_OF_SERVICE">Out of Service</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        {ambulances.length > 0 && (
+          <div className="card-footer">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-tertiary text-sm">
+                Showing {ambulances.length} ambulance{ambulances.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <span className="badge badge-success">
+                <span className="badge-dot"></span>
+                Available
+              </span>
+              <span className="badge badge-primary">
+                <span className="badge-dot"></span>
+                On Call
+              </span>
+              <span className="badge badge-warning">
+                <span className="badge-dot"></span>
+                Maintenance
+              </span>
+              <span className="badge badge-danger">
+                <span className="badge-dot"></span>
+                Out of Service
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-tools me-2"></i> Log Maintenance
+          </h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={submitMaintenance}>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Ambulance <span className="required">*</span></label>
+                <select className="select" value={maintenanceForm.ambulance} onChange={handleMaintenanceChange("ambulance")} required>
+                  <option value="">Select ambulance</option>
+                  {ambulances.map((a) => <option key={a.id} value={a.id}>{a.registration_number}</option>)}
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Maintenance Type <span className="required">*</span></label>
+                <select className="select" value={maintenanceForm.maintenance_type} onChange={handleMaintenanceChange("maintenance_type")}>
+                  <option value="SERVICE">Routine Service</option>
+                  <option value="REPAIR">Repair</option>
+                  <option value="INSPECTION">Inspection</option>
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Service Date <span className="required">*</span></label>
+                <input
+                  type="date"
+                  className="input"
+                  value={maintenanceForm.service_date}
+                  onChange={handleMaintenanceChange("service_date")}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Odometer Reading</label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="Odometer reading"
+                  value={maintenanceForm.odometer_reading}
+                  onChange={handleMaintenanceChange("odometer_reading")}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Vendor</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Vendor name"
+                  value={maintenanceForm.vendor}
+                  onChange={handleMaintenanceChange("vendor")}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Cost</label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="Cost"
+                  value={maintenanceForm.cost}
+                  onChange={handleMaintenanceChange("cost")}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label className="field-label">Description</label>
+              <textarea
+                className="textarea"
+                placeholder="Description of maintenance work"
+                value={maintenanceForm.description}
+                onChange={handleMaintenanceChange("description")}
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary">
+              <i className="bi bi-plus-circle me-2"></i> Log Maintenance
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div className="flex items-center gap-3 flex-wrap">
+            <i className="bi bi-clock-history me-1"></i>
+            <h5 className="card-title" style={{ marginBottom: 0 }}>Maintenance History</h5>
+          </div>
+          <div>
+            <span className="text-tertiary text-sm">
+              {logs.length} record{logs.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+        <div className="card-body p-0">
+          {logs.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">
+                <i className="bi bi-clock-history"></i>
+              </div>
+              <h3 className="empty-state__title">No maintenance logs</h3>
+              <p className="empty-state__desc">Log the first maintenance record above.</p>
+            </div>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Ambulance</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Vendor</th>
+                    <th className="cell-numeric">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((l) => (
+                    <tr key={l.id}>
+                      <td className="cell-primary">{l.ambulance_registration}</td>
+                      <td>{l.maintenance_type}</td>
+                      <td>{l.service_date}</td>
+                      <td>{l.vendor || "—"}</td>
+                      <td className="cell-numeric">{l.cost ? formatCurrency(l.cost) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        {logs.length > 0 && (
+          <div className="card-footer">
+            <span className="text-tertiary text-sm">
+              Showing {logs.length} maintenance record{logs.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
