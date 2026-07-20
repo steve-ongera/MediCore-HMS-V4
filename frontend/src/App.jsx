@@ -122,6 +122,11 @@ import Expenses from "./pages/finance/Expenses.jsx";
 import Budgets from "./pages/finance/Budgets.jsx";
 import ChartOfAccounts from "./pages/finance/ChartOfAccounts.jsx";
 
+import BloodInventory from "./pages/bloodbank/BloodInventory.jsx";
+import BloodDonors from "./pages/bloodbank/BloodDonors.jsx";
+import BloodRequests from "./pages/bloodbank/BloodRequests.jsx";
+import BloodRequestDetail from "./pages/bloodbank/BloodRequestDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
