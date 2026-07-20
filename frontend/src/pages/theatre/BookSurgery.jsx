@@ -1,96 +1,141 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getPatients, getSurgicalProcedureCatalog, getAvailableTheatres, getUsers, createSurgeryBooking } from "../../services/api";
 
-export default function UnderDevelopment() {
+export default function BookSurgery() {
+  const navigate = useNavigate();
+
+  const [patientQuery, setPatientQuery] = useState("");
+  const [patientResults, setPatientResults] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+
+  const [procedures, setProcedures] = useState([]);
+  const [theatres, setTheatres] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const [form, setForm] = useState({
+    procedure: "", priority: "ELECTIVE", requested_date: "", theatre: "",
+    primary_surgeon: "", diagnosis: "", pre_op_notes: "",
+  });
+
+  useEffect(() => {
+    loadProcedures();
+    loadTheatres();
+    loadDoctors();
+  }, []);
+
+  const loadProcedures = async () => {
+    try {
+      const data = await getSurgicalProcedureCatalog();
+      setProcedures(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const loadTheatres = async () => {
+    try {
+      const data = await getAvailableTheatres();
+      setTheatres(data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const loadDoctors = async () => {
+    try {
+      const data = await getUsers({ role: "DOCTOR" });
+      setDoctors(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const handlePatientSearch = async (e) => {
+    e.preventDefault();
+    if (!patientQuery.trim()) return;
+    try {
+      const data = await getPatients({ search: patientQuery });
+      setPatientResults(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleChange = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedPatient) {
+      setError("Please select a patient first.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const booking = await createSurgeryBooking({
+        patient: selectedPatient.id,
+        procedure: form.procedure,
+        priority: form.priority,
+        requested_date: form.requested_date,
+        theatre: form.theatre || undefined,
+        primary_surgeon: form.primary_surgeon || undefined,
+        diagnosis: form.diagnosis,
+        pre_op_notes: form.pre_op_notes,
+      });
+      navigate(`/theatre/booking/${booking.id}`);
+    } catch (err) { setError(err.message); } finally { setSubmitting(false); }
+  };
+
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">MediCore HMIS</div>
-          <h1 className="page-title">Module Under Development</h1>
-          <p className="page-subtitle">
-            This module is currently being developed and will be available in an
-            upcoming release.
-          </p>
-        </div>
+    <div>
+      <h1>Book Surgery</h1>
+      {error && <p>Error: {error}</p>}
 
-        <div className="page-header__actions">
-          <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
+      <h2>1. Find Patient</h2>
+      <form onSubmit={handlePatientSearch}>
+        <input type="text" placeholder="Search patient" value={patientQuery} onChange={(e) => setPatientQuery(e.target.value)} />
+        <button type="submit">Search</button>
+      </form>
+      {patientResults.length > 0 && (
+        <ul>
+          {patientResults.map((p) => (
+            <li key={p.id}>
+              {p.full_name} — {p.hospital_number}{" "}
+              <button type="button" onClick={() => setSelectedPatient(p)}>Select</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {selectedPatient && <p>Patient: <strong>{selectedPatient.full_name}</strong> ({selectedPatient.hospital_number})</p>}
 
-      <div className="card shadow-sm border-0">
-        <div className="card-body text-center py-5">
+      <h2>2. Booking Details</h2>
+      <form onSubmit={handleSubmit}>
+        <select value={form.procedure} onChange={handleChange("procedure")} required>
+          <option value="">Select procedure</option>
+          {procedures.map((p) => <option key={p.id} value={p.id}>{p.name} (KES {p.base_price})</option>)}
+        </select>
 
-          <div
-            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle bg-primary-soft"
-            style={{ width: 110, height: 110 }}
-          >
-            <i
-              className="bi bi-tools text-primary"
-              style={{ fontSize: "3rem" }}
-            ></i>
-          </div>
+        <select value={form.priority} onChange={handleChange("priority")}>
+          <option value="EMERGENCY">Emergency</option>
+          <option value="URGENT">Urgent</option>
+          <option value="ELECTIVE">Elective</option>
+        </select>
 
-          <h2 className="fw-bold mb-3">
-            We're Building Something Great
-          </h2>
+        <label>Requested Date & Time</label>
+        <input type="datetime-local" value={form.requested_date} onChange={handleChange("requested_date")} required />
 
-          <p
-            className="text-muted mx-auto"
-            style={{ maxWidth: "650px" }}
-          >
-            This module is currently under active development by the MediCore
-            engineering team. It will be available in a future update with full
-            functionality, security, reporting, and seamless integration with
-            the rest of the Hospital Management Information System.
-          </p>
+        <select value={form.theatre} onChange={handleChange("theatre")}>
+          <option value="">Assign theatre later</option>
+          {theatres.map((t) => <option key={t.id} value={t.id}>{t.theatre_number}</option>)}
+        </select>
 
-          <div className="row g-3 mt-4 justify-content-center">
+        <select value={form.primary_surgeon} onChange={handleChange("primary_surgeon")}>
+          <option value="">Assign surgeon later</option>
+          {doctors.map((d) => <option key={d.id} value={d.id}>{d.full_name}</option>)}
+        </select>
 
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-code-slash fs-2 text-primary"></i>
-                <h6 className="mt-3 mb-1">Development</h6>
-                <small className="text-muted">
-                  Core features are currently being implemented.
-                </small>
-              </div>
-            </div>
+        <textarea placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange("diagnosis")} />
+        <textarea placeholder="Pre-op notes" value={form.pre_op_notes} onChange={handleChange("pre_op_notes")} />
 
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-shield-check fs-2 text-success"></i>
-                <h6 className="mt-3 mb-1">Testing</h6>
-                <small className="text-muted">
-                  Every workflow undergoes extensive quality assurance.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-rocket-takeoff fs-2 text-warning"></i>
-                <h6 className="mt-3 mb-1">Coming Soon</h6>
-                <small className="text-muted">
-                  This module will be released in a future MediCore update.
-                </small>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-5">
-            <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
-              Return to Dashboard
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
+        <button type="submit" disabled={submitting}>
+          {submitting ? "Booking..." : "Book Surgery"}
+        </button>
+      </form>
+    </div>
   );
 }
