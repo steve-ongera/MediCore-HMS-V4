@@ -14,6 +14,7 @@ export default function BookSurgery() {
   const [doctors, setDoctors] = useState([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     procedure: "", priority: "ELECTIVE", requested_date: "", theatre: "",
@@ -21,9 +22,11 @@ export default function BookSurgery() {
   });
 
   useEffect(() => {
-    loadProcedures();
-    loadTheatres();
-    loadDoctors();
+    const loadAll = async () => {
+      await Promise.all([loadProcedures(), loadTheatres(), loadDoctors()]);
+      setLoading(false);
+    };
+    loadAll();
   }, []);
 
   const loadProcedures = async () => {
@@ -81,61 +84,245 @@ export default function BookSurgery() {
     } catch (err) { setError(err.message); } finally { setSubmitting(false); }
   };
 
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "KES 0.00";
+    return `KES ${Number(amount).toFixed(2)}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading booking data...</span>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1>Book Surgery</h1>
-      {error && <p>Error: {error}</p>}
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-eyebrow">Theatre Management</div>
+          <h1 className="page-title">Book Surgery</h1>
+          <p className="page-subtitle">Schedule a surgical procedure</p>
+        </div>
+        <div className="page-header__actions">
+          <button className="btn btn-secondary" onClick={() => navigate("/theatre")}>
+            <i className="bi bi-arrow-left me-2"></i> Back to Board
+          </button>
+        </div>
+      </div>
 
-      <h2>1. Find Patient</h2>
-      <form onSubmit={handlePatientSearch}>
-        <input type="text" placeholder="Search patient" value={patientQuery} onChange={(e) => setPatientQuery(e.target.value)} />
-        <button type="submit">Search</button>
-      </form>
-      {patientResults.length > 0 && (
-        <ul>
-          {patientResults.map((p) => (
-            <li key={p.id}>
-              {p.full_name} — {p.hospital_number}{" "}
-              <button type="button" onClick={() => setSelectedPatient(p)}>Select</button>
-            </li>
-          ))}
-        </ul>
+      {error && (
+        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
+          <div className="card-body">
+            <div className="text-danger">
+              <i className="bi bi-exclamation-circle me-2"></i> {error}
+            </div>
+          </div>
+        </div>
       )}
-      {selectedPatient && <p>Patient: <strong>{selectedPatient.full_name}</strong> ({selectedPatient.hospital_number})</p>}
 
-      <h2>2. Booking Details</h2>
-      <form onSubmit={handleSubmit}>
-        <select value={form.procedure} onChange={handleChange("procedure")} required>
-          <option value="">Select procedure</option>
-          {procedures.map((p) => <option key={p.id} value={p.id}>{p.name} (KES {p.base_price})</option>)}
-        </select>
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-search me-2"></i> Step 1: Find Patient
+          </h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handlePatientSearch}>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Search Patient</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Search by name / phone / hospital number"
+                  value={patientQuery}
+                  onChange={(e) => setPatientQuery(e.target.value)}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
+                <button type="submit" className="btn btn-primary">
+                  <i className="bi bi-search me-2"></i> Search
+                </button>
+              </div>
+            </div>
+          </form>
 
-        <select value={form.priority} onChange={handleChange("priority")}>
-          <option value="EMERGENCY">Emergency</option>
-          <option value="URGENT">Urgent</option>
-          <option value="ELECTIVE">Elective</option>
-        </select>
+          {patientResults.length > 0 && (
+            <div style={{ marginTop: "var(--space-4)" }}>
+              <div className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
+                Search Results ({patientResults.length})
+              </div>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Hospital #</th>
+                      <th>Phone</th>
+                      <th className="cell-actions"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {patientResults.map((p) => (
+                      <tr key={p.id}>
+                        <td className="cell-primary">{p.full_name}</td>
+                        <td className="cell-mono">{p.hospital_number}</td>
+                        <td>{p.phone}</td>
+                        <td className="cell-actions">
+                          <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setSelectedPatient(p)}
+                          >
+                            <i className="bi bi-check me-1"></i> Select
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-        <label>Requested Date & Time</label>
-        <input type="datetime-local" value={form.requested_date} onChange={handleChange("requested_date")} required />
+          {selectedPatient && (
+            <div className="card" style={{ borderColor: "var(--success)", background: "var(--success-soft)", marginTop: "var(--space-4)" }}>
+              <div className="card-body">
+                <div className="flex items-center gap-3">
+                  <div className="avatar avatar-sm">
+                    <i className="bi bi-person-check fs-xl"></i>
+                  </div>
+                  <div>
+                    <div className="text-sm text-success font-semibold">
+                      <i className="bi bi-check-circle me-1"></i> Selected Patient
+                    </div>
+                    <div className="font-bold">{selectedPatient.full_name}</div>
+                    <div className="text-sm text-muted">
+                      {selectedPatient.hospital_number} • {selectedPatient.phone}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm ml-auto"
+                    onClick={() => setSelectedPatient(null)}
+                  >
+                    <i className="bi bi-x me-1"></i> Change
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-        <select value={form.theatre} onChange={handleChange("theatre")}>
-          <option value="">Assign theatre later</option>
-          {theatres.map((t) => <option key={t.id} value={t.id}>{t.theatre_number}</option>)}
-        </select>
+      <div className="card">
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-clipboard-plus me-2"></i> Step 2: Booking Details
+          </h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Procedure <span className="required">*</span></label>
+                <select className="select" value={form.procedure} onChange={handleChange("procedure")} required>
+                  <option value="">Select procedure</option>
+                  {procedures.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({formatCurrency(p.base_price)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 0.7 }}>
+                <label className="field-label">Priority <span className="required">*</span></label>
+                <select className="select" value={form.priority} onChange={handleChange("priority")}>
+                  <option value="EMERGENCY">Emergency</option>
+                  <option value="URGENT">Urgent</option>
+                  <option value="ELECTIVE">Elective</option>
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Requested Date & Time <span className="required">*</span></label>
+                <input
+                  type="datetime-local"
+                  className="input"
+                  value={form.requested_date}
+                  onChange={handleChange("requested_date")}
+                  required
+                />
+              </div>
+            </div>
 
-        <select value={form.primary_surgeon} onChange={handleChange("primary_surgeon")}>
-          <option value="">Assign surgeon later</option>
-          {doctors.map((d) => <option key={d.id} value={d.id}>{d.full_name}</option>)}
-        </select>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Theatre</label>
+                <select className="select" value={form.theatre} onChange={handleChange("theatre")}>
+                  <option value="">Assign theatre later</option>
+                  {theatres.map((t) => <option key={t.id} value={t.id}>{t.theatre_number}</option>)}
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Primary Surgeon</label>
+                <select className="select" value={form.primary_surgeon} onChange={handleChange("primary_surgeon")}>
+                  <option value="">Assign surgeon later</option>
+                  {doctors.map((d) => <option key={d.id} value={d.id}>{d.full_name}</option>)}
+                </select>
+              </div>
+            </div>
 
-        <textarea placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange("diagnosis")} />
-        <textarea placeholder="Pre-op notes" value={form.pre_op_notes} onChange={handleChange("pre_op_notes")} />
+            <div className="field">
+              <label className="field-label">Diagnosis</label>
+              <textarea
+                className="textarea"
+                placeholder="Diagnosis"
+                value={form.diagnosis}
+                onChange={handleChange("diagnosis")}
+              />
+            </div>
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? "Booking..." : "Book Surgery"}
-        </button>
-      </form>
-    </div>
+            <div className="field">
+              <label className="field-label">Pre-op Notes</label>
+              <textarea
+                className="textarea"
+                placeholder="Pre-operative notes"
+                value={form.pre_op_notes}
+                onChange={handleChange("pre_op_notes")}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate("/theatre")}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
+                    Booking...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-plus-circle me-2"></i> Book Surgery
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
   );
 }

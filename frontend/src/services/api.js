@@ -603,8 +603,6 @@ export const createBudget = (payload) => unwrap(client.post("/budgets/", payload
 
 export const getFinancialSummary = (params) => unwrap(client.get(`/finance/summary/${qs(params)}`));
 
-export const createOperatingTheatre = (payload) => unwrap(client.post("/operating-theatres/", payload));
-export const createSurgicalProcedure = (payload) => unwrap(client.post("/surgical-procedure-catalog/", payload));
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads

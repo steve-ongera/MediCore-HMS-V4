@@ -112,6 +112,7 @@ import MortuaryCaseDetail from "./pages/mortuary/MortuaryCaseDetail.jsx";
 
 import TheatreBoard from "./pages/theatre/TheatreBoard.jsx";
 import BookSurgery from "./pages/theatre/BookSurgery.jsx";
+import BookingDetail from "./pages/theatre/BookingDetail.jsx";
 import SurgeryDetail from "./pages/theatre/SurgeryDetail.jsx";
 import TheatreSetup from "./pages/theatre/TheatreSetup.jsx";
 
