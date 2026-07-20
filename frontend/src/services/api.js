@@ -544,6 +544,30 @@ export const addMortuaryCharge = (id, payload) => unwrap(client.post(`/mortuary-
 export const orderMortuaryService = (id, payload) => unwrap(client.post(`/mortuary-admissions/${id}/order-service/`, payload));
 export const releaseBody = (id, payload) => unwrap(client.post(`/mortuary-admissions/${id}/release/`, payload));
 
+// ===========================================================================
+// THEATRE MANAGEMENT
+// ===========================================================================
+export const getOperatingTheatres = (params) => unwrap(client.get(`/operating-theatres/${qs(params)}`));
+export const getAvailableTheatres = () => unwrap(client.get("/operating-theatres/available/"));
+
+export const getSurgicalProcedureCatalog = (params) => unwrap(client.get(`/surgical-procedure-catalog/${qs(params)}`));
+
+export const getSurgeryBookings = (params) => unwrap(client.get(`/surgery-bookings/${qs(params)}`));
+export const getUpcomingBookings = () => unwrap(client.get("/surgery-bookings/upcoming/"));
+export const getSurgeryBooking = (id) => unwrap(client.get(`/surgery-bookings/${id}/`));
+export const createSurgeryBooking = (payload) => unwrap(client.post("/surgery-bookings/", payload));
+export const cancelSurgeryBooking = (id, payload) => unwrap(client.post(`/surgery-bookings/${id}/cancel/`, payload));
+export const startSurgery = (bookingId, payload) => unwrap(client.post(`/surgery-bookings/${bookingId}/start-surgery/`, payload));
+
+export const getSurgeries = (params) => unwrap(client.get(`/surgeries/${qs(params)}`));
+export const getInProgressSurgeries = () => unwrap(client.get("/surgeries/in-progress/"));
+export const getSurgery = (id) => unwrap(client.get(`/surgeries/${id}/`));
+export const markIncision = (id) => unwrap(client.post(`/surgeries/${id}/mark-incision/`));
+export const markClosure = (id) => unwrap(client.post(`/surgeries/${id}/mark-closure/`));
+export const assignSurgicalTeamMember = (id, payload) => unwrap(client.post(`/surgeries/${id}/assign-team/`, payload));
+export const recordConsumable = (id, payload) => unwrap(client.post(`/surgeries/${id}/record-consumable/`, payload));
+export const addPostOpNote = (id, payload) => unwrap(client.post(`/surgeries/${id}/add-post-op-note/`, payload));
+export const completeSurgery = (id, payload) => unwrap(client.post(`/surgeries/${id}/complete/`, payload));
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
