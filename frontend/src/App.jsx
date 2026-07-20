@@ -110,6 +110,11 @@ import MortuaryRegister from "./pages/mortuary/MortuaryRegister.jsx";
 import AdmitDeceased from "./pages/mortuary/AdmitDeceased.jsx";
 import MortuaryCaseDetail from "./pages/mortuary/MortuaryCaseDetail.jsx";
 
+import TheatreBoard from "./pages/theatre/TheatreBoard.jsx";
+import BookSurgery from "./pages/theatre/BookSurgery.jsx";
+import SurgeryDetail from "./pages/theatre/SurgeryDetail.jsx";
+import TheatreSetup from "./pages/theatre/TheatreSetup.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
