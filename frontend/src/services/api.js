@@ -572,6 +572,40 @@ export const completeSurgery = (id, payload) => unwrap(client.post(`/surgeries/$
 export const createOperatingTheatre = (payload) => unwrap(client.post("/operating-theatres/", payload));
 export const createSurgicalProcedure = (payload) => unwrap(client.post("/surgical-procedure-catalog/", payload));
 
+// ===========================================================================
+// FINANCE & ACCOUNTING
+// ===========================================================================
+export const getAccounts = (params) => unwrap(client.get(`/accounts/${qs(params)}`));
+export const createAccount = (payload) => unwrap(client.post("/accounts/", payload));
+
+export const getFiscalPeriods = (params) => unwrap(client.get(`/fiscal-periods/${qs(params)}`));
+export const createFiscalPeriod = (payload) => unwrap(client.post("/fiscal-periods/", payload));
+export const closeFiscalPeriod = (id) => unwrap(client.post(`/fiscal-periods/${id}/close/`));
+
+export const getJournalEntries = (params) => unwrap(client.get(`/journal-entries/${qs(params)}`));
+export const getJournalEntry = (id) => unwrap(client.get(`/journal-entries/${id}/`));
+export const createJournalEntry = (payload) => unwrap(client.post("/journal-entries/", payload));
+export const postJournalEntry = (id) => unwrap(client.post(`/journal-entries/${id}/post/`));
+export const voidJournalEntry = (id) => unwrap(client.post(`/journal-entries/${id}/void/`));
+
+export const getExpenseCategories = (params) => unwrap(client.get(`/expense-categories/${qs(params)}`));
+export const createExpenseCategory = (payload) => unwrap(client.post("/expense-categories/", payload));
+
+export const getExpenses = (params) => unwrap(client.get(`/expenses/${qs(params)}`));
+export const getPendingExpenses = () => unwrap(client.get("/expenses/pending-approval/"));
+export const createExpense = (payload) => unwrap(client.post("/expenses/", payload));
+export const approveExpense = (id) => unwrap(client.post(`/expenses/${id}/approve/`));
+export const rejectExpense = (id, payload) => unwrap(client.post(`/expenses/${id}/reject/`, payload));
+export const markExpensePaid = (id) => unwrap(client.post(`/expenses/${id}/mark-paid/`));
+
+export const getBudgets = (params) => unwrap(client.get(`/budgets/${qs(params)}`));
+export const createBudget = (payload) => unwrap(client.post("/budgets/", payload));
+
+export const getFinancialSummary = (params) => unwrap(client.get(`/finance/summary/${qs(params)}`));
+
+export const createOperatingTheatre = (payload) => unwrap(client.post("/operating-theatres/", payload));
+export const createSurgicalProcedure = (payload) => unwrap(client.post("/surgical-procedure-catalog/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
