@@ -121,12 +121,12 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="row">
-        {/* Profile Sidebar */}
-        <div className="col-lg-3">
+      <div className="grid-4-8">
+        {/* Profile Sidebar - 4 columns */}
+        <div className="grid-4-8__sidebar">
           <div className="card">
             <div className="card-body text-center">
-              <span className="avatar avatar-xl mb-3">
+              <span className="avatar avatar-xl mb-3" style={{ fontSize: "2.5rem" }}>
                 {user.first_name?.[0] || user.username?.[0] || "?"}
                 {user.last_name?.[0] || ""}
               </span>
@@ -134,31 +134,37 @@ export default function Profile() {
                 {user.first_name || ""} {user.last_name || ""}
               </h5>
               <p className="text-muted text-sm">@{user.username}</p>
-              <div className="d-flex justify-content-center gap-2">
-                <span className="badge bg-primary">{ROLE_LABELS[user.role] || user.role}</span>
-                <span className={`badge ${user.is_active ? "bg-success" : "bg-secondary"}`}>
+              <div className="flex justify-content-center gap-2" style={{ flexWrap: "wrap" }}>
+                <span className="badge badge-primary">{ROLE_LABELS[user.role] || user.role}</span>
+                <span className={`badge ${user.is_active ? "badge-success" : "badge-neutral"}`}>
                   {user.is_active ? "Active" : "Inactive"}
                 </span>
               </div>
               <hr />
               <div className="text-start">
-                <div className="info-item__label">Email</div>
-                <div className="info-item__value">{user.email || "—"}</div>
-                <div className="info-item__label mt-2">Phone</div>
-                <div className="info-item__value">{user.phone || "—"}</div>
-                <div className="info-item__label mt-2">Member Since</div>
-                <div className="info-item__value">
-                  {new Date(user.date_joined).toLocaleDateString()}
+                <div className="info-item">
+                  <div className="info-item__label">Email</div>
+                  <div className="info-item__value">{user.email || "—"}</div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Phone</div>
+                  <div className="info-item__value">{user.phone || "—"}</div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Member Since</div>
+                  <div className="info-item__value">
+                    {new Date(user.date_joined).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="col-lg-9">
+        {/* Main Content - 8 columns */}
+        <div className="grid-4-8__main">
           {/* Tabs */}
-          <div className="tabs mb-3">
+          <div className="tabs" style={{ marginBottom: "var(--space-3)" }}>
             <button
               type="button"
               className={`tabs__item ${activeTab === "profile" ? "is-active" : ""}`}
@@ -185,82 +191,74 @@ export default function Profile() {
               </div>
               <div className="card-body">
                 <form onSubmit={handleUpdateProfile}>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="field">
-                        <label className="field-label" htmlFor="first_name">
-                          First Name <span className="required">*</span>
-                        </label>
-                        <input
-                          id="first_name"
-                          name="first_name"
-                          type="text"
-                          className={`input ${errors.first_name ? "has-error" : ""}`}
-                          placeholder="First name"
-                          value={profileForm.first_name}
-                          onChange={handleProfileChange}
-                        />
-                        {errors.first_name && (
-                          <div className="field-error">{errors.first_name}</div>
-                        )}
-                      </div>
+                  <div className="field-row">
+                    <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                      <label className="field-label" htmlFor="first_name">
+                        First Name <span className="required">*</span>
+                      </label>
+                      <input
+                        id="first_name"
+                        name="first_name"
+                        type="text"
+                        className={`input ${errors.first_name ? "has-error" : ""}`}
+                        placeholder="First name"
+                        value={profileForm.first_name}
+                        onChange={handleProfileChange}
+                      />
+                      {errors.first_name && (
+                        <div className="field-error">{errors.first_name}</div>
+                      )}
                     </div>
-                    <div className="col-md-6">
-                      <div className="field">
-                        <label className="field-label" htmlFor="last_name">
-                          Last Name <span className="required">*</span>
-                        </label>
-                        <input
-                          id="last_name"
-                          name="last_name"
-                          type="text"
-                          className={`input ${errors.last_name ? "has-error" : ""}`}
-                          placeholder="Last name"
-                          value={profileForm.last_name}
-                          onChange={handleProfileChange}
-                        />
-                        {errors.last_name && (
-                          <div className="field-error">{errors.last_name}</div>
-                        )}
-                      </div>
+                    <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                      <label className="field-label" htmlFor="last_name">
+                        Last Name <span className="required">*</span>
+                      </label>
+                      <input
+                        id="last_name"
+                        name="last_name"
+                        type="text"
+                        className={`input ${errors.last_name ? "has-error" : ""}`}
+                        placeholder="Last name"
+                        value={profileForm.last_name}
+                        onChange={handleProfileChange}
+                      />
+                      {errors.last_name && (
+                        <div className="field-error">{errors.last_name}</div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="field">
-                        <label className="field-label" htmlFor="email">
-                          Email
-                        </label>
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          className={`input ${errors.email ? "has-error" : ""}`}
-                          placeholder="Email address"
-                          value={profileForm.email}
-                          onChange={handleProfileChange}
-                        />
-                        {errors.email && (
-                          <div className="field-error">{errors.email}</div>
-                        )}
-                      </div>
+                  <div className="field-row">
+                    <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                      <label className="field-label" htmlFor="email">
+                        Email
+                      </label>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        className={`input ${errors.email ? "has-error" : ""}`}
+                        placeholder="Email address"
+                        value={profileForm.email}
+                        onChange={handleProfileChange}
+                      />
+                      {errors.email && (
+                        <div className="field-error">{errors.email}</div>
+                      )}
                     </div>
-                    <div className="col-md-6">
-                      <div className="field">
-                        <label className="field-label" htmlFor="phone">
-                          Phone
-                        </label>
-                        <input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          className="input"
-                          placeholder="Phone number"
-                          value={profileForm.phone}
-                          onChange={handleProfileChange}
-                        />
-                      </div>
+                    <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                      <label className="field-label" htmlFor="phone">
+                        Phone
+                      </label>
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        className="input"
+                        placeholder="Phone number"
+                        value={profileForm.phone}
+                        onChange={handleProfileChange}
+                      />
                     </div>
                   </div>
 
@@ -274,8 +272,11 @@ export default function Profile() {
                       className="input"
                       value={user.username}
                       disabled
+                      style={{ background: "var(--bg-secondary)", cursor: "not-allowed" }}
                     />
-                    <div className="field-hint">Username cannot be changed</div>
+                    <div className="text-2xs text-tertiary" style={{ marginTop: "var(--space-1)" }}>
+                      Username cannot be changed
+                    </div>
                   </div>
 
                   <div className="form-actions">
@@ -285,7 +286,10 @@ export default function Profile() {
                       disabled={submitting}
                     >
                       {submitting ? (
-                        <span className="spinner-border spinner-border-sm" />
+                        <>
+                          <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
+                          Saving...
+                        </>
                       ) : (
                         <>
                           <i className="bi bi-save me-2"></i>
@@ -361,9 +365,13 @@ export default function Profile() {
                     )}
                   </div>
 
-                  <div className="alert alert-info">
-                    <i className="bi bi-info-circle me-2"></i>
-                    Password must be at least 8 characters long and contain a mix of letters, numbers, and special characters.
+                  <div className="card" style={{ background: "var(--info-soft)", borderColor: "var(--info-strong)", marginBottom: "var(--space-3)" }}>
+                    <div className="card-body" style={{ padding: "var(--space-3)" }}>
+                      <div className="text-sm">
+                        <i className="bi bi-info-circle me-2" style={{ color: "var(--info-strong)" }}></i>
+                        Password must be at least 8 characters long and contain a mix of letters, numbers, and special characters.
+                      </div>
+                    </div>
                   </div>
 
                   <div className="form-actions">
@@ -373,7 +381,10 @@ export default function Profile() {
                       disabled={submitting}
                     >
                       {submitting ? (
-                        <span className="spinner-border spinner-border-sm" />
+                        <>
+                          <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
+                          Changing...
+                        </>
                       ) : (
                         <>
                           <i className="bi bi-key me-2"></i>

@@ -3179,3 +3179,25 @@ fieldset legend {
   font-weight: 600;
   color: #111827;
 }
+
+/* 4-8 Grid Layout */
+.grid-4-8 {
+  display: grid;
+  grid-template-columns: 4fr 8fr;
+  gap: var(--space-4);
+}
+
+.grid-4-8__sidebar {
+  min-width: 0;
+}
+
+.grid-4-8__main {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .grid-4-8 {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
