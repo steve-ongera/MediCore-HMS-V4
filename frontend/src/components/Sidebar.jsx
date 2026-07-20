@@ -175,6 +175,15 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Theatre",
+    roles: [ROLES.DOCTOR, ROLES.NURSE],
+    links: [
+      { to: "/theatre", label: "Theatre Board", icon: "bi-hospital" },
+      { to: "/theatre/book", label: "Book Surgery", icon: "bi-calendar2-plus" },
+      { to: "/theatre/setup", label: "Theatres & Procedures", icon: "bi-gear-wide-connected", roles: [] },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
