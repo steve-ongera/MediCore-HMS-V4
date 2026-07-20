@@ -100,4 +100,4 @@ def _extract_days(description):
     """Pulls the '(N day(s) @ ...)' count back out of a storage charge description."""
     import re
     match = re.search(r"\((\d+) day", description)
-    return int(match.group(1)) if match else 1
+    return int(match.group(1)) if match else 1 
