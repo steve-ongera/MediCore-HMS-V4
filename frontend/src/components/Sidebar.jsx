@@ -195,6 +195,15 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Blood Bank",
+    roles: [ROLES.NURSE, ROLES.DOCTOR],
+    links: [
+      { to: "/bloodbank", label: "Inventory", icon: "bi-droplet-half" },
+      { to: "/bloodbank/donors", label: "Donors", icon: "bi-people-fill" },
+      { to: "/bloodbank/requests", label: "Blood Requests", icon: "bi-clipboard2-pulse" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
