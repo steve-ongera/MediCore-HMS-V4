@@ -115,6 +115,12 @@ import BookSurgery from "./pages/theatre/BookSurgery.jsx";
 import SurgeryDetail from "./pages/theatre/SurgeryDetail.jsx";
 import TheatreSetup from "./pages/theatre/TheatreSetup.jsx";
 
+import FinancialSummary from "./pages/finance/FinancialSummary.jsx";
+import JournalEntries from "./pages/finance/JournalEntries.jsx";
+import Expenses from "./pages/finance/Expenses.jsx";
+import Budgets from "./pages/finance/Budgets.jsx";
+import ChartOfAccounts from "./pages/finance/ChartOfAccounts.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -581,6 +587,12 @@ export default function App() {
         <Route path="/theatre/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><SurgeryDetail /></ProtectedRoute>} />
         <Route path="/theatre/setup" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><TheatreSetup /></ProtectedRoute>} />
         <Route path="/theatre/booking/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><BookingDetail /></ProtectedRoute>} />
+
+        <Route path="/finance" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><FinancialSummary /></ProtectedRoute>} />
+        <Route path="/finance/journal" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><JournalEntries /></ProtectedRoute>} />
+        <Route path="/finance/expenses" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><Expenses /></ProtectedRoute>} />
+        <Route path="/finance/budgets" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><Budgets /></ProtectedRoute>} />
+        <Route path="/finance/accounts" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ChartOfAccounts /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route

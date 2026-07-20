@@ -184,6 +184,17 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Finance & Accounting",
+    roles: [ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN],
+    links: [
+      { to: "/finance", label: "Financial Summary", icon: "bi-graph-up-arrow" },
+      { to: "/finance/journal", label: "Journal Entries", icon: "bi-journal-text" },
+      { to: "/finance/expenses", label: "Expenses", icon: "bi-receipt-cutoff" },
+      { to: "/finance/budgets", label: "Budgets", icon: "bi-pie-chart" },
+      { to: "/finance/accounts", label: "Chart of Accounts", icon: "bi-list-columns", roles: [] },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
