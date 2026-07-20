@@ -569,6 +569,9 @@ export const recordConsumable = (id, payload) => unwrap(client.post(`/surgeries/
 export const addPostOpNote = (id, payload) => unwrap(client.post(`/surgeries/${id}/add-post-op-note/`, payload));
 export const completeSurgery = (id, payload) => unwrap(client.post(`/surgeries/${id}/complete/`, payload));
 
+export const createOperatingTheatre = (payload) => unwrap(client.post("/operating-theatres/", payload));
+export const createSurgicalProcedure = (payload) => unwrap(client.post("/surgical-procedure-catalog/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
