@@ -1,96 +1,75 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getAccounts, createAccount } from "../../services/api";
 
-export default function UnderDevelopment() {
+export default function ChartOfAccounts() {
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({ code: "", name: "", account_type: "ASSET", parent: "", description: "" });
+
+  useEffect(() => { load(); }, []);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await getAccounts();
+      setAccounts(data.results ?? data);
+    } catch (err) { setError(err.message); } finally { setLoading(false); }
+  };
+
+  const handleChange = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createAccount({ ...form, parent: form.parent || undefined });
+      setForm({ code: "", name: "", account_type: "ASSET", parent: "", description: "" });
+      load();
+    } catch (err) { setError(err.message); }
+  };
+
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">MediCore HMIS</div>
-          <h1 className="page-title">Module Under Development</h1>
-          <p className="page-subtitle">
-            This module is currently being developed and will be available in an
-            upcoming release.
-          </p>
-        </div>
+    <div>
+      <h1>Chart of Accounts</h1>
+      {error && <p>Error: {error}</p>}
 
-        <div className="page-header__actions">
-          <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
+      <h2>Add Account</h2>
+      <form onSubmit={handleSubmit}>
+        <input type="text" placeholder="Code (e.g. 1000)" value={form.code} onChange={handleChange("code")} required />
+        <input type="text" placeholder="Name (e.g. Cash / Bank)" value={form.name} onChange={handleChange("name")} required />
+        <select value={form.account_type} onChange={handleChange("account_type")}>
+          <option value="ASSET">Asset</option>
+          <option value="LIABILITY">Liability</option>
+          <option value="EQUITY">Equity</option>
+          <option value="REVENUE">Revenue</option>
+          <option value="EXPENSE">Expense</option>
+        </select>
+        <select value={form.parent} onChange={handleChange("parent")}>
+          <option value="">No parent (top-level account)</option>
+          {accounts.map((a) => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
+        </select>
+        <input type="text" placeholder="Description" value={form.description} onChange={handleChange("description")} />
+        <button type="submit">Add Account</button>
+      </form>
 
-      <div className="card shadow-sm border-0">
-        <div className="card-body text-center py-5">
-
-          <div
-            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle bg-primary-soft"
-            style={{ width: 110, height: 110 }}
-          >
-            <i
-              className="bi bi-tools text-primary"
-              style={{ fontSize: "3rem" }}
-            ></i>
-          </div>
-
-          <h2 className="fw-bold mb-3">
-            We're Building Something Great
-          </h2>
-
-          <p
-            className="text-muted mx-auto"
-            style={{ maxWidth: "650px" }}
-          >
-            This module is currently under active development by the MediCore
-            engineering team. It will be available in a future update with full
-            functionality, security, reporting, and seamless integration with
-            the rest of the Hospital Management Information System.
-          </p>
-
-          <div className="row g-3 mt-4 justify-content-center">
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-code-slash fs-2 text-primary"></i>
-                <h6 className="mt-3 mb-1">Development</h6>
-                <small className="text-muted">
-                  Core features are currently being implemented.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-shield-check fs-2 text-success"></i>
-                <h6 className="mt-3 mb-1">Testing</h6>
-                <small className="text-muted">
-                  Every workflow undergoes extensive quality assurance.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-rocket-takeoff fs-2 text-warning"></i>
-                <h6 className="mt-3 mb-1">Coming Soon</h6>
-                <small className="text-muted">
-                  This module will be released in a future MediCore update.
-                </small>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-5">
-            <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
-              Return to Dashboard
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
+      <h2>All Accounts</h2>
+      {loading ? <p>Loading...</p> : (
+        <table>
+          <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Parent</th><th>Balance</th></tr></thead>
+          <tbody>
+            {accounts.map((a) => (
+              <tr key={a.id}>
+                <td>{a.code}</td><td>{a.name}</td><td>{a.account_type}</td>
+                <td>{a.parent_name || "—"}</td><td>KES {a.balance}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p style={{ marginTop: "1em" }}>
+        Note: account code <strong>1000</strong> is treated as the default Cash/Bank account by expense payment posting.
+      </p>
+    </div>
   );
 }

@@ -27,10 +27,10 @@ import StatusBadge from "../../components/StatusBadge";
 import { formatDate, formatDateTime } from "../../utils/formatters";
 
 const TABS = [
-  { key: "notes", label: "Clinical Notes" },
-  { key: "diagnoses", label: "Diagnoses" },
-  { key: "prescriptions", label: "Prescriptions" },
-  { key: "orders", label: "Lab & Radiology" },
+  { key: "notes", label: "Clinical Notes", icon: "bi-file-text" },
+  { key: "diagnoses", label: "Diagnoses", icon: "bi-clipboard-check" },
+  { key: "prescriptions", label: "Prescriptions", icon: "bi-capsule" },
+  { key: "orders", label: "Lab & Radiology", icon: "bi-list-ul" },
 ];
 
 const EMPTY_FORM = {
@@ -55,7 +55,6 @@ export default function Consultation() {
   const [activeTab, setActiveTab] = useState("notes");
 
   const [form, setForm] = useState(EMPTY_FORM);
-  // Snapshot of the form as it exists in the database — used to detect unsaved edits.
   const [savedForm, setSavedForm] = useState(EMPTY_FORM);
   const isDirty = JSON.stringify(form) !== JSON.stringify(savedForm);
 
@@ -76,8 +75,6 @@ export default function Consultation() {
     instructions: "",
   });
 
-  // Lab & Radiology catalogs — loaded from the DB so the `test` field we
-  // submit is a real ForeignKey UUID, not a hardcoded string like "MALARIA".
   const [labTests, setLabTests] = useState([]);
   const [radiologyTests, setRadiologyTests] = useState([]);
   const [catalogsLoading, setCatalogsLoading] = useState(true);
@@ -92,16 +89,11 @@ export default function Consultation() {
   const [pauseForm, setPauseForm] = useState({ pause_reason: "OTHER", pause_notes: "" });
 
   useEffect(() => {
-    // Guards against React StrictMode's double-invoke of useEffect on mount,
-    // which would otherwise fire two concurrent "start consultation" requests.
     if (loadedVisitRef.current === visitId) return;
     loadedVisitRef.current = visitId;
     loadConsultation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visitId]);
 
-  // Load the lab/radiology test catalogs once — both are lookup tables that
-  // rarely change, so a single fetch on mount is enough.
   useEffect(() => {
     const loadCatalogs = async () => {
       setCatalogsLoading(true);
@@ -110,7 +102,6 @@ export default function Consultation() {
           getLabTestCatalog(),
           getRadiologyTestCatalog(),
         ]);
-        // Handle both paginated ({results: [...]}) and plain-array responses.
         setLabTests(labResp?.results || labResp || []);
         setRadiologyTests(radResp?.results || radResp || []);
       } catch (err) {
@@ -122,7 +113,6 @@ export default function Consultation() {
     loadCatalogs();
   }, []);
 
-  // Warn before an actual browser reload/close if there are unsaved clinical notes.
   useEffect(() => {
     const handler = (e) => {
       if (isDirty) {
@@ -134,9 +124,6 @@ export default function Consultation() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
-  // Autosave a local draft on every keystroke so that if the page does get
-  // reloaded (or the tab is closed by accident) the in-progress notes are not
-  // lost — they'll be restored from this draft next time the page loads.
   useEffect(() => {
     if (!consultation) return;
     localStorage.setItem(draftKeyFor(visitId), JSON.stringify(form));
@@ -150,8 +137,6 @@ export default function Consultation() {
     setLoading(true);
     try {
       const visit = await getVisit(visitId);
-
-      // Try to get the existing consultation for this visit
       const consultationsResp = await getConsultations({ visit: visitId });
       let cons;
       if (consultationsResp.results && consultationsResp.results.length > 0) {
@@ -171,8 +156,6 @@ export default function Consultation() {
       };
       setSavedForm(serverForm);
 
-      // If a local draft exists and differs from what's saved in the database,
-      // restore it instead of silently discarding the doctor's unsaved work.
       const draftRaw = localStorage.getItem(draftKeyFor(visitId));
       if (draftRaw) {
         try {
@@ -190,7 +173,6 @@ export default function Consultation() {
         setForm(serverForm);
       }
 
-      // Patient summary needs the actual patient id, which lives on the visit
       const summary = await getPatientSummary(visit.patient);
       setPatientSummary(summary);
     } catch (err) {
@@ -221,8 +203,6 @@ export default function Consultation() {
     }
   };
 
-  // Prevent tab switching while there are unsaved clinical notes, so a doctor
-  // can't accidentally navigate away from edits that were never persisted.
   const handleTabChange = (tabKey) => {
     if (tabKey === activeTab) return;
     if (activeTab === "notes" && isDirty) {
@@ -393,9 +373,6 @@ export default function Consultation() {
     }
   };
 
-  // Builds a simple PDF from a lab order's typed-in result text.
-  // The uploaded file itself (if any) is opened directly via its own URL —
-  // this PDF is only for the free-text portion the technologist entered.
   const downloadLabResultPdf = (order) => {
     const doc = new jsPDF();
     const margin = 15;
@@ -442,7 +419,6 @@ export default function Consultation() {
     doc.save(fileName);
   };
 
-  // Same idea for radiology — uses radiologist_notes instead of result_text.
   const downloadRadiologyResultPdf = (order) => {
     const doc = new jsPDF();
     const margin = 15;
@@ -552,46 +528,50 @@ export default function Consultation() {
         </div>
       </div>
 
-      <div className="row">
-        {/* Patient Info Sidebar */}
-        <div className="col-lg-3">
-          <div className="card mb-3">
-            <div className="card-body">
-              <div className="text-center mb-3">
-                <span className="avatar avatar-lg">
-                  {consultation?.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
-                </span>
-                <h5 className="mt-2 mb-0">{consultation?.patient_name}</h5>
-                <span className="text-muted text-sm">
-                  #{patientSummary?.patient?.hospital_number}
-                </span>
-              </div>
+      <div className="grid-4-8">
+        {/* Sidebar - 4 columns */}
+        <div className="grid-4-8__sidebar">
+          <div className="card">
+            <div className="card-body text-center">
+              <span className="avatar avatar-xl mb-3" style={{ fontSize: "2.5rem" }}>
+                {consultation?.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+              </span>
+              <h5 className="mb-0">{consultation?.patient_name}</h5>
+              <span className="text-muted text-sm">
+                #{patientSummary?.patient?.hospital_number || "—"}
+              </span>
               <hr />
-              <div className="info-grid">
-                <div>
+              <div className="text-start">
+                <div className="info-item">
                   <div className="info-item__label">Age</div>
                   <div className="info-item__value">{patientSummary?.patient?.age || "—"}</div>
                 </div>
-                <div>
+                <div className="info-item" style={{ marginTop: "var(--space-2)" }}>
                   <div className="info-item__label">Gender</div>
                   <div className="info-item__value">{patientSummary?.patient?.gender || "—"}</div>
                 </div>
-                <div>
+                <div className="info-item" style={{ marginTop: "var(--space-2)" }}>
                   <div className="info-item__label">Phone</div>
                   <div className="info-item__value">{patientSummary?.patient?.phone || "—"}</div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-2)" }}>
+                  <div className="info-item__label">Status</div>
+                  <div className="info-item__value">
+                    <StatusBadge status={consultation?.status} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {patientSummary?.allergies?.length > 0 && (
-            <div className="card mb-3">
+            <div className="card" style={{ marginTop: "var(--space-3)" }}>
               <div className="card-header">
                 <h6 className="mb-0">Allergies</h6>
               </div>
               <div className="card-body">
                 {patientSummary.allergies.map((a) => (
-                  <div key={a.id} className="d-flex justify-content-between align-items-center mb-1">
+                  <div key={a.id} className="flex justify-content-between align-items-center" style={{ marginBottom: "var(--space-1)" }}>
                     <span>{a.substance}</span>
                     <StatusBadge status={a.severity} />
                   </div>
@@ -601,12 +581,12 @@ export default function Consultation() {
           )}
 
           {consultation?.vitals && (
-            <div className="card">
+            <div className="card" style={{ marginTop: "var(--space-3)" }}>
               <div className="card-header">
                 <h6 className="mb-0">Vitals</h6>
               </div>
               <div className="card-body">
-                <div className="vitals-grid">
+                <div className="vitals-grid" style={{ gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
                   <div className="vital-tile">
                     <div className="vital-tile__value">{consultation.vitals.bmi || "—"}</div>
                     <div className="vital-tile__label">BMI</div>
@@ -631,9 +611,10 @@ export default function Consultation() {
           )}
         </div>
 
-        {/* Main Consultation Area — tabbed to keep the page short */}
-        <div className="col-lg-9">
-          <div className="tabs mb-3">
+        {/* Main Content - 8 columns */}
+        <div className="grid-4-8__main">
+          {/* Tabs */}
+          <div className="tabs" style={{ marginBottom: "var(--space-3)" }}>
             {TABS.map((tab) => (
               <button
                 key={tab.key}
@@ -642,28 +623,29 @@ export default function Consultation() {
                 onClick={() => handleTabChange(tab.key)}
                 title={activeTab === "notes" && isDirty && tab.key !== "notes" ? "Save your clinical notes first" : undefined}
               >
+                <i className={`bi ${tab.icon} me-2`}></i>
                 {tab.label}
                 {tab.key === "diagnoses" && diagnosesCount > 0 && (
-                  <span className="pill-count ml-2">{diagnosesCount}</span>
+                  <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{diagnosesCount}</span>
                 )}
                 {tab.key === "prescriptions" && prescriptionsCount > 0 && (
-                  <span className="pill-count ml-2">{prescriptionsCount}</span>
+                  <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{prescriptionsCount}</span>
                 )}
                 {tab.key === "orders" && ordersCount > 0 && (
-                  <span className="pill-count ml-2">{ordersCount}</span>
+                  <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{ordersCount}</span>
                 )}
               </button>
             ))}
           </div>
 
-          {/* --- Clinical Notes tab --- */}
+          {/* Clinical Notes Tab */}
           {activeTab === "notes" && (
             <div className="card">
               <div className="card-header">
                 <h5 className="card-title">Clinical Notes</h5>
                 <button
                   type="button"
-                  className="btn btn-sm btn-primary"
+                  className="btn btn-primary btn-sm"
                   onClick={handleSave}
                   disabled={submitting || !isDirty}
                 >
@@ -754,14 +736,14 @@ export default function Consultation() {
             </div>
           )}
 
-          {/* --- Diagnoses tab --- */}
+          {/* Diagnoses Tab */}
           {activeTab === "diagnoses" && (
             <div className="card">
               <div className="card-header">
                 <h5 className="card-title">Diagnoses</h5>
                 <button
                   type="button"
-                  className="btn btn-sm btn-primary"
+                  className="btn btn-primary btn-sm"
                   onClick={() => setShowDiagnosisModal(true)}
                 >
                   <i className="bi bi-plus-lg me-1"></i>
@@ -774,11 +756,11 @@ export default function Consultation() {
                     <div className="empty-state__icon">
                       <i className="bi bi-clipboard2-pulse" style={{ fontSize: "1.5rem" }}></i>
                     </div>
-                    <div className="empty-state__title">No diagnoses added yet</div>
-                    <div className="empty-state__desc">Add an ICD-10 diagnosis once you've assessed the patient.</div>
+                    <h3 className="empty-state__title">No diagnoses added yet</h3>
+                    <p className="empty-state__desc">Add an ICD-10 diagnosis once you've assessed the patient.</p>
                   </div>
                 ) : (
-                  <div className="d-flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {consultation?.diagnoses?.map((d) => (
                       <div key={d.id} className={`diagnosis-chip ${d.is_primary ? "is-primary" : ""}`}>
                         <span className="diagnosis-chip__code">{d.code}</span>
@@ -794,178 +776,229 @@ export default function Consultation() {
             </div>
           )}
 
-          {/* --- Prescriptions tab --- */}
+          {/* Prescriptions Tab */}
           {activeTab === "prescriptions" && (
             <div className="card">
               <div className="card-header">
                 <h5 className="card-title">Prescriptions</h5>
                 <button
                   type="button"
-                  className="btn btn-sm btn-primary"
+                  className="btn btn-primary btn-sm"
                   onClick={() => setShowPrescriptionModal(true)}
                 >
                   <i className="bi bi-plus-lg me-1"></i>
                   Prescribe
                 </button>
               </div>
-              <div className="card-body">
+              <div className="card-body p-0">
                 {prescriptionsCount === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state__icon">
                       <i className="bi bi-capsule" style={{ fontSize: "1.5rem" }}></i>
                     </div>
-                    <div className="empty-state__title">No prescriptions yet</div>
-                    <div className="empty-state__desc">Prescribe medication for this patient to send it to pharmacy.</div>
+                    <h3 className="empty-state__title">No prescriptions yet</h3>
+                    <p className="empty-state__desc">Prescribe medication for this patient to send it to pharmacy.</p>
                   </div>
                 ) : (
-                  <div className="rx-list">
-                    {consultation?.prescriptions?.map((rx) => (
-                      <div key={rx.id} className="rx-item">
-                        <div>
-                          <div className="rx-item__name">{rx.medicine_name}</div>
-                          <div className="rx-item__detail">
-                            {rx.dosage} · {rx.frequency} · {rx.duration}
-                            {rx.instructions && ` · ${rx.instructions}`}
-                          </div>
-                        </div>
-                        <StatusBadge status={rx.is_dispensed ? "DISPENSED" : "PENDING"} />
-                      </div>
-                    ))}
+                  <div className="table-scroll">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Medicine</th>
+                          <th>Dosage</th>
+                          <th>Frequency</th>
+                          <th>Duration</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {consultation?.prescriptions?.map((rx) => (
+                          <tr key={rx.id}>
+                            <td className="cell-primary">{rx.medicine_name}</td>
+                            <td>{rx.dosage}</td>
+                            <td>{rx.frequency || "—"}</td>
+                            <td>{rx.duration || "—"}</td>
+                            <td>
+                              <StatusBadge status={rx.is_dispensed ? "DISPENSED" : "PENDING"} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* --- Lab & Radiology tab --- */}
+          {/* Lab & Radiology Tab */}
           {activeTab === "orders" && (
-            <div className="row">
-              <div className="col-md-6">
-                <div className="card mb-3 mb-md-0">
-                  <div className="card-header">
-                    <h6 className="mb-0">Lab Orders</h6>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-primary"
-                      onClick={() => setShowLabModal(true)}
-                    >
-                      <i className="bi bi-plus-lg me-1"></i>
-                      Order Lab
-                    </button>
-                  </div>
-                  <div className="card-body">
-                    {consultation?.lab_orders?.length === 0 ? (
-                      <div className="text-muted text-sm">No lab orders</div>
-                    ) : (
-                      consultation?.lab_orders?.map((order) => (
-                        <div key={order.id} className="d-flex justify-content-between align-items-center py-2 border-bottom">
-                          <div>
-                            <div className="text-sm font-semibold">{order.test_name}</div>
-                            <StatusBadge status={order.status} />
-                          </div>
-                          <div className="d-flex gap-1">
-                            {order.result?.result_file && (
-                              <a
-                                href={order.result.result_file}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-outline btn-sm"
-                                title="View uploaded file"
-                              >
-                                <i className="bi bi-file-earmark-pdf"></i>
-                              </a>
-                            )}
-                            {order.result?.result_text && (
-                              <button
-                                type="button"
-                                className="btn btn-outline btn-sm"
-                                onClick={() => downloadLabResultPdf(order)}
-                                title="Download typed result as PDF"
-                              >
-                                <i className="bi bi-download"></i>
-                              </button>
-                            )}
-                            {order.result && !order.result.result_file && !order.result.result_text && (
-                              <span className="text-success text-sm">
-                                <i className="bi bi-check-circle"></i>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+            <div className="grid-2">
+              <div className="card">
+                <div className="card-header">
+                  <h6 className="mb-0">Lab Orders</h6>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setShowLabModal(true)}
+                  >
+                    <i className="bi bi-plus-lg me-1"></i>
+                    Order Lab
+                  </button>
+                </div>
+                <div className="card-body p-0">
+                  {consultation?.lab_orders?.length === 0 ? (
+                    <div className="empty-state" style={{ padding: "var(--space-4)" }}>
+                      <div className="empty-state__icon">
+                        <i className="bi bi-list-ul"></i>
+                      </div>
+                      <h3 className="empty-state__title">No lab orders</h3>
+                      <p className="empty-state__desc">Order lab tests for this patient.</p>
+                    </div>
+                  ) : (
+                    <div className="table-scroll">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Test</th>
+                            <th>Status</th>
+                            <th className="cell-actions"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {consultation?.lab_orders?.map((order) => (
+                            <tr key={order.id}>
+                              <td className="cell-primary">{order.test_name}</td>
+                              <td>
+                                <StatusBadge status={order.status} />
+                              </td>
+                              <td className="cell-actions">
+                                <div className="flex gap-1 justify-end">
+                                  {order.result?.result_file && (
+                                    <a
+                                      href={order.result.result_file}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-secondary btn-sm"
+                                      title="View uploaded file"
+                                    >
+                                      <i className="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                  )}
+                                  {order.result?.result_text && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-sm"
+                                      onClick={() => downloadLabResultPdf(order)}
+                                      title="Download typed result as PDF"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </button>
+                                  )}
+                                  {order.result && !order.result.result_file && !order.result.result_text && (
+                                    <span className="text-success">
+                                      <i className="bi bi-check-circle"></i>
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="col-md-6">
-                <div className="card">
-                  <div className="card-header">
-                    <h6 className="mb-0">Radiology Orders</h6>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-primary"
-                      onClick={() => setShowRadiologyModal(true)}
-                    >
-                      <i className="bi bi-plus-lg me-1"></i>
-                      Order Radiology
-                    </button>
-                  </div>
-                  <div className="card-body">
-                    {consultation?.radiology_orders?.length === 0 ? (
-                      <div className="text-muted text-sm">No radiology orders</div>
-                    ) : (
-                      consultation?.radiology_orders?.map((order) => (
-                        <div key={order.id} className="d-flex justify-content-between align-items-center py-2 border-bottom">
-                          <div>
-                            <div className="text-sm font-semibold">{order.test_name}</div>
-                            <StatusBadge status={order.status} />
-                          </div>
-                          <div className="d-flex gap-1">
-                            {order.result?.image_file && (
-                              <a
-                                href={order.result.image_file}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-outline btn-sm"
-                                title="View uploaded image"
-                              >
-                                <i className="bi bi-image"></i>
-                              </a>
-                            )}
-                            {order.result?.report_file && (
-                              <a
-                                href={order.result.report_file}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-outline btn-sm"
-                                title="View uploaded report"
-                              >
-                                <i className="bi bi-file-earmark-pdf"></i>
-                              </a>
-                            )}
-                            {order.result?.radiologist_notes && (
-                              <button
-                                type="button"
-                                className="btn btn-outline btn-sm"
-                                onClick={() => downloadRadiologyResultPdf(order)}
-                                title="Download radiologist notes as PDF"
-                              >
-                                <i className="bi bi-download"></i>
-                              </button>
-                            )}
-                            {order.result &&
-                              !order.result.image_file &&
-                              !order.result.report_file &&
-                              !order.result.radiologist_notes && (
-                                <span className="text-success text-sm">
-                                  <i className="bi bi-check-circle"></i>
-                                </span>
-                              )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+
+              <div className="card">
+                <div className="card-header">
+                  <h6 className="mb-0">Radiology Orders</h6>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setShowRadiologyModal(true)}
+                  >
+                    <i className="bi bi-plus-lg me-1"></i>
+                    Order Radiology
+                  </button>
+                </div>
+                <div className="card-body p-0">
+                  {consultation?.radiology_orders?.length === 0 ? (
+                    <div className="empty-state" style={{ padding: "var(--space-4)" }}>
+                      <div className="empty-state__icon">
+                        <i className="bi bi-list-ul"></i>
+                      </div>
+                      <h3 className="empty-state__title">No radiology orders</h3>
+                      <p className="empty-state__desc">Order radiology tests for this patient.</p>
+                    </div>
+                  ) : (
+                    <div className="table-scroll">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Test</th>
+                            <th>Status</th>
+                            <th className="cell-actions"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {consultation?.radiology_orders?.map((order) => (
+                            <tr key={order.id}>
+                              <td className="cell-primary">{order.test_name}</td>
+                              <td>
+                                <StatusBadge status={order.status} />
+                              </td>
+                              <td className="cell-actions">
+                                <div className="flex gap-1 justify-end">
+                                  {order.result?.image_file && (
+                                    <a
+                                      href={order.result.image_file}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-secondary btn-sm"
+                                      title="View uploaded image"
+                                    >
+                                      <i className="bi bi-image"></i>
+                                    </a>
+                                  )}
+                                  {order.result?.report_file && (
+                                    <a
+                                      href={order.result.report_file}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-secondary btn-sm"
+                                      title="View uploaded report"
+                                    >
+                                      <i className="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                  )}
+                                  {order.result?.radiologist_notes && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-sm"
+                                      onClick={() => downloadRadiologyResultPdf(order)}
+                                      title="Download radiologist notes as PDF"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </button>
+                                  )}
+                                  {order.result &&
+                                    !order.result.image_file &&
+                                    !order.result.report_file &&
+                                    !order.result.radiologist_notes && (
+                                      <span className="text-success">
+                                        <i className="bi bi-check-circle"></i>
+                                      </span>
+                                    )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -983,7 +1016,7 @@ export default function Consultation() {
           setDiagnosisResults([]);
         }}
         title="Add Diagnosis"
-        size="modal-lg"
+        size="lg"
         footer={
           <>
             <button
@@ -1052,6 +1085,7 @@ export default function Consultation() {
           setMedSearch("");
         }}
         title="New Prescription"
+        size="lg"
         footer={
           <>
             <button
@@ -1114,89 +1148,79 @@ export default function Consultation() {
           )}
         </div>
 
-        <div className="row">
-          <div className="col-md-6">
-            <div className="field">
-              <label className="field-label" htmlFor="rx_dosage">
-                Dosage <span className="required">*</span>
-              </label>
-              <input
-                id="rx_dosage"
-                name="dosage"
-                type="text"
-                className="input"
-                placeholder="e.g., 500mg"
-                value={prescriptionForm.dosage}
-                onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, dosage: e.target.value }))}
-              />
-            </div>
+        <div className="grid-2">
+          <div className="field">
+            <label className="field-label" htmlFor="rx_dosage">
+              Dosage <span className="required">*</span>
+            </label>
+            <input
+              id="rx_dosage"
+              name="dosage"
+              type="text"
+              className="input"
+              placeholder="e.g., 500mg"
+              value={prescriptionForm.dosage}
+              onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, dosage: e.target.value }))}
+            />
           </div>
-          <div className="col-md-6">
-            <div className="field">
-              <label className="field-label" htmlFor="rx_frequency">
-                Frequency
-              </label>
-              <input
-                id="rx_frequency"
-                name="frequency"
-                type="text"
-                className="input"
-                placeholder="e.g., 3x daily"
-                value={prescriptionForm.frequency}
-                onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, frequency: e.target.value }))}
-              />
-            </div>
+          <div className="field">
+            <label className="field-label" htmlFor="rx_frequency">
+              Frequency
+            </label>
+            <input
+              id="rx_frequency"
+              name="frequency"
+              type="text"
+              className="input"
+              placeholder="e.g., 3x daily"
+              value={prescriptionForm.frequency}
+              onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, frequency: e.target.value }))}
+            />
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-md-4">
-            <div className="field">
-              <label className="field-label" htmlFor="rx_duration">
-                Duration
-              </label>
-              <input
-                id="rx_duration"
-                name="duration"
-                type="text"
-                className="input"
-                placeholder="e.g., 5 days"
-                value={prescriptionForm.duration}
-                onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, duration: e.target.value }))}
-              />
-            </div>
+        <div className="grid-3">
+          <div className="field">
+            <label className="field-label" htmlFor="rx_duration">
+              Duration
+            </label>
+            <input
+              id="rx_duration"
+              name="duration"
+              type="text"
+              className="input"
+              placeholder="e.g., 5 days"
+              value={prescriptionForm.duration}
+              onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, duration: e.target.value }))}
+            />
           </div>
-          <div className="col-md-4">
-            <div className="field">
-              <label className="field-label" htmlFor="rx_quantity">
-                Quantity
-              </label>
-              <input
-                id="rx_quantity"
-                name="quantity"
-                type="number"
-                className="input"
-                placeholder="e.g., 10"
-                value={prescriptionForm.quantity}
-                onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, quantity: e.target.value }))}
-              />
-            </div>
+          <div className="field">
+            <label className="field-label" htmlFor="rx_quantity">
+              Quantity
+            </label>
+            <input
+              id="rx_quantity"
+              name="quantity"
+              type="number"
+              className="input"
+              placeholder="e.g., 10"
+              value={prescriptionForm.quantity}
+              onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, quantity: e.target.value }))}
+            />
           </div>
-          <div className="col-md-4">
-            <div className="field">
-              <label className="field-label" htmlFor="rx_instructions">
-                Instructions
-              </label>
-              <input
-                id="rx_instructions"
-                name="instructions"
-                type="text"
-                className="input"
-                placeholder="e.g., After meals"
-                value={prescriptionForm.instructions}
-                onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, instructions: e.target.value }))}
-              />
-            </div>
+          <div className="field">
+            <label className="field-label" htmlFor="rx_instructions">
+              Instructions
+            </label>
+            <input
+              id="rx_instructions"
+              name="instructions"
+              type="text"
+              className="input"
+              placeholder="e.g., After meals"
+              value={prescriptionForm.instructions}
+              onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, instructions: e.target.value }))}
+            />
           </div>
         </div>
       </Modal>

@@ -1,96 +1,139 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  getExpenses, createExpense, approveExpense, rejectExpense, markExpensePaid,
+  getExpenseCategories, getDepartments,
+} from "../../services/api";
 
-export default function UnderDevelopment() {
+export default function Expenses() {
+  const [expenses, setExpenses] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    category: "", department: "", amount: "", expense_date: new Date().toISOString().slice(0, 10),
+    description: "", receipt_reference: "",
+  });
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  useEffect(() => { loadCategories(); loadDepartments(); }, []);
+  useEffect(() => { load(); }, [statusFilter]);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const params = { page_size: 100 };
+      if (statusFilter) params.status = statusFilter;
+      const data = await getExpenses(params);
+      setExpenses(data.results ?? data);
+    } catch (err) { setError(err.message); } finally { setLoading(false); }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await getExpenseCategories();
+      setCategories(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const loadDepartments = async () => {
+    try {
+      const data = await getDepartments();
+      setDepartments(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleChange = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createExpense({ ...form, amount: Number(form.amount), department: form.department || undefined });
+      setForm({ category: "", department: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), description: "", receipt_reference: "" });
+      load();
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleApprove = async (id) => {
+    try { await approveExpense(id); load(); } catch (err) { setError(err.message); }
+  };
+
+  const submitRejection = async (id) => {
+    try {
+      await rejectExpense(id, { rejection_reason: rejectionReason });
+      setRejectingId(null);
+      setRejectionReason("");
+      load();
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleMarkPaid = async (id) => {
+    try { await markExpensePaid(id); load(); } catch (err) { setError(err.message); }
+  };
+
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">MediCore HMIS</div>
-          <h1 className="page-title">Module Under Development</h1>
-          <p className="page-subtitle">
-            This module is currently being developed and will be available in an
-            upcoming release.
-          </p>
-        </div>
+    <div>
+      <h1>Expenses</h1>
+      {error && <p>Error: {error}</p>}
 
-        <div className="page-header__actions">
-          <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
+      <h2>Submit Expense</h2>
+      <form onSubmit={handleSubmit}>
+        <select value={form.category} onChange={handleChange("category")} required>
+          <option value="">Select category</option>
+          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select value={form.department} onChange={handleChange("department")}>
+          <option value="">No department</option>
+          {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+        <input type="number" placeholder="Amount" value={form.amount} onChange={handleChange("amount")} required />
+        <input type="date" value={form.expense_date} onChange={handleChange("expense_date")} required />
+        <textarea placeholder="Description" value={form.description} onChange={handleChange("description")} />
+        <input type="text" placeholder="Receipt reference" value={form.receipt_reference} onChange={handleChange("receipt_reference")} />
+        <button type="submit">Submit Expense</button>
+      </form>
 
-      <div className="card shadow-sm border-0">
-        <div className="card-body text-center py-5">
+      <h2>All Expenses</h2>
+      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+        <option value="">All</option>
+        <option value="PENDING_APPROVAL">Pending Approval</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+        <option value="PAID">Paid</option>
+      </select>
 
-          <div
-            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle bg-primary-soft"
-            style={{ width: 110, height: 110 }}
-          >
-            <i
-              className="bi bi-tools text-primary"
-              style={{ fontSize: "3rem" }}
-            ></i>
-          </div>
-
-          <h2 className="fw-bold mb-3">
-            We're Building Something Great
-          </h2>
-
-          <p
-            className="text-muted mx-auto"
-            style={{ maxWidth: "650px" }}
-          >
-            This module is currently under active development by the MediCore
-            engineering team. It will be available in a future update with full
-            functionality, security, reporting, and seamless integration with
-            the rest of the Hospital Management Information System.
-          </p>
-
-          <div className="row g-3 mt-4 justify-content-center">
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-code-slash fs-2 text-primary"></i>
-                <h6 className="mt-3 mb-1">Development</h6>
-                <small className="text-muted">
-                  Core features are currently being implemented.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-shield-check fs-2 text-success"></i>
-                <h6 className="mt-3 mb-1">Testing</h6>
-                <small className="text-muted">
-                  Every workflow undergoes extensive quality assurance.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-rocket-takeoff fs-2 text-warning"></i>
-                <h6 className="mt-3 mb-1">Coming Soon</h6>
-                <small className="text-muted">
-                  This module will be released in a future MediCore update.
-                </small>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-5">
-            <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
-              Return to Dashboard
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
+      {loading ? <p>Loading...</p> : (
+        <table>
+          <thead><tr><th>Expense #</th><th>Category</th><th>Department</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {expenses.map((e) => (
+              <tr key={e.id}>
+                <td>{e.expense_number}</td><td>{e.category_name}</td><td>{e.department_name || "—"}</td>
+                <td>KES {e.amount}</td><td>{e.expense_date}</td><td>{e.status}</td>
+                <td>
+                  {e.status === "PENDING_APPROVAL" && (
+                    <>
+                      <button type="button" onClick={() => handleApprove(e.id)}>Approve</button>{" "}
+                      {rejectingId === e.id ? (
+                        <>
+                          <input type="text" placeholder="Reason" value={rejectionReason} onChange={(ev) => setRejectionReason(ev.target.value)} />
+                          <button type="button" onClick={() => submitRejection(e.id)}>Confirm</button>
+                        </>
+                      ) : (
+                        <button type="button" onClick={() => setRejectingId(e.id)}>Reject</button>
+                      )}
+                    </>
+                  )}
+                  {e.status === "APPROVED" && <button type="button" onClick={() => handleMarkPaid(e.id)}>Mark Paid</button>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 }

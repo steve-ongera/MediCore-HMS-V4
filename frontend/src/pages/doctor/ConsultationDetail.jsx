@@ -12,7 +12,7 @@ import { formatDate } from "../../utils/formatters";
 
 const HOSPITAL_NAME = "City General Hospital";
 const HOSPITAL_ADDRESS = "P.O. Box 00100, Nairobi, Kenya  ·  Tel: +254 700 000 000";
-const BRAND_COLOR = [30, 64, 175]; // matches the app's primary blue
+const BRAND_COLOR = [30, 64, 175];
 
 const EDITABLE_FIELDS = [
   ["chief_complaint", "Chief Complaint", 2],
@@ -43,10 +43,10 @@ export default function ConsultationDetail() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [activeTab, setActiveTab] = useState("clinical");
 
   useEffect(() => {
     loadConsultation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadConsultation = async () => {
@@ -111,9 +111,6 @@ export default function ConsultationDetail() {
     }
   };
 
-  // Builds a well-formatted, letterhead-style PDF of the full consultation
-  // record — patient/visit summary, clinical notes, diagnoses, prescriptions,
-  // and lab/radiology orders — and triggers a browser download.
   const handleDownloadPdf = () => {
     if (!consultation) return;
     setDownloading(true);
@@ -131,7 +128,6 @@ export default function ConsultationDetail() {
         }
       };
 
-      // --- Letterhead ---
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...BRAND_COLOR);
@@ -145,7 +141,6 @@ export default function ConsultationDetail() {
       doc.line(margin, y + 24, pageWidth - margin, y + 24);
       y += 48;
 
-      // --- Title ---
       doc.setFontSize(13);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 0, 0);
@@ -157,7 +152,6 @@ export default function ConsultationDetail() {
       doc.setTextColor(0, 0, 0);
       y += 20;
 
-      // --- Patient / visit summary ---
       autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
@@ -177,7 +171,6 @@ export default function ConsultationDetail() {
       });
       y = doc.lastAutoTable.finalY + 16;
 
-      // --- Narrative clinical sections ---
       const addSection = (title, content) => {
         ensureSpace(30);
         doc.setFontSize(10.5);
@@ -186,7 +179,6 @@ export default function ConsultationDetail() {
         doc.text(title, margin, y);
         doc.setTextColor(0, 0, 0);
         y += 13;
-
         doc.setFontSize(9.5);
         doc.setFont("helvetica", "normal");
         const text = content && content.trim() ? content : "None recorded";
@@ -202,7 +194,6 @@ export default function ConsultationDetail() {
       addSection("Treatment Plan", consultation.treatment_plan);
       addSection("Clinical Notes", consultation.clinical_notes);
 
-      // --- Diagnoses ---
       if (consultation.diagnoses?.length) {
         ensureSpace(40);
         doc.setFontSize(10.5);
@@ -222,7 +213,6 @@ export default function ConsultationDetail() {
         y = doc.lastAutoTable.finalY + 18;
       }
 
-      // --- Prescriptions ---
       if (consultation.prescriptions?.length) {
         ensureSpace(40);
         doc.setFontSize(10.5);
@@ -250,7 +240,6 @@ export default function ConsultationDetail() {
         y = doc.lastAutoTable.finalY + 18;
       }
 
-      // --- Lab orders ---
       if (consultation.lab_orders?.length) {
         ensureSpace(40);
         doc.setFontSize(10.5);
@@ -270,7 +259,6 @@ export default function ConsultationDetail() {
         y = doc.lastAutoTable.finalY + 18;
       }
 
-      // --- Radiology orders ---
       if (consultation.radiology_orders?.length) {
         ensureSpace(40);
         doc.setFontSize(10.5);
@@ -290,7 +278,6 @@ export default function ConsultationDetail() {
         y = doc.lastAutoTable.finalY + 18;
       }
 
-      // --- Footer on every page ---
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -317,6 +304,13 @@ export default function ConsultationDetail() {
 
   if (loading) return <LoadingSpinner />;
   if (!consultation) return null;
+
+  const tabs = [
+    { id: "clinical", label: "Clinical Notes", icon: "bi-file-text" },
+    { id: "diagnoses", label: "Diagnoses", icon: "bi-clipboard-check" },
+    { id: "prescriptions", label: "Prescriptions", icon: "bi-capsule" },
+    { id: "orders", label: "Orders", icon: "bi-list-ul" },
+  ];
 
   return (
     <>
@@ -384,124 +378,268 @@ export default function ConsultationDetail() {
         </div>
       </div>
 
-      <div className="card mb-3">
-        <div className="card-header">
-          <div className="table-row-avatar">
-            <span className="avatar avatar-sm">
-              {consultation.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
-            </span>
-            <div>
-              <div className="cell-primary">{consultation.patient_name}</div>
-              <div className="text-2xs text-tertiary">{consultation.doctor_name || "—"}</div>
-            </div>
-          </div>
-        </div>
-        <div className="card-body">
-          {EDITABLE_FIELDS.map(([key, label, rows]) => (
-            <div className="field" key={key}>
-              <label className="field-label">{label}</label>
-              {isEditing ? (
-                <textarea
-                  name={key}
-                  className="textarea"
-                  rows={rows}
-                  value={form[key]}
-                  onChange={handleChange}
-                />
-              ) : (
-                <p className="mb-0">
-                  {consultation[key] || <span className="text-tertiary">— none recorded —</span>}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="row">
-        <div className="col-md-6">
-          <div className="card mb-3">
-            <div className="card-header">
-              <h6 className="mb-0">Diagnoses</h6>
-              <span className="badge badge-primary">{consultation.diagnoses?.length || 0}</span>
-            </div>
-            <div className="card-body">
-              {consultation.diagnoses?.length ? (
-                <div className="d-flex flex-wrap gap-2">
-                  {consultation.diagnoses.map((d) => (
-                    <div key={d.id} className={`diagnosis-chip ${d.is_primary ? "is-primary" : ""}`}>
-                      <span className="diagnosis-chip__code">{d.code}</span>
-                      <span>{d.description}</span>
-                      {d.is_primary && <span className="badge badge-primary">Primary</span>}
-                    </div>
-                  ))}
+      <div className="grid-4-8">
+        {/* Sidebar - 4 columns */}
+        <div className="grid-4-8__sidebar">
+          <div className="card">
+            <div className="card-body text-center">
+              <span className="avatar avatar-xl mb-3" style={{ fontSize: "2.5rem" }}>
+                {consultation.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+              </span>
+              <h5 className="mb-0">{consultation.patient_name}</h5>
+              <p className="text-muted text-sm">@{consultation.visit || "No visit"}</p>
+              <div className="flex justify-content-center gap-2" style={{ flexWrap: "wrap" }}>
+                <StatusBadge status={consultation.status} />
+              </div>
+              <hr />
+              <div className="text-start">
+                <div className="info-item">
+                  <div className="info-item__label">Doctor</div>
+                  <div className="info-item__value">{consultation.doctor_name || "—"}</div>
                 </div>
-              ) : (
-                <div className="text-tertiary text-sm">No diagnoses recorded</div>
-              )}
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h6 className="mb-0">Prescriptions</h6>
-              <span className="badge badge-primary">{consultation.prescriptions?.length || 0}</span>
-            </div>
-            <div className="card-body">
-              {consultation.prescriptions?.length ? (
-                consultation.prescriptions.map((rx) => (
-                  <div key={rx.id} className="d-flex justify-content-between align-items-center py-1">
-                    <span className="text-sm">
-                      {rx.medicine_name} — {rx.dosage}
-                    </span>
-                    <StatusBadge status={rx.is_dispensed ? "DISPENSED" : "PENDING"} />
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Started</div>
+                  <div className="info-item__value">{consultation.started_at ? formatDate(consultation.started_at) : "—"}</div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Completed</div>
+                  <div className="info-item__value">{consultation.completed_at ? formatDate(consultation.completed_at) : "—"}</div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Visit Reference</div>
+                  <div className="info-item__value">{consultation.visit || "—"}</div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Diagnoses</div>
+                  <div className="info-item__value">
+                    <span className="badge badge-primary">{consultation.diagnoses?.length || 0}</span>
                   </div>
-                ))
-              ) : (
-                <div className="text-tertiary text-sm">No prescriptions</div>
-              )}
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Prescriptions</div>
+                  <div className="info-item__value">
+                    <span className="badge badge-primary">{consultation.prescriptions?.length || 0}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="col-md-6">
-          <div className="card mb-3">
-            <div className="card-header">
-              <h6 className="mb-0">Lab Orders</h6>
-              <span className="badge badge-primary">{consultation.lab_orders?.length || 0}</span>
-            </div>
-            <div className="card-body">
-              {consultation.lab_orders?.length ? (
-                consultation.lab_orders.map((o) => (
-                  <div key={o.id} className="d-flex justify-content-between align-items-center py-1">
-                    <span className="text-sm">{o.test_name}</span>
-                    <StatusBadge status={o.status} />
-                  </div>
-                ))
-              ) : (
-                <div className="text-tertiary text-sm">No lab orders</div>
-              )}
-            </div>
+        {/* Main Content - 8 columns */}
+        <div className="grid-4-8__main">
+          {/* Tabs */}
+          <div className="tabs" style={{ marginBottom: "var(--space-3)" }}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`tabs__item ${activeTab === tab.id ? "is-active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <i className={`bi ${tab.icon} me-2`}></i>
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          <div className="card">
-            <div className="card-header">
-              <h6 className="mb-0">Radiology Orders</h6>
-              <span className="badge badge-primary">{consultation.radiology_orders?.length || 0}</span>
-            </div>
-            <div className="card-body">
-              {consultation.radiology_orders?.length ? (
-                consultation.radiology_orders.map((o) => (
-                  <div key={o.id} className="d-flex justify-content-between align-items-center py-1">
-                    <span className="text-sm">{o.test_name}</span>
-                    <StatusBadge status={o.status} />
+          {/* Clinical Notes Tab */}
+          {activeTab === "clinical" && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Clinical Notes</h5>
+                {isEditing && (
+                  <span className="badge badge-warning">
+                    <span className="badge-dot"></span>
+                    Editing Mode
+                  </span>
+                )}
+              </div>
+              <div className="card-body">
+                {EDITABLE_FIELDS.map(([key, label, rows]) => (
+                  <div className="field" key={key}>
+                    <label className="field-label">{label}</label>
+                    {isEditing ? (
+                      <textarea
+                        name={key}
+                        className="textarea"
+                        rows={rows}
+                        value={form[key]}
+                        onChange={handleChange}
+                      />
+                    ) : (
+                      <p className="mb-0">
+                        {consultation[key] || <span className="text-tertiary">— none recorded —</span>}
+                      </p>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="text-tertiary text-sm">No radiology orders</div>
-              )}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Diagnoses Tab */}
+          {activeTab === "diagnoses" && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Diagnoses</h5>
+                <span className="badge badge-primary">{consultation.diagnoses?.length || 0}</span>
+              </div>
+              <div className="card-body">
+                {consultation.diagnoses?.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {consultation.diagnoses.map((d) => (
+                      <div key={d.id} className={`diagnosis-chip ${d.is_primary ? "is-primary" : ""}`}>
+                        <span className="diagnosis-chip__code">{d.code}</span>
+                        <span>{d.description}</span>
+                        {d.is_primary && <span className="badge badge-primary">Primary</span>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-state__icon">
+                      <i className="bi bi-clipboard-check"></i>
+                    </div>
+                    <h3 className="empty-state__title">No diagnoses recorded</h3>
+                    <p className="empty-state__desc">Diagnoses will appear here once added.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Prescriptions Tab */}
+          {activeTab === "prescriptions" && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Prescriptions</h5>
+                <span className="badge badge-primary">{consultation.prescriptions?.length || 0}</span>
+              </div>
+              <div className="card-body p-0">
+                {consultation.prescriptions?.length ? (
+                  <div className="table-scroll">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Medicine</th>
+                          <th>Dosage</th>
+                          <th>Frequency</th>
+                          <th>Duration</th>
+                          <th>Qty</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {consultation.prescriptions.map((rx) => (
+                          <tr key={rx.id}>
+                            <td className="cell-primary">{rx.medicine_name}</td>
+                            <td>{rx.dosage}</td>
+                            <td>{rx.frequency || "—"}</td>
+                            <td>{rx.duration || "—"}</td>
+                            <td className="cell-numeric">{rx.quantity}</td>
+                            <td>
+                              <StatusBadge status={rx.is_dispensed ? "DISPENSED" : "PENDING"} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-state__icon">
+                      <i className="bi bi-capsule"></i>
+                    </div>
+                    <h3 className="empty-state__title">No prescriptions</h3>
+                    <p className="empty-state__desc">Prescriptions will appear here once added.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Orders Tab */}
+          {activeTab === "orders" && (
+            <div className="grid-2">
+              <div className="card">
+                <div className="card-header">
+                  <h6 className="mb-0">Lab Orders</h6>
+                  <span className="badge badge-primary">{consultation.lab_orders?.length || 0}</span>
+                </div>
+                <div className="card-body p-0">
+                  {consultation.lab_orders?.length ? (
+                    <div className="table-scroll">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Test</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {consultation.lab_orders.map((o) => (
+                            <tr key={o.id}>
+                              <td className="cell-primary">{o.test_name}</td>
+                              <td>
+                                <StatusBadge status={o.status} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="empty-state" style={{ padding: "var(--space-4)" }}>
+                      <div className="empty-state__icon">
+                        <i className="bi bi-list-ul"></i>
+                      </div>
+                      <h3 className="empty-state__title">No lab orders</h3>
+                      <p className="empty-state__desc">Lab orders will appear here once added.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="card">
+                <div className="card-header">
+                  <h6 className="mb-0">Radiology Orders</h6>
+                  <span className="badge badge-primary">{consultation.radiology_orders?.length || 0}</span>
+                </div>
+                <div className="card-body p-0">
+                  {consultation.radiology_orders?.length ? (
+                    <div className="table-scroll">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Test</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {consultation.radiology_orders.map((o) => (
+                            <tr key={o.id}>
+                              <td className="cell-primary">{o.test_name}</td>
+                              <td>
+                                <StatusBadge status={o.status} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="empty-state" style={{ padding: "var(--space-4)" }}>
+                      <div className="empty-state__icon">
+                        <i className="bi bi-list-ul"></i>
+                      </div>
+                      <h3 className="empty-state__title">No radiology orders</h3>
+                      <p className="empty-state__desc">Radiology orders will appear here once added.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

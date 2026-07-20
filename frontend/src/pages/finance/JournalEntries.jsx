@@ -1,96 +1,157 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  getJournalEntries, createJournalEntry, postJournalEntry, voidJournalEntry,
+  getAccounts, getFiscalPeriods,
+} from "../../services/api";
 
-export default function UnderDevelopment() {
+export default function JournalEntries() {
+  const [entries, setEntries] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [periods, setPeriods] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({ entry_date: new Date().toISOString().slice(0, 10), fiscal_period: "", reference: "", description: "" });
+  const [lines, setLines] = useState([
+    { account: "", debit: "", credit: "", description: "" },
+    { account: "", debit: "", credit: "", description: "" },
+  ]);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { loadAccounts(); loadPeriods(); }, []);
+  useEffect(() => { load(); }, [statusFilter]);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const params = { page_size: 100 };
+      if (statusFilter) params.status = statusFilter;
+      const data = await getJournalEntries(params);
+      setEntries(data.results ?? data);
+    } catch (err) { setError(err.message); } finally { setLoading(false); }
+  };
+
+  const loadAccounts = async () => {
+    try {
+      const data = await getAccounts();
+      setAccounts(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const loadPeriods = async () => {
+    try {
+      const data = await getFiscalPeriods();
+      setPeriods(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleFormChange = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
+
+  const handleLineChange = (index, field) => (e) => {
+    const updated = [...lines];
+    updated[index] = { ...updated[index], [field]: e.target.value };
+    setLines(updated);
+  };
+
+  const addLine = () => setLines([...lines, { account: "", debit: "", credit: "", description: "" }]);
+  const removeLine = (index) => setLines(lines.filter((_, i) => i !== index));
+
+  const totalDebit = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
+  const totalCredit = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+  const isBalanced = totalDebit === totalCredit && totalDebit > 0;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      await createJournalEntry({
+        entry_date: form.entry_date,
+        fiscal_period: form.fiscal_period || undefined,
+        reference: form.reference,
+        description: form.description,
+        lines: lines.map((l) => ({
+          account: l.account, debit: Number(l.debit) || 0, credit: Number(l.credit) || 0, description: l.description,
+        })),
+      });
+      setForm({ entry_date: new Date().toISOString().slice(0, 10), fiscal_period: "", reference: "", description: "" });
+      setLines([{ account: "", debit: "", credit: "", description: "" }, { account: "", debit: "", credit: "", description: "" }]);
+      load();
+    } catch (err) { setError(err.message); } finally { setSubmitting(false); }
+  };
+
+  const handlePost = async (id) => {
+    try { await postJournalEntry(id); load(); } catch (err) { setError(err.message); }
+  };
+
+  const handleVoid = async (id) => {
+    if (!window.confirm("Void this posted entry?")) return;
+    try { await voidJournalEntry(id); load(); } catch (err) { setError(err.message); }
+  };
+
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">MediCore HMIS</div>
-          <h1 className="page-title">Module Under Development</h1>
-          <p className="page-subtitle">
-            This module is currently being developed and will be available in an
-            upcoming release.
-          </p>
-        </div>
+    <div>
+      <h1>Journal Entries</h1>
+      {error && <p>Error: {error}</p>}
 
-        <div className="page-header__actions">
-          <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
+      <h2>New Journal Entry</h2>
+      <form onSubmit={handleSubmit}>
+        <input type="date" value={form.entry_date} onChange={handleFormChange("entry_date")} required />
+        <select value={form.fiscal_period} onChange={handleFormChange("fiscal_period")}>
+          <option value="">No fiscal period</option>
+          {periods.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <input type="text" placeholder="Reference" value={form.reference} onChange={handleFormChange("reference")} />
+        <textarea placeholder="Description" value={form.description} onChange={handleFormChange("description")} required />
 
-      <div className="card shadow-sm border-0">
-        <div className="card-body text-center py-5">
-
-          <div
-            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle bg-primary-soft"
-            style={{ width: 110, height: 110 }}
-          >
-            <i
-              className="bi bi-tools text-primary"
-              style={{ fontSize: "3rem" }}
-            ></i>
+        <h3>Lines</h3>
+        {lines.map((line, index) => (
+          <div key={index}>
+            <select value={line.account} onChange={handleLineChange(index, "account")} required>
+              <option value="">Select account</option>
+              {accounts.map((a) => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
+            </select>
+            <input type="number" placeholder="Debit" value={line.debit} onChange={handleLineChange(index, "debit")} />
+            <input type="number" placeholder="Credit" value={line.credit} onChange={handleLineChange(index, "credit")} />
+            <input type="text" placeholder="Line description" value={line.description} onChange={handleLineChange(index, "description")} />
+            {lines.length > 2 && <button type="button" onClick={() => removeLine(index)}>Remove</button>}
           </div>
+        ))}
+        <button type="button" onClick={addLine}>+ Add Line</button>
 
-          <h2 className="fw-bold mb-3">
-            We're Building Something Great
-          </h2>
+        <p>Total Debit: {totalDebit} — Total Credit: {totalCredit} — {isBalanced ? "Balanced ✓" : "Not Balanced"}</p>
 
-          <p
-            className="text-muted mx-auto"
-            style={{ maxWidth: "650px" }}
-          >
-            This module is currently under active development by the MediCore
-            engineering team. It will be available in a future update with full
-            functionality, security, reporting, and seamless integration with
-            the rest of the Hospital Management Information System.
-          </p>
+        <button type="submit" disabled={submitting || !isBalanced}>
+          {submitting ? "Creating..." : "Create Draft Entry"}
+        </button>
+      </form>
 
-          <div className="row g-3 mt-4 justify-content-center">
+      <h2>All Entries</h2>
+      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+        <option value="">All</option>
+        <option value="DRAFT">Draft</option>
+        <option value="POSTED">Posted</option>
+        <option value="VOIDED">Voided</option>
+      </select>
 
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-code-slash fs-2 text-primary"></i>
-                <h6 className="mt-3 mb-1">Development</h6>
-                <small className="text-muted">
-                  Core features are currently being implemented.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-shield-check fs-2 text-success"></i>
-                <h6 className="mt-3 mb-1">Testing</h6>
-                <small className="text-muted">
-                  Every workflow undergoes extensive quality assurance.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-rocket-takeoff fs-2 text-warning"></i>
-                <h6 className="mt-3 mb-1">Coming Soon</h6>
-                <small className="text-muted">
-                  This module will be released in a future MediCore update.
-                </small>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-5">
-            <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
-              Return to Dashboard
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
+      {loading ? <p>Loading...</p> : (
+        <table>
+          <thead><tr><th>Entry #</th><th>Date</th><th>Description</th><th>Source</th><th>Debit</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {entries.map((e) => (
+              <tr key={e.id}>
+                <td>{e.entry_number}</td><td>{e.entry_date}</td><td>{e.description}</td>
+                <td>{e.source}</td><td>KES {e.total_debit}</td><td>{e.status}</td>
+                <td>
+                  {e.status === "DRAFT" && <button type="button" onClick={() => handlePost(e.id)}>Post</button>}
+                  {e.status === "POSTED" && <button type="button" onClick={() => handleVoid(e.id)}>Void</button>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 }
