@@ -600,6 +600,11 @@ export default function App() {
         <Route path="/finance/budgets" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><Budgets /></ProtectedRoute>} />
         <Route path="/finance/accounts" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ChartOfAccounts /></ProtectedRoute>} />
 
+        <Route path="/bloodbank" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><BloodInventory /></ProtectedRoute>} />
+        <Route path="/bloodbank/donors" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><BloodDonors /></ProtectedRoute>} />
+        <Route path="/bloodbank/requests" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><BloodRequests /></ProtectedRoute>} />
+        <Route path="/bloodbank/requests/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><BloodRequestDetail /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
