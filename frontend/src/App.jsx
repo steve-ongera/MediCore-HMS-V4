@@ -576,6 +576,11 @@ export default function App() {
         <Route path="/mortuary/admit" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><AdmitDeceased /></ProtectedRoute>} />
         <Route path="/mortuary/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryCaseDetail /></ProtectedRoute>} />
 
+        <Route path="/theatre" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><TheatreBoard /></ProtectedRoute>} />
+        <Route path="/theatre/book" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><BookSurgery /></ProtectedRoute>} />
+        <Route path="/theatre/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><SurgeryDetail /></ProtectedRoute>} />
+        <Route path="/theatre/setup" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><TheatreSetup /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
