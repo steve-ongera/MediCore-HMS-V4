@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "theatre",
     "finance",
     "bloodbank",
+    "dental",
 ]
 
 MIDDLEWARE = [
