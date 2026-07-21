@@ -135,6 +135,12 @@ import EyeVisits from "./pages/eyeclinic/EyeVisits.jsx";
 import RegisterEyeVisit from "./pages/eyeclinic/RegisterEyeVisit.jsx";
 import EyeVisitDetail from "./pages/eyeclinic/EyeVisitDetail.jsx";
 
+import DialysisSessionsToday from "./pages/dialysis/DialysisSessionsToday.jsx";
+import DialysisPatients from "./pages/dialysis/DialysisPatients.jsx";
+import RegisterDialysisPatient from "./pages/dialysis/RegisterDialysisPatient.jsx";
+import DialysisPatientDetail from "./pages/dialysis/DialysisPatientDetail.jsx";
+import DialysisSessionDetail from "./pages/dialysis/DialysisSessionDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
