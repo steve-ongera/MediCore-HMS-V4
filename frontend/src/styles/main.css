@@ -3235,3 +3235,53 @@ fieldset legend {
     gap: var(--space-3);
   }
 }
+
+/* Tooth Chart Styles */
+.tooth-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.tooth-quadrant {
+  padding: var(--space-3);
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+}
+
+.tooth-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 48px;
+}
+
+.tooth-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.tooth-btn__number {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.tooth-btn--caries { border-color: var(--danger); }
+.tooth-btn--filled { border-color: var(--primary); }
+.tooth-btn--crowned { border-color: var(--info); }
+.tooth-btn--missing { border-color: var(--text-muted); }
+.tooth-btn--impacted { border-color: var(--warning); }
+.tooth-btn--fractured { border-color: var(--danger); }
+.tooth-btn--root_canal_treated { border-color: var(--primary); }
+
+@media (max-width: 768px) {
+  .tooth-grid {
+    grid-template-columns: 1fr;
+  }
+}
