@@ -609,6 +609,10 @@ export default function App() {
         <Route path="/bloodbank/requests" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><BloodRequests /></ProtectedRoute>} />
         <Route path="/bloodbank/requests/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><BloodRequestDetail /></ProtectedRoute>} />
 
+        <Route path="/dental" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><DentalVisits /></ProtectedRoute>} />
+        <Route path="/dental/register" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><RegisterDentalVisit /></ProtectedRoute>} />
+        <Route path="/dental/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><DentalVisitDetail /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
