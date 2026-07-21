@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/", include("bloodbank.urls")),
     path("api/", include("dental.urls")),
     path("api/", include("eyeclinic.urls")),
+    path("api/", include("dialysis.urls")),
 
     # OpenAPI / Swagger documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
