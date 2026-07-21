@@ -641,6 +641,21 @@ export const addTreatmentPlanItem = (visitId, payload) => unwrap(client.post(`/d
 export const performDentalProcedure = (planId, payload) => unwrap(client.post(`/dental-treatment-plans/${planId}/perform/`, payload));
 export const cancelTreatmentPlanItem = (planId) => unwrap(client.post(`/dental-treatment-plans/${planId}/cancel/`));
 
+// ===========================================================================
+// EYE CLINIC
+// ===========================================================================
+export const getEyeProcedureCatalog = (params) => unwrap(client.get(`/eye-procedure-catalog/${qs(params)}`));
+
+export const getEyeVisits = (params) => unwrap(client.get(`/eye-visits/${qs(params)}`));
+export const getEyeVisit = (id) => unwrap(client.get(`/eye-visits/${id}/`));
+export const registerEyeVisit = (payload) => unwrap(client.post("/eye-visits/", payload));
+export const saveEyeExamination = (visitId, payload) => unwrap(client.post(`/eye-visits/${visitId}/save-examination/`, payload));
+export const prescribeSpectacles = (visitId, payload) => unwrap(client.post(`/eye-visits/${visitId}/prescribe-spectacles/`, payload));
+export const addEyeTreatmentPlanItem = (visitId, payload) => unwrap(client.post(`/eye-visits/${visitId}/add-treatment-plan/`, payload));
+
+export const performEyeProcedure = (planId, payload) => unwrap(client.post(`/eye-treatment-plans/${planId}/perform/`, payload));
+export const cancelEyeTreatmentPlanItem = (planId) => unwrap(client.post(`/eye-treatment-plans/${planId}/cancel/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

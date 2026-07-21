@@ -131,6 +131,10 @@ import DentalVisits from "./pages/dental/DentalVisits.jsx";
 import RegisterDentalVisit from "./pages/dental/RegisterDentalVisit.jsx";
 import DentalVisitDetail from "./pages/dental/DentalVisitDetail.jsx";
 
+import EyeVisits from "./pages/eyeclinic/EyeVisits.jsx";
+import RegisterEyeVisit from "./pages/eyeclinic/RegisterEyeVisit.jsx";
+import EyeVisitDetail from "./pages/eyeclinic/EyeVisitDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -612,6 +616,10 @@ export default function App() {
         <Route path="/dental" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><DentalVisits /></ProtectedRoute>} />
         <Route path="/dental/register" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><RegisterDentalVisit /></ProtectedRoute>} />
         <Route path="/dental/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><DentalVisitDetail /></ProtectedRoute>} />
+
+        <Route path="/eyeclinic" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><EyeVisits /></ProtectedRoute>} />
+        <Route path="/eyeclinic/register" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><RegisterEyeVisit /></ProtectedRoute>} />
+        <Route path="/eyeclinic/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><EyeVisitDetail /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route

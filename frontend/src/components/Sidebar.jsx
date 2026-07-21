@@ -212,6 +212,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Eye Clinic",
+    roles: [ROLES.DOCTOR, ROLES.NURSE],
+    links: [
+      { to: "/eyeclinic", label: "Eye Clinic Visits", icon: "bi-eye-fill" },
+      { to: "/eyeclinic/register", label: "Register Visit", icon: "bi-plus-circle" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
