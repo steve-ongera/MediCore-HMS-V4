@@ -127,6 +127,10 @@ import BloodDonors from "./pages/bloodbank/BloodDonors.jsx";
 import BloodRequests from "./pages/bloodbank/BloodRequests.jsx";
 import BloodRequestDetail from "./pages/bloodbank/BloodRequestDetail.jsx";
 
+import DentalVisits from "./pages/dental/DentalVisits.jsx";
+import RegisterDentalVisit from "./pages/dental/RegisterDentalVisit.jsx";
+import DentalVisitDetail from "./pages/dental/DentalVisitDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
