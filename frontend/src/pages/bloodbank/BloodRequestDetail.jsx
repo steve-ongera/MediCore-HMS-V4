@@ -1,96 +1,105 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getBloodRequest, getCompatibleUnits, issueBloodUnit, cancelBloodRequest } from "../../services/api";
 
-export default function UnderDevelopment() {
+export default function BloodRequestDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [request, setRequest] = useState(null);
+  const [compatibleUnits, setCompatibleUnits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => { load(); }, [id]);
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getBloodRequest(id);
+      setRequest(data);
+      if (data.status === "PENDING" || data.status === "CROSS_MATCHED") {
+        const units = await getCompatibleUnits(id);
+        setCompatibleUnits(units);
+      }
+    } catch (err) { setError(err.message); } finally { setLoading(false); }
+  };
+
+  const handleIssue = async (unitId) => {
+    try {
+      await issueBloodUnit(id, { unit: unitId });
+      load();
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleCancel = async () => {
+    if (!window.confirm("Cancel this blood request?")) return;
+    try {
+      await cancelBloodRequest(id);
+      load();
+    } catch (err) { setError(err.message); }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (!request) return null;
+
+  const canIssue = request.status === "PENDING" || request.status === "CROSS_MATCHED";
+
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">MediCore HMIS</div>
-          <h1 className="page-title">Module Under Development</h1>
-          <p className="page-subtitle">
-            This module is currently being developed and will be available in an
-            upcoming release.
-          </p>
-        </div>
+    <div>
+      <button type="button" onClick={() => navigate("/bloodbank/requests")}>&larr; Back</button>
+      <h1>{request.request_number}</h1>
+      {error && <p>Error: {error}</p>}
 
-        <div className="page-header__actions">
-          <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
+      <section>
+        <p>Patient: {request.patient_name} ({request.hospital_number})</p>
+        <p>Blood Group: {request.patient_blood_group} — Component: {request.component_type}</p>
+        <p>Units Requested: {request.units_requested} — Priority: {request.priority}</p>
+        <p>Clinical Indication: {request.clinical_indication || "—"}</p>
+        <p>Status: {request.status}</p>
+        <p>Requested By: {request.requested_by_name} on {new Date(request.requested_at).toLocaleString()}</p>
+        {canIssue && <button type="button" onClick={handleCancel}>Cancel Request</button>}
+      </section>
 
-      <div className="card shadow-sm border-0">
-        <div className="card-body text-center py-5">
+      {canIssue && (
+        <section>
+          <h2>Compatible Available Units</h2>
+          {compatibleUnits.length === 0 ? (
+            <p>No compatible units currently available in stock.</p>
+          ) : (
+            <table>
+              <thead><tr><th>Unit #</th><th>Blood Group</th><th>Component</th><th>Expiry</th><th>Price</th><th></th></tr></thead>
+              <tbody>
+                {compatibleUnits.map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.unit_number}</td><td>{u.blood_group}</td><td>{u.component_type}</td>
+                    <td>{u.expiry_date}</td><td>KES {u.unit_price}</td>
+                    <td><button type="button" onClick={() => handleIssue(u.id)}>Issue This Unit</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      )}
 
-          <div
-            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle bg-primary-soft"
-            style={{ width: 110, height: 110 }}
-          >
-            <i
-              className="bi bi-tools text-primary"
-              style={{ fontSize: "3rem" }}
-            ></i>
-          </div>
-
-          <h2 className="fw-bold mb-3">
-            We're Building Something Great
-          </h2>
-
-          <p
-            className="text-muted mx-auto"
-            style={{ maxWidth: "650px" }}
-          >
-            This module is currently under active development by the MediCore
-            engineering team. It will be available in a future update with full
-            functionality, security, reporting, and seamless integration with
-            the rest of the Hospital Management Information System.
-          </p>
-
-          <div className="row g-3 mt-4 justify-content-center">
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-code-slash fs-2 text-primary"></i>
-                <h6 className="mt-3 mb-1">Development</h6>
-                <small className="text-muted">
-                  Core features are currently being implemented.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-shield-check fs-2 text-success"></i>
-                <h6 className="mt-3 mb-1">Testing</h6>
-                <small className="text-muted">
-                  Every workflow undergoes extensive quality assurance.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-rocket-takeoff fs-2 text-warning"></i>
-                <h6 className="mt-3 mb-1">Coming Soon</h6>
-                <small className="text-muted">
-                  This module will be released in a future MediCore update.
-                </small>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-5">
-            <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
-              Return to Dashboard
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
+      <section>
+        <h2>Units Issued</h2>
+        {request.issues.length === 0 ? <p>No units issued yet.</p> : (
+          <table>
+            <thead><tr><th>Unit #</th><th>Blood Group</th><th>Issued By</th><th>Issued At</th></tr></thead>
+            <tbody>
+              {request.issues.map((iss) => (
+                <tr key={iss.id}>
+                  <td>{iss.unit_number}</td><td>{iss.unit_blood_group}</td>
+                  <td>{iss.issued_by_name}</td><td>{new Date(iss.issued_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </div>
   );
 }
