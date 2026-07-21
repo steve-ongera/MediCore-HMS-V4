@@ -204,6 +204,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Dental",
+    roles: [ROLES.DOCTOR, ROLES.NURSE],
+    links: [
+      { to: "/dental", label: "Dental Visits", icon: "bi-heart-fill" },
+      { to: "/dental/register", label: "Register Visit", icon: "bi-plus-circle" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
