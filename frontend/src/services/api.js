@@ -656,6 +656,26 @@ export const addEyeTreatmentPlanItem = (visitId, payload) => unwrap(client.post(
 export const performEyeProcedure = (planId, payload) => unwrap(client.post(`/eye-treatment-plans/${planId}/perform/`, payload));
 export const cancelEyeTreatmentPlanItem = (planId) => unwrap(client.post(`/eye-treatment-plans/${planId}/cancel/`));
 
+// ===========================================================================
+// DIALYSIS
+// ===========================================================================
+export const getDialysisMachines = (params) => unwrap(client.get(`/dialysis-machines/${qs(params)}`));
+export const getAvailableDialysisMachines = () => unwrap(client.get("/dialysis-machines/available/"));
+
+export const getDialysisPatients = (params) => unwrap(client.get(`/dialysis-patients/${qs(params)}`));
+export const getActiveDialysisPatients = () => unwrap(client.get("/dialysis-patients/active/"));
+export const getDialysisPatient = (id) => unwrap(client.get(`/dialysis-patients/${id}/`));
+export const registerDialysisPatient = (payload) => unwrap(client.post("/dialysis-patients/", payload));
+export const scheduleDialysisSession = (profileId, payload) => unwrap(client.post(`/dialysis-patients/${profileId}/schedule-session/`, payload));
+export const addAccessCheck = (profileId, payload) => unwrap(client.post(`/dialysis-patients/${profileId}/add-access-check/`, payload));
+
+export const getDialysisSessions = (params) => unwrap(client.get(`/dialysis-sessions/${qs(params)}`));
+export const getTodaysDialysisSessions = () => unwrap(client.get("/dialysis-sessions/today/"));
+export const getDialysisSession = (id) => unwrap(client.get(`/dialysis-sessions/${id}/`));
+export const startDialysisSession = (id, payload) => unwrap(client.post(`/dialysis-sessions/${id}/start/`, payload));
+export const completeDialysisSession = (id, payload) => unwrap(client.post(`/dialysis-sessions/${id}/complete/`, payload));
+export const markSessionMissed = (id) => unwrap(client.post(`/dialysis-sessions/${id}/mark-missed/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
