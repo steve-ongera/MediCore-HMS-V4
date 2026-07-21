@@ -220,6 +220,15 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Dialysis",
+    roles: [ROLES.NURSE, ROLES.DOCTOR],
+    links: [
+      { to: "/dialysis", label: "Today's Sessions", icon: "bi-droplet-fill" },
+      { to: "/dialysis/patients", label: "Dialysis Patients", icon: "bi-people-fill" },
+      { to: "/dialysis/register", label: "Register Patient", icon: "bi-plus-circle" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
