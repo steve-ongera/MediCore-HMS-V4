@@ -627,6 +627,20 @@ export const getCompatibleUnits = (id) => unwrap(client.get(`/blood-requests/${i
 export const issueBloodUnit = (id, payload) => unwrap(client.post(`/blood-requests/${id}/issue-unit/`, payload));
 export const cancelBloodRequest = (id) => unwrap(client.post(`/blood-requests/${id}/cancel/`));
 
+// ===========================================================================
+// DENTAL
+// ===========================================================================
+export const getDentalProcedureCatalog = (params) => unwrap(client.get(`/dental-procedure-catalog/${qs(params)}`));
+
+export const getDentalVisits = (params) => unwrap(client.get(`/dental-visits/${qs(params)}`));
+export const getDentalVisit = (id) => unwrap(client.get(`/dental-visits/${id}/`));
+export const registerDentalVisit = (payload) => unwrap(client.post("/dental-visits/", payload));
+export const recordTooth = (visitId, payload) => unwrap(client.post(`/dental-visits/${visitId}/record-tooth/`, payload));
+export const addTreatmentPlanItem = (visitId, payload) => unwrap(client.post(`/dental-visits/${visitId}/add-treatment-plan/`, payload));
+
+export const performDentalProcedure = (planId, payload) => unwrap(client.post(`/dental-treatment-plans/${planId}/perform/`, payload));
+export const cancelTreatmentPlanItem = (planId) => unwrap(client.post(`/dental-treatment-plans/${planId}/cancel/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
