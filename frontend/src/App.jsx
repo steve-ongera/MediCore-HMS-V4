@@ -636,6 +636,12 @@ export default function App() {
         <Route path="/icu/admit" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><AdmitToICU /></ProtectedRoute>} />
         <Route path="/icu/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><ICUAdmissionDetail /></ProtectedRoute>} />
 
+        <Route path="/dialysis" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisSessionsToday /></ProtectedRoute>} />
+        <Route path="/dialysis/patients" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisPatients /></ProtectedRoute>} />
+        <Route path="/dialysis/register" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><RegisterDialysisPatient /></ProtectedRoute>} />
+        <Route path="/dialysis/patients/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisPatientDetail /></ProtectedRoute>} />
+        <Route path="/dialysis/sessions/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisSessionDetail /></ProtectedRoute>} />
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
