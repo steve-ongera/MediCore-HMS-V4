@@ -229,6 +229,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "ICU / HDU",
+    roles: [ROLES.NURSE, ROLES.DOCTOR],
+    links: [
+      { to: "/icu", label: "ICU Board", icon: "bi-activity" },
+      { to: "/icu/admit", label: "Admit to ICU", icon: "bi-plus-circle" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },

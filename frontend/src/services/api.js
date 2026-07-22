@@ -676,6 +676,24 @@ export const startDialysisSession = (id, payload) => unwrap(client.post(`/dialys
 export const completeDialysisSession = (id, payload) => unwrap(client.post(`/dialysis-sessions/${id}/complete/`, payload));
 export const markSessionMissed = (id) => unwrap(client.post(`/dialysis-sessions/${id}/mark-missed/`));
 
+// ===========================================================================
+// ICU / HDU
+// ===========================================================================
+export const getICUBeds = (params) => unwrap(client.get(`/icu-beds/${qs(params)}`));
+export const getAvailableICUBeds = () => unwrap(client.get("/icu-beds/available/"));
+
+export const getICUProcedureCatalog = (params) => unwrap(client.get(`/icu-procedure-catalog/${qs(params)}`));
+
+export const getICUAdmissions = (params) => unwrap(client.get(`/icu-admissions/${qs(params)}`));
+export const getActiveICUAdmissions = () => unwrap(client.get("/icu-admissions/active/"));
+export const getICUAdmission = (id) => unwrap(client.get(`/icu-admissions/${id}/`));
+export const admitToICU = (payload) => unwrap(client.post("/icu-admissions/", payload));
+export const dischargeFromICU = (id, payload) => unwrap(client.post(`/icu-admissions/${id}/discharge/`, payload));
+export const recordICUVitals = (id, payload) => unwrap(client.post(`/icu-admissions/${id}/record-vitals/`, payload));
+export const recordVentilatorSettings = (id, payload) => unwrap(client.post(`/icu-admissions/${id}/record-ventilator-settings/`, payload));
+export const orderICUProcedure = (id, payload) => unwrap(client.post(`/icu-admissions/${id}/order-procedure/`, payload));
+export const getICUBilling = (id) => unwrap(client.get(`/icu-admissions/${id}/billing/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

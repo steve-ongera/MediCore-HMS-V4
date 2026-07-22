@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "dental",
     "eyeclinic",
     "dialysis",
+    "icu",
 ]
 
 MIDDLEWARE = [
