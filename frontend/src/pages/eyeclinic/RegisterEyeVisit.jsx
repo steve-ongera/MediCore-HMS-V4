@@ -13,6 +13,7 @@ export default function RegisterEyeVisit() {
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => { loadDoctors(); }, []);
@@ -21,7 +22,11 @@ export default function RegisterEyeVisit() {
     try {
       const data = await getUsers({ role: "DOCTOR" });
       setOphthalmologists(data.results ?? data);
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePatientSearch = async (e) => {
