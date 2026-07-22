@@ -1,9 +1,11 @@
+// Replace your existing formatCurrency with this:
 export function formatCurrency(amount, currency = "KES") {
   const value = Number(amount ?? 0);
-  return new Intl.NumberFormat("en-KE", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,  // Changed from 2 to 0
+    maximumFractionDigits: 0,  // Added this
   }).format(value);
 }
 

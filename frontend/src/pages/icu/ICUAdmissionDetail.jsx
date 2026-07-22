@@ -4,6 +4,7 @@ import {
   getICUAdmission, getICUBilling, recordICUVitals, recordVentilatorSettings,
   getICUProcedureCatalog, orderICUProcedure, dischargeFromICU,
 } from "../../services/api";
+import { formatCurrency, formatDate, formatDateTime } from "../../utils/formatters";
 
 export default function ICUAdmissionDetail() {
   const { id } = useParams();
@@ -123,11 +124,6 @@ export default function ICUAdmissionDetail() {
     return labels[mode] || mode;
   };
 
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "KES 0.00";
-    return `KES ${Number(amount).toFixed(2)}`;
-  };
-
   if (loading) {
     return (
       <div className="loading-screen">
@@ -212,7 +208,7 @@ export default function ICUAdmissionDetail() {
             </div>
             <div className="info-item">
               <div className="info-item__label">Admitted</div>
-              <div className="info-item__value">{new Date(admission.admitted_at).toLocaleString()}</div>
+              <div className="info-item__value">{formatDateTime(admission.admitted_at)}</div>
             </div>
             <div className="info-item" style={{ gridColumn: "span 2" }}>
               <div className="info-item__label">Diagnosis</div>
@@ -221,7 +217,7 @@ export default function ICUAdmissionDetail() {
             {admission.discharged_at && (
               <div className="info-item">
                 <div className="info-item__label">Discharged</div>
-                <div className="info-item__value">{new Date(admission.discharged_at).toLocaleString()}</div>
+                <div className="info-item__value">{formatDateTime(admission.discharged_at)}</div>
               </div>
             )}
             {admission.discharge_summary && (
@@ -423,7 +419,7 @@ export default function ICUAdmissionDetail() {
                 <tbody>
                   {admission.vitals.map((v) => (
                     <tr key={v.id}>
-                      <td>{new Date(v.recorded_at).toLocaleString()}</td>
+                      <td>{formatDateTime(v.recorded_at)}</td>
                       <td className="cell-numeric">{v.heart_rate}</td>
                       <td>{v.bp_systolic}/{v.bp_diastolic}</td>
                       <td className="cell-numeric">{v.oxygen_saturation}%</td>
@@ -534,7 +530,7 @@ export default function ICUAdmissionDetail() {
                 <tbody>
                   {admission.ventilator_settings.map((v) => (
                     <tr key={v.id}>
-                      <td>{new Date(v.recorded_at).toLocaleString()}</td>
+                      <td>{formatDateTime(v.recorded_at)}</td>
                       <td>{getModeLabel(v.mode)}</td>
                       <td className="cell-numeric">{v.fio2_percent}%</td>
                       <td className="cell-numeric">{v.peep_cmh2o}</td>
@@ -620,7 +616,7 @@ export default function ICUAdmissionDetail() {
                     <tr key={p.id}>
                       <td className="cell-primary">{p.procedure_name}</td>
                       <td>{p.performed_by_name}</td>
-                      <td>{new Date(p.performed_at).toLocaleString()}</td>
+                      <td>{formatDateTime(p.performed_at)}</td>
                     </tr>
                   ))}
                 </tbody>

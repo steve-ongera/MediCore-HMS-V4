@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getICUBeds, getActiveICUAdmissions } from "../../services/api";
+import { formatCurrency } from "../../utils/formatters";
 
 export default function ICUBoard() {
   const [beds, setBeds] = useState([]);
@@ -43,11 +44,6 @@ export default function ICUBoard() {
     if (score >= 20) return "badge-danger";
     if (score >= 10) return "badge-warning";
     return "badge-success";
-  };
-
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "KES 0.00";
-    return `KES ${Number(amount).toFixed(2)}`;
   };
 
   if (loading && beds.length === 0 && admissions.length === 0) {
