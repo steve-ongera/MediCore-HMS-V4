@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-
+from api.dashboards import MyDashboardView
 from api import views
 
 router = DefaultRouter()
@@ -102,6 +102,7 @@ urlpatterns = [
     # Dashboard & Reports
     # =========================================================================
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+    path("dashboards/me/", MyDashboardView.as_view(), name="my-dashboard"),
     path("reports/", views.ReportsView.as_view(), name="reports"),
     path("transactions/", views.AllTransactionsView.as_view(), name="transactions"),
 

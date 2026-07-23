@@ -262,6 +262,7 @@ export const getOTCSaleReceipt = (id) => unwrap(client.get(`/otc-sales/${id}/rec
 // DASHBOARD / REPORTS
 // ===========================================================================
 export const getDashboard = () => unwrap(client.get("/dashboard/"));
+export const getMyDashboard = () => unwrap(client.get("/dashboards/me/"));
 export const getReports = (type, params) => unwrap(client.get(`/reports/${qs({ type, ...params })}`));
 
 // ===========================================================================
