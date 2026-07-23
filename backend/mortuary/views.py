@@ -9,6 +9,7 @@ from api.views import BaseModelViewSet
 from api.models import Patient, Invoice
 from api.serializers import InvoiceSerializer
 from api.permissions import ReadOnlyOrSuperAdmin
+from api.permissions import IsMortuaryStaff, IsMortuaryAttendant
 
 from .models import (
     MortuaryUnit, CompartmentStatus, MortuaryAdmission, MortuaryStatus,
@@ -24,6 +25,7 @@ from .services import raise_mortuary_invoice, charge_storage_to_date, ensure_mor
 
 
 class MortuaryUnitViewSet(BaseModelViewSet):
+    permission_classes = [IsMortuaryStaff]
     queryset = MortuaryUnit.objects.filter(is_active=True)
     serializer_class = MortuaryUnitSerializer
     filterset_fields = ["status"]
@@ -42,6 +44,7 @@ class MortuaryServiceCatalogViewSet(BaseModelViewSet):
 
 
 class MortuaryAdmissionViewSet(BaseModelViewSet):
+    permission_classes = [IsMortuaryStaff]
     queryset = MortuaryAdmission.objects.select_related("patient", "compartment").all()
     filterset_fields = ["status", "source"]
     search_fields = ["case_number", "patient__full_name", "deceased_name_freetext"]

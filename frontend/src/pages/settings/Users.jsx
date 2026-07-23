@@ -18,6 +18,11 @@ const ROLE_OPTIONS = [
   { value: "RADIOLOGIST", label: "Radiologist" },
   { value: "PHARMACIST", label: "Pharmacist" },
   { value: "ACCOUNTANT", label: "Accountant" },
+  { value: "MORTUARY_ATTENDANT", label: "Mortuary Attendant"},
+  { value: "HR_OFFICER", label: "HR Officer"},
+  { value: "PROCUREMENT_OFFICER", label: "Procurement Officer"},
+  { value: "AMBULANCE_DISPATCHER", label: "Ambulance Dispatcher"},
+  
 ];
 
 const roleLabel = (value) => ROLE_OPTIONS.find((r) => r.value === value)?.label || value;

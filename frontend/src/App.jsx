@@ -584,28 +584,28 @@ export default function App() {
         <Route path="/assets/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><AssetMaintenance /></ProtectedRoute>} />
         <Route path="/assets/categories" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><AssetCategories /></ProtectedRoute>} />
 
-        <Route path="/procurement/requisitions" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><Requisitions /></ProtectedRoute>} />
-        <Route path="/procurement/orders" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><PurchaseOrders /></ProtectedRoute>} />
-        <Route path="/procurement/orders/:id" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><PurchaseOrderDetail /></ProtectedRoute>} />
-        <Route path="/procurement/receipts" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><GoodsReceipts /></ProtectedRoute>} />
-        <Route path="/procurement/invoices" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><SupplierInvoices /></ProtectedRoute>} />
+        <Route path="/procurement/requisitions" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><Requisitions /></ProtectedRoute>} />
+        <Route path="/procurement/orders" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><PurchaseOrders /></ProtectedRoute>} />
+        <Route path="/procurement/orders/:id" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><PurchaseOrderDetail /></ProtectedRoute>} />
+        <Route path="/procurement/receipts" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><GoodsReceipts /></ProtectedRoute>} />
+        <Route path="/procurement/invoices" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><SupplierInvoices /></ProtectedRoute>} />
 
-        <Route path="/hr/employees" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Employees /></ProtectedRoute>} />
-        <Route path="/hr/employees/register" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EmployeeForm /></ProtectedRoute>} />
-        <Route path="/hr/employees/:id" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EmployeeDetail /></ProtectedRoute>} />
-        <Route path="/hr/leave" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><LeaveRequests /></ProtectedRoute>} />
-        <Route path="/hr/attendance" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Attendance /></ProtectedRoute>} />
-        <Route path="/hr/payroll" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Payroll /></ProtectedRoute>} />
-        <Route path="/hr/payroll/:id" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><PayrollRunDetail /></ProtectedRoute>} />
+        <Route path="/hr/employees" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><Employees /></ProtectedRoute>} />
+        <Route path="/hr/employees/register" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><EmployeeForm /></ProtectedRoute>} />
+        <Route path="/hr/employees/:id" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><EmployeeDetail /></ProtectedRoute>} />
+        <Route path="/hr/leave" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><LeaveRequests /></ProtectedRoute>} />
+        <Route path="/hr/attendance" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><Attendance /></ProtectedRoute>} />
+        <Route path="/hr/payroll" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><Payroll /></ProtectedRoute>} />
+        <Route path="/hr/payroll/:id" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><PayrollRunDetail /></ProtectedRoute>} />
 
-        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
-        <Route path="/ambulance/request" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><RequestDispatch /></ProtectedRoute>} />
-        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><DispatchDetail /></ProtectedRoute>} />
-        <Route path="/ambulance/fleet" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><FleetManagement /></ProtectedRoute>} />
+        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
+        <Route path="/ambulance/request" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><RequestDispatch /></ProtectedRoute>} />
+        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><DispatchDetail /></ProtectedRoute>} />
+        <Route path="/ambulance/fleet" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><FleetManagement /></ProtectedRoute>} />
 
-        <Route path="/mortuary" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryRegister /></ProtectedRoute>} />
-        <Route path="/mortuary/admit" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><AdmitDeceased /></ProtectedRoute>} />
-        <Route path="/mortuary/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryCaseDetail /></ProtectedRoute>} />
+        <Route path="/mortuary" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryRegister /></ProtectedRoute>} />
+        <Route path="/mortuary/admit" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><AdmitDeceased /></ProtectedRoute>} />
+        <Route path="/mortuary/:id" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryCaseDetail /></ProtectedRoute>} />
 
         <Route path="/theatre" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><TheatreBoard /></ProtectedRoute>} />
         <Route path="/theatre/book" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><BookSurgery /></ProtectedRoute>} />

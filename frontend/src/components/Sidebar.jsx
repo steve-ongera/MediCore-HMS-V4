@@ -90,10 +90,6 @@ const NAV_GROUPS = [
     roles: [ROLES.ACCOUNTANT],
     links: [
       { to: "/reports", label: "Reports", icon: "bi-bar-chart-line" },
-      { to: "/audit-logs", label: "Audit Log", icon: "bi-journal-text", roles: [] },
-      { to: "/users", label: "Staff", icon: "bi-person-badge", roles: [] },
-      { to: "/departments", label: "Departments", icon: "bi-building", roles: [] },
-      { to: "/settings/test-catalog", label: "Test Catalog", icon: "bi-clipboard2-data", roles: [] },
     ],
   },
   {
@@ -113,9 +109,8 @@ const NAV_GROUPS = [
     roles: [ROLES.RECEPTIONIST, ROLES.CASHIER, ROLES.ACCOUNTANT],
     links: [
       { to: "/insurance/policies", label: "Patient Policies", icon: "bi-shield-check" },
-      { to: "/insurance/claims", label: "Claims", icon: "bi-file-earmark-medical" },
+      { to: "/insurance/claims", label: "Claims", icon: "bi-file-earmark-medical", roles: [ROLES.CASHIER, ROLES.ACCOUNTANT] },
       { to: "/insurance/claims/new", label: "File Claim", icon: "bi-file-earmark-plus" },
-      { to: "/insurance/insurers", label: "Insurers", icon: "bi-building", roles: [] },
     ],
   },
   {
@@ -123,32 +118,30 @@ const NAV_GROUPS = [
     roles: [ROLES.ACCOUNTANT],
     links: [
       { to: "/etims/receipts", label: "Fiscalized Receipts", icon: "bi-qr-code" },
-      { to: "/etims/config", label: "eTIMS Settings", icon: "bi-gear-fill", roles: [] },
     ],
   },
   {
     label: "Asset Management",
-    roles: [ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN],
+    roles: [ROLES.ACCOUNTANT],
     links: [
       { to: "/assets", label: "Asset Register", icon: "bi-box-seam-fill" },
       { to: "/assets/register", label: "Register Asset", icon: "bi-plus-square" },
       { to: "/assets/maintenance", label: "Maintenance", icon: "bi-tools" },
-      { to: "/assets/categories", label: "Categories", icon: "bi-tags", roles: [] },
     ],
   },
   {
     label: "Procurement",
-    roles: [ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN],
+    roles: [ROLES.PROCUREMENT_OFFICER],
     links: [
       { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check" },
       { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4" },
       { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down" },
-      { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt" },
+      { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
     ],
   },
   {
     label: "Human Resources",
-    roles: [ROLES.SUPER_ADMIN],
+    roles: [ROLES.HR_OFFICER],
     links: [
       { to: "/hr/employees", label: "Employees", icon: "bi-people-fill" },
       { to: "/hr/employees/register", label: "Register Employee", icon: "bi-person-plus-fill" },
@@ -159,16 +152,16 @@ const NAV_GROUPS = [
   },
   {
     label: "Ambulance",
-    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
+    roles: [ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
     links: [
       { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill" },
       { to: "/ambulance/request", label: "Request Dispatch", icon: "bi-telephone-plus-fill" },
-      { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [] },
+      { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [ROLES.AMBULANCE_DISPATCHER] },
     ],
   },
   {
     label: "Mortuary",
-    roles: [ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST],
+    roles: [ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST],
     links: [
       { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill" },
       { to: "/mortuary/admit", label: "Admit Deceased", icon: "bi-file-earmark-plus" },
@@ -180,18 +173,16 @@ const NAV_GROUPS = [
     links: [
       { to: "/theatre", label: "Theatre Board", icon: "bi-hospital" },
       { to: "/theatre/book", label: "Book Surgery", icon: "bi-calendar2-plus" },
-      { to: "/theatre/setup", label: "Theatres & Procedures", icon: "bi-gear-wide-connected", roles: [] },
     ],
   },
   {
     label: "Finance & Accounting",
-    roles: [ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN],
+    roles: [ROLES.ACCOUNTANT],
     links: [
       { to: "/finance", label: "Financial Summary", icon: "bi-graph-up-arrow" },
       { to: "/finance/journal", label: "Journal Entries", icon: "bi-journal-text" },
       { to: "/finance/expenses", label: "Expenses", icon: "bi-receipt-cutoff" },
       { to: "/finance/budgets", label: "Budgets", icon: "bi-pie-chart" },
-      { to: "/finance/accounts", label: "Chart of Accounts", icon: "bi-list-columns", roles: [] },
     ],
   },
   {
@@ -237,6 +228,21 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Administration",
+    roles: [],
+    links: [
+      { to: "/audit-logs", label: "Audit Log", icon: "bi-journal-text" },
+      { to: "/users", label: "Staff", icon: "bi-person-badge" },
+      { to: "/departments", label: "Departments", icon: "bi-building" },
+      { to: "/settings/test-catalog", label: "Test Catalog", icon: "bi-clipboard2-data" },
+      { to: "/insurance/insurers", label: "Insurers", icon: "bi-shield-check" },
+      { to: "/etims/config", label: "eTIMS Settings", icon: "bi-gear-fill" },
+      { to: "/assets/categories", label: "Asset Categories", icon: "bi-tags" },
+      { to: "/theatre/setup", label: "Theatres & Procedures", icon: "bi-gear-wide-connected" },
+      { to: "/finance/accounts", label: "Chart of Accounts", icon: "bi-list-columns" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
@@ -248,22 +254,22 @@ const NAV_GROUPS = [
 export default function Sidebar({ onNavigate }) {
   const { hasRole } = useAuth();
 
-  // roles: [] on a link means "Super Admin only" (hasRole already grants
-  // Super Admin everything, but an empty array blocks every other role).
+  // roles: [] on a group/link means "Super Admin only" (hasRole already
+  // grants Super Admin everything; an empty array blocks every other role).
   const canSee = (roles) => (roles === undefined ? true : hasRole(...roles));
 
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
-        <img 
-          src={medicoreLogo} 
-          alt="Medicore HMIS" 
-          style={{ 
-            height: 34, 
+        <img
+          src={medicoreLogo}
+          alt="Medicore HMIS"
+          style={{
+            height: 34,
             width: 'auto',
             borderRadius: '5px',
             flexShrink: 0
-          }} 
+          }}
         />
         <span className="sidebar__brand-text">Medicore HMIS</span>
       </div>

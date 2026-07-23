@@ -9,6 +9,7 @@ from rest_framework.exceptions import ValidationError
 
 from api.views import BaseModelViewSet
 from api.permissions import ReadOnlyOrSuperAdmin
+from api.permissions import IsHROfficer
 
 from .models import (
     Employee, EmploymentStatus, LeaveType, LeaveRequest, LeaveStatus,
@@ -24,6 +25,7 @@ from .serializers import (
 
 
 class EmployeeViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = Employee.objects.select_related("department", "user").all()
     filterset_fields = ["department", "employment_status", "employment_type"]
     search_fields = ["employee_number", "full_name", "national_id", "phone"]
@@ -51,6 +53,7 @@ class EmployeeViewSet(BaseModelViewSet):
 
 
 class LeaveTypeViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = LeaveType.objects.filter(is_active=True)
     serializer_class = LeaveTypeSerializer
     permission_classes = [ReadOnlyOrSuperAdmin]
@@ -58,6 +61,7 @@ class LeaveTypeViewSet(BaseModelViewSet):
 
 
 class LeaveRequestViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = LeaveRequest.objects.select_related("employee", "leave_type").all()
     serializer_class = LeaveRequestSerializer
     filterset_fields = ["employee", "leave_type", "status"]
@@ -99,6 +103,7 @@ class LeaveRequestViewSet(BaseModelViewSet):
 
 
 class AttendanceViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = Attendance.objects.select_related("employee").all()
     serializer_class = AttendanceSerializer
     filterset_fields = ["employee", "date", "status"]
@@ -113,6 +118,7 @@ class AttendanceViewSet(BaseModelViewSet):
 
 
 class PayrollRunViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = PayrollRun.objects.prefetch_related("payslips__employee").all()
     filterset_fields = ["status", "period_year"]
     http_method_names = ["get", "post", "head", "options"]
@@ -166,6 +172,7 @@ class PayrollRunViewSet(BaseModelViewSet):
 
 
 class PayslipViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = Payslip.objects.select_related("employee", "payroll_run").all()
     serializer_class = PayslipSerializer
     filterset_fields = ["payroll_run", "employee"]
@@ -179,6 +186,7 @@ class PayslipViewSet(BaseModelViewSet):
 
 
 class PerformanceReviewViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = PerformanceReview.objects.select_related("employee", "reviewer").all()
     serializer_class = PerformanceReviewSerializer
     filterset_fields = ["employee"]
@@ -188,6 +196,7 @@ class PerformanceReviewViewSet(BaseModelViewSet):
 
 
 class DisciplinaryRecordViewSet(BaseModelViewSet):
+    permission_classes = [IsHROfficer]
     queryset = DisciplinaryRecord.objects.select_related("employee").all()
     serializer_class = DisciplinaryRecordSerializer
     filterset_fields = ["employee", "severity"]

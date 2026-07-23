@@ -53,6 +53,10 @@ class Role(models.TextChoices):
     RADIOLOGIST = "RADIOLOGIST", "Radiologist"
     PHARMACIST = "PHARMACIST", "Pharmacist"
     ACCOUNTANT = "ACCOUNTANT", "Accountant"
+    MORTUARY_ATTENDANT = "MORTUARY_ATTENDANT", "Mortuary Attendant"
+    HR_OFFICER = "HR_OFFICER", "HR Officer"
+    PROCUREMENT_OFFICER = "PROCUREMENT_OFFICER", "Procurement Officer"
+    AMBULANCE_DISPATCHER = "AMBULANCE_DISPATCHER", "Ambulance Dispatcher"
 
 
 class User(AbstractUser):
