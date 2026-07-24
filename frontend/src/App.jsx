@@ -1,5 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "./context/AuthContext.jsx";
 
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import AuthLayout from "./layouts/AuthLayout.jsx";
@@ -168,6 +169,8 @@ function LegacyPaymentsRedirect() {
 // keeps the original full-admin Dashboard; every other role gets its own
 // tailored RoleDashboardBase-powered page.
 function RoleHomeDashboard() {
+  const { user } = useAuth();
+
   const roleComponentMap = {
     [ROLES.SUPER_ADMIN]: Dashboard,
     [ROLES.RECEPTIONIST]: ReceptionistDashboard,
@@ -184,17 +187,7 @@ function RoleHomeDashboard() {
     [ROLES.AMBULANCE_DISPATCHER]: AmbulanceDashboard,
   };
 
-  // Read role straight from localStorage the same way the rest of the app
-  // authenticates — ProtectedRoute/AuthContext already guarantee a valid
-  // session by the time this renders.
-  let role = null;
-  try {
-    const stored = JSON.parse(localStorage.getItem("user") || "null");
-    role = stored?.role || null;
-  } catch {
-    role = null;
-  }
-
+  const role = user?.role;
   const Component = roleComponentMap[role] || Dashboard;
   return <Component />;
 }
