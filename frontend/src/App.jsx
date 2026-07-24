@@ -11,6 +11,18 @@ import Unauthorized from "./pages/auth/Unauthorized.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 import Dashboard from "./pages/dashboard/Dashboard.jsx";
+import ReceptionistDashboard from "./pages/dashboard/ReceptionistDashboard.jsx";
+import CashierDashboard from "./pages/dashboard/CashierDashboard.jsx";
+import NurseHomeDashboard from "./pages/dashboard/NurseHomeDashboard.jsx";
+import DoctorHomeDashboard from "./pages/dashboard/DoctorHomeDashboard.jsx";
+import LabDashboard from "./pages/dashboard/LabDashboard.jsx";
+import RadiologyDashboard from "./pages/dashboard/RadiologyDashboard.jsx";
+import PharmacyDashboard from "./pages/dashboard/PharmacyDashboard.jsx";
+import AccountantDashboard from "./pages/dashboard/AccountantDashboard.jsx";
+import MortuaryDashboard from "./pages/dashboard/MortuaryDashboard.jsx";
+import HRDashboard from "./pages/dashboard/HRDashboard.jsx";
+import ProcurementDashboard from "./pages/dashboard/ProcurementDashboard.jsx";
+import AmbulanceDashboard from "./pages/dashboard/AmbulanceDashboard.jsx";
 
 import PatientList from "./pages/reception/PatientList.jsx";
 import RegisterPatient from "./pages/reception/RegisterPatient.jsx";
@@ -141,7 +153,6 @@ import RegisterDialysisPatient from "./pages/dialysis/RegisterDialysisPatient.js
 import DialysisPatientDetail from "./pages/dialysis/DialysisPatientDetail.jsx";
 import DialysisSessionDetail from "./pages/dialysis/DialysisSessionDetail.jsx";
 
-
 import ICUBoard from "./pages/icu/ICUBoard.jsx";
 import AdmitToICU from "./pages/icu/AdmitToICU.jsx";
 import ICUAdmissionDetail from "./pages/icu/ICUAdmissionDetail.jsx";
@@ -151,6 +162,41 @@ import ICUAdmissionDetail from "./pages/icu/ICUAdmissionDetail.jsx";
 function LegacyPaymentsRedirect() {
   const location = useLocation();
   return <Navigate to={`/billing/payments${location.search}`} replace />;
+}
+
+// Routes any authenticated user to their role's home dashboard. Super Admin
+// keeps the original full-admin Dashboard; every other role gets its own
+// tailored RoleDashboardBase-powered page.
+function RoleHomeDashboard() {
+  const roleComponentMap = {
+    [ROLES.SUPER_ADMIN]: Dashboard,
+    [ROLES.RECEPTIONIST]: ReceptionistDashboard,
+    [ROLES.CASHIER]: CashierDashboard,
+    [ROLES.NURSE]: NurseHomeDashboard,
+    [ROLES.DOCTOR]: DoctorHomeDashboard,
+    [ROLES.LAB_TECHNOLOGIST]: LabDashboard,
+    [ROLES.RADIOLOGIST]: RadiologyDashboard,
+    [ROLES.PHARMACIST]: PharmacyDashboard,
+    [ROLES.ACCOUNTANT]: AccountantDashboard,
+    [ROLES.MORTUARY_ATTENDANT]: MortuaryDashboard,
+    [ROLES.HR_OFFICER]: HRDashboard,
+    [ROLES.PROCUREMENT_OFFICER]: ProcurementDashboard,
+    [ROLES.AMBULANCE_DISPATCHER]: AmbulanceDashboard,
+  };
+
+  // Read role straight from localStorage the same way the rest of the app
+  // authenticates — ProtectedRoute/AuthContext already guarantee a valid
+  // session by the time this renders.
+  let role = null;
+  try {
+    const stored = JSON.parse(localStorage.getItem("user") || "null");
+    role = stored?.role || null;
+  } catch {
+    role = null;
+  }
+
+  const Component = roleComponentMap[role] || Dashboard;
+  return <Component />;
 }
 
 export default function App() {
@@ -170,6 +216,16 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
+              <RoleHomeDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Super Admin's original full dashboard, kept reachable directly */}
+        <Route
+          path="/dashboard/admin"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
               <Dashboard />
             </ProtectedRoute>
           }
@@ -598,9 +654,9 @@ export default function App() {
         <Route path="/hr/payroll" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><Payroll /></ProtectedRoute>} />
         <Route path="/hr/payroll/:id" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><PayrollRunDetail /></ProtectedRoute>} />
 
-        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
-        <Route path="/ambulance/request" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><RequestDispatch /></ProtectedRoute>} />
-        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><DispatchDetail /></ProtectedRoute>} />
+        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
+        <Route path="/ambulance/request" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><RequestDispatch /></ProtectedRoute>} />
+        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><DispatchDetail /></ProtectedRoute>} />
         <Route path="/ambulance/fleet" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><FleetManagement /></ProtectedRoute>} />
 
         <Route path="/mortuary" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryRegister /></ProtectedRoute>} />
