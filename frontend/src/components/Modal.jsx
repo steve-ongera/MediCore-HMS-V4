@@ -89,7 +89,7 @@ export default function Modal({ show, onClose, title, description, children, foo
       maxHeight: "90vh",
       display: "flex",
       flexDirection: "column",
-      minWidth: "320px",
+      minWidth: "520px",
       width: modalWidth ? undefined : "auto",
       transition: isResizing ? "none" : "width 0.2s ease",
     },
