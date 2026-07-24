@@ -738,3 +738,50 @@ class OTCSaleItem(BaseModel):
 
     def __str__(self):
         return f"{self.medicine.name} x{self.quantity}"
+    
+
+class BulkPayment(BaseModel):
+    """
+    Wraps multiple Payment rows created in a single bulk-payment transaction,
+    so the combined receipt can show "patient paid KES 50,000 across N
+    invoices" in one place. Doesn't replace or modify Payment/Invoice —
+    every underlying Payment row still exists exactly as it always has,
+    still shows on that invoice's own history, and still supports its own
+    individual receipt exactly as before. This model is purely an
+    aggregation wrapper for the combined view.
+    """
+    receipt_number = models.CharField(max_length=30, unique=True, editable=False)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="bulk_payments")
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    method = models.CharField(max_length=20, choices=PaymentMethod.choices)
+    reference_number = models.CharField(max_length=100, blank=True)
+    cashier = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="bulk_payments_processed")
+    paid_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "bulk_payments"
+        ordering = ["-paid_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.receipt_number:
+            import uuid
+            from django.utils import timezone
+            self.receipt_number = f"BULK-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.receipt_number} - {self.patient.full_name} (KES {self.total_amount})"
+
+
+class BulkPaymentLine(BaseModel):
+    """One row per underlying Payment created as part of a BulkPayment — links the wrapper to the real Payment rows."""
+    bulk_payment = models.ForeignKey(BulkPayment, on_delete=models.CASCADE, related_name="lines")
+    invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name="bulk_payment_lines")
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name="bulk_payment_line")
+    amount_applied = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        db_table = "bulk_payment_lines"
+
+    def __str__(self):
+        return f"{self.invoice.invoice_number} - KES {self.amount_applied}"
