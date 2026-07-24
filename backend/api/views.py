@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView  # noqa: F401 (re-exported via urls)
+from django.core.exceptions import ValidationError
 
 from api.middleware import set_current_user
 from api.models import (
@@ -20,7 +21,7 @@ from api.models import (
     Prescription, LabTestCatalog, LabOrder, LabOrderStatus, LabResult,
     RadiologyTestCatalog, RadiologyOrder, RadiologyOrderStatus, RadiologyResult,
     Supplier, Medicine, MedicineBatch, StockTransaction, StockTransactionType,
-    PharmacyDispense, AuditLog, InvoiceSourceType, OTCSale, OTCSaleItem,
+    PharmacyDispense, AuditLog, InvoiceSourceType, OTCSale, OTCSaleItem, BulkPayment , BulkPaymentLine
 )
 from api.permissions import (
     HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor,
@@ -39,7 +40,7 @@ from api.serializers import (
     RadiologyTestCatalogSerializer, RadiologyOrderSerializer, RadiologyResultSerializer,
     SupplierSerializer, MedicineSerializer, MedicineBatchSerializer, StockTransactionSerializer,
     PharmacyDispenseSerializer, AuditLogSerializer, OTCSaleSerializer, OTCSaleCreateSerializer,
-    TransactionSerializer,
+    TransactionSerializer, CreateBulkPaymentSerializer, BulkPaymentLineSerializer , BulkPaymentSerializer
 )
 from api.utils import generate_qr_code
 
@@ -1211,3 +1212,107 @@ class ReportsView(APIView):
 
         else:
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+
+class BulkPaymentViewSet(viewsets.GenericViewSet):
+    """
+    Patient-search-first bulk payment flow. Doesn't touch PaymentViewSet or
+    InvoiceViewSet — those remain exactly as they are for the existing
+    single-invoice Payments.jsx screen.
+    """
+    permission_classes = [IsCashierOrAccountant]
+    queryset = BulkPayment.objects.select_related("patient", "cashier").prefetch_related("lines__invoice", "lines__payment")
+
+    @action(detail=False, methods=["get"], url_path="outstanding-invoices")
+    def outstanding_invoices(self, request):
+        """
+        GET /api/bulk-payments/outstanding-invoices/?patient=<uuid>
+        Returns every unpaid/partial invoice for a patient plus the running
+        total — this is what powers the "search patient, see everything
+        they owe" screen.
+        """
+        patient_id = request.query_params.get("patient")
+        if not patient_id:
+            return Response({"detail": "patient query param is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        patient = Patient.objects.filter(pk=patient_id).first()
+        if not patient:
+            return Response({"detail": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        invoices = Invoice.objects.filter(patient=patient).exclude(status__in=["PAID", "CANCELLED"]).order_by("created_at")
+        outstanding = [inv for inv in invoices if inv.balance > 0]
+        total_outstanding = sum((inv.balance for inv in outstanding), start=0)
+
+        return Response({
+            "patient": {"id": str(patient.id), "full_name": patient.full_name, "hospital_number": patient.hospital_number},
+            "invoices": InvoiceSerializer(outstanding, many=True).data,
+            "total_outstanding": str(total_outstanding),
+            "invoice_count": len(outstanding),
+        })
+
+    def create(self, request, *args, **kwargs):
+        """
+        POST /api/bulk-payments/
+        Applies `amount` across the selected invoice_ids, oldest first, in
+        full per invoice until the amount runs out — the last invoice it
+        touches may only get a partial amount, which is expected and correct.
+        Creates one real Payment row per invoice actually touched (so every
+        existing single-invoice Payment/receipt mechanism keeps working
+        completely unchanged), wrapped in one BulkPayment for the combined receipt.
+        """
+        serializer = CreateBulkPaymentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        patient = Patient.objects.filter(pk=data["patient"]).first()
+        if not patient:
+            raise ValidationError({"patient": "Patient not found."})
+
+        invoices = list(
+            Invoice.objects.filter(id__in=data["invoice_ids"], patient=patient)
+            .exclude(status__in=["PAID", "CANCELLED"])
+            .order_by("created_at")
+        )
+        if not invoices:
+            raise ValidationError({"invoice_ids": "No matching outstanding invoices found for this patient."})
+
+        remaining = data["amount"]
+        max_payable = sum((inv.balance for inv in invoices), start=0)
+        if remaining > max_payable:
+            raise ValidationError({
+                "amount": f"Amount (KES {remaining}) exceeds the total balance of selected invoices (KES {max_payable})."
+            })
+
+        with transaction.atomic():
+            bulk_payment = BulkPayment.objects.create(
+                patient=patient, total_amount=data["amount"], method=data["method"],
+                reference_number=data.get("reference_number", ""), cashier=request.user,
+            )
+
+            for invoice in invoices:
+                if remaining <= 0:
+                    break
+                invoice_balance = invoice.balance
+                if invoice_balance <= 0:
+                    continue
+
+                amount_for_this_invoice = min(remaining, invoice_balance)
+
+                payment = Payment.objects.create(
+                    invoice=invoice, amount=amount_for_this_invoice, method=data["method"],
+                    reference_number=data.get("reference_number", ""), cashier=request.user,
+                )
+                BulkPaymentLine.objects.create(
+                    bulk_payment=bulk_payment, invoice=invoice, payment=payment,
+                    amount_applied=amount_for_this_invoice,
+                )
+                remaining -= amount_for_this_invoice
+
+        return Response(BulkPaymentSerializer(bulk_payment).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"], url_path="receipt")
+    def receipt(self, request, pk=None):
+        """Combined receipt — every invoice covered by this bulk transaction, with per-service breakdown."""
+        bulk_payment = self.get_object()
+        return Response(BulkPaymentSerializer(bulk_payment).data)
