@@ -29,12 +29,21 @@ const PRINT_STYLES = `
   }
   .receipt-doc__brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
   .receipt-doc__logo {
-    width: 54px; height: 54px; border-radius: 8px;
-    background: #f3f4f6; border: 1px solid #e5e7eb;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; overflow: hidden;
+    width: 56px;
+    height: 56px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 4px;
   }
-  .receipt-doc__logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+  .receipt-doc__logo img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain;
+  }
   .receipt-doc__hospital-name { 
     font-size: 18px; 
     font-weight: 600; 
@@ -255,7 +264,6 @@ export default function ReceiptModal({ paymentId, show, onClose }) {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [qrFailed, setQrFailed] = useState(false);
-  const [logoFailed, setLogoFailed] = useState(false);
   const receiptRef = useRef(null);
 
   useEffect(() => {
@@ -269,7 +277,6 @@ export default function ReceiptModal({ paymentId, show, onClose }) {
     setLoading(true);
     setReceipt(null);
     setQrFailed(false);
-    setLogoFailed(false);
     try {
       const data = await getReceipt(paymentId);
       setReceipt(data);
@@ -397,22 +404,20 @@ export default function ReceiptModal({ paymentId, show, onClose }) {
               gap: 12px;
             }
             .receipt-preview .receipt-doc__logo {
-              width: 52px;
-              height: 52px;
-              border-radius: 8px;
-              background: #f3f4f6;
-              border: 1px solid #e5e7eb;
+              width: 58px;
+              height: 58px;
+              border-radius: 2px;
               display: flex;
               align-items: center;
               justify-content: center;
               flex-shrink: 0;
               overflow: hidden;
+              padding: 4px;
             }
             .receipt-preview .receipt-doc__logo img {
               width: 100%;
               height: 100%;
               object-fit: contain;
-              padding: 6px;
             }
             .receipt-preview .receipt-doc__hospital-name {
               font-size: 18px;
