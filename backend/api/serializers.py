@@ -7,7 +7,7 @@ from api.models import (
     ConsultationDiagnosis, Prescription, LabTestCatalog, LabOrder, LabResult,
     RadiologyTestCatalog, RadiologyOrder, RadiologyResult, Supplier,
     Medicine, MedicineBatch, StockTransaction, PharmacyDispense, AuditLog,
-    OTCSale, OTCSaleItem,
+    OTCSale, OTCSaleItem, BulkPayment , BulkPaymentLine ,
 )
 
 
