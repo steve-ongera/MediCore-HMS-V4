@@ -130,7 +130,7 @@ class Patient(BaseModel):
     dob = models.DateField(null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True, db_index=True)
     address = models.CharField(max_length=255, blank=True)
-    national_id = models.CharField(max_length=30, blank=True, null=True, unique=True, db_index=True)
+    national_id = models.CharField(max_length=30, unique=True, null=True, blank=True)
 
     # Minors
     guardian_name = models.CharField(max_length=150, blank=True)

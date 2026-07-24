@@ -86,6 +86,14 @@ class PatientSerializer(serializers.ModelSerializer):
             "allergies", "medical_history", "created_by", "created_at",
         ]
         read_only_fields = ["id", "hospital_number", "created_by", "created_at"]
+        
+    def validate_national_id(self, value):
+        # Treat blank/whitespace-only submissions as "no ID provided" (NULL),
+        # not as an empty-string value — empty strings collide with each
+        # other under the unique constraint, NULLs never do.
+        if not value or not value.strip():
+            return None
+        return value.strip()
 
     def validate(self, attrs):
         dob = attrs.get("dob")
