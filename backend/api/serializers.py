@@ -487,3 +487,50 @@ class TransactionSerializer(serializers.Serializer):
     method = serializers.CharField()
     served_by = serializers.CharField(allow_null=True)
     occurred_at = serializers.DateTimeField()
+    
+    
+
+class BulkPaymentLineSerializer(serializers.ModelSerializer):
+    invoice_number = serializers.CharField(source="invoice.invoice_number", read_only=True)
+    invoice_description = serializers.CharField(source="invoice.description", read_only=True)
+    invoice_source_type = serializers.CharField(source="invoice.source_type", read_only=True)
+    receipt_number = serializers.CharField(source="payment.receipt_number", read_only=True)
+
+    class Meta:
+        model = BulkPaymentLine
+        fields = [
+            "id", "invoice", "invoice_number", "invoice_description", "invoice_source_type",
+            "payment", "receipt_number", "amount_applied",
+        ]
+
+
+class BulkPaymentSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source="patient.full_name", read_only=True)
+    hospital_number = serializers.CharField(source="patient.hospital_number", read_only=True)
+    cashier_name = serializers.CharField(source="cashier.get_full_name", read_only=True)
+    lines = BulkPaymentLineSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BulkPayment
+        fields = [
+            "id", "receipt_number", "patient", "patient_name", "hospital_number",
+            "total_amount", "method", "reference_number", "cashier", "cashier_name",
+            "paid_at", "lines",
+        ]
+        read_only_fields = ["id", "receipt_number", "cashier", "paid_at"]
+
+
+class CreateBulkPaymentSerializer(serializers.Serializer):
+    """
+    Patient-search-first bulk payment. invoice_ids is the set of invoices the
+    cashier selected to pay against (from that patient's outstanding list);
+    amount is however much the patient is paying right now — can be less
+    than the sum of those invoices' balances (partial), equal to it (full),
+    or the cashier can just select fewer invoices to begin with. Settlement
+    is applied oldest-invoice-first until the amount runs out.
+    """
+    patient = serializers.UUIDField()
+    invoice_ids = serializers.ListField(child=serializers.UUIDField(), min_length=1)
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
+    method = serializers.ChoiceField(choices=["CASH", "MPESA", "CARD", "INSURANCE"])
+    reference_number = serializers.CharField(required=False, allow_blank=True, default="")
