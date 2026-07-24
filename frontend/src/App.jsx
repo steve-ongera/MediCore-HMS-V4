@@ -158,6 +158,9 @@ import ICUBoard from "./pages/icu/ICUBoard.jsx";
 import AdmitToICU from "./pages/icu/AdmitToICU.jsx";
 import ICUAdmissionDetail from "./pages/icu/ICUAdmissionDetail.jsx";
 
+import BulkPayment from "./pages/billing/BulkPayment.jsx";
+import BulkPaymentReceipt from "./pages/billing/BulkPaymentReceipt.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -690,6 +693,9 @@ export default function App() {
         <Route path="/dialysis/register" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><RegisterDialysisPatient /></ProtectedRoute>} />
         <Route path="/dialysis/patients/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisPatientDetail /></ProtectedRoute>} />
         <Route path="/dialysis/sessions/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisSessionDetail /></ProtectedRoute>} />
+
+        <Route path="/billing/bulk-payment" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPayment /></ProtectedRoute>} />
+        <Route path="/billing/bulk-payment/:id/receipt" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPaymentReceipt /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route

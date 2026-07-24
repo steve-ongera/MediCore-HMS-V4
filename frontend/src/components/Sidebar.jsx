@@ -23,6 +23,7 @@ const NAV_GROUPS = [
     roles: [ROLES.CASHIER, ROLES.ACCOUNTANT],
     links: [
       { to: "/billing", label: "Billing", icon: "bi-cash-stack" },
+      { to: "/billing/bulk-payment", label: "Bulk Payment", icon: "bi-stack" },
       { to: "/billing/walk-in-sale", label: "Walk-in Sale", icon: "bi-bag-check" },
       { to: "/billing/payments", label: "Payments", icon: "bi-receipt" },
     ],

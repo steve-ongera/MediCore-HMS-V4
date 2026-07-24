@@ -33,6 +33,7 @@ router.register(r"visits", views.VisitViewSet, basename="visit")
 # =============================================================================
 router.register(r"invoices", views.InvoiceViewSet, basename="invoice")
 router.register(r"payments", views.PaymentViewSet, basename="payment")
+router.register(r"bulk-payments", views.BulkPaymentViewSet, basename="bulk-payment")
 
 # =============================================================================
 # Queue

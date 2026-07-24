@@ -695,6 +695,10 @@ export const recordVentilatorSettings = (id, payload) => unwrap(client.post(`/ic
 export const orderICUProcedure = (id, payload) => unwrap(client.post(`/icu-admissions/${id}/order-procedure/`, payload));
 export const getICUBilling = (id) => unwrap(client.get(`/icu-admissions/${id}/billing/`));
 
+export const getOutstandingInvoicesForPatient = (patientId) => unwrap(client.get(`/bulk-payments/outstanding-invoices/${qs({ patient: patientId })}`));
+export const createBulkPayment = (payload) => unwrap(client.post("/bulk-payments/", payload));
+export const getBulkPaymentReceipt = (id) => unwrap(client.get(`/bulk-payments/${id}/receipt/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

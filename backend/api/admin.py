@@ -29,6 +29,8 @@ from api.models import (
     MedicineBatch,
     StockTransaction,
     PharmacyDispense,
+    BulkPaymentLine,
+    BulkPayment,
 )
 
 
@@ -399,3 +401,14 @@ class PharmacyDispenseAdmin(admin.ModelAdmin):
     list_display = ("prescription", "batch", "quantity_dispensed", "dispensed_by", "dispensed_at")
     search_fields = ("prescription__medicine__name", "prescription__consultation__visit__patient__full_name")
     date_hierarchy = "dispensed_at"
+    
+
+class BulkPaymentLineInline(admin.TabularInline):
+    model = BulkPaymentLine
+    extra = 0
+
+@admin.register(BulkPayment)
+class BulkPaymentAdmin(admin.ModelAdmin):
+    list_display = ["receipt_number", "patient", "total_amount", "method", "paid_at"]
+    search_fields = ["receipt_number", "patient__full_name"]
+    inlines = [BulkPaymentLineInline]
