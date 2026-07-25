@@ -699,7 +699,7 @@ export const getOutstandingInvoicesForPatient = (patientId) => unwrap(client.get
 export const createBulkPayment = (payload) => unwrap(client.post("/bulk-payments/", payload));
 export const getBulkPaymentReceipt = (id) => unwrap(client.get(`/bulk-payments/${id}/receipt/`));
 
-export const getExpiringBatches = () => unwrap(client.get(`/medicine-batches/${qs({ expiring_soon: true })}`));
+export const getExpiringBatches = () => unwrap(client.get("/medicine-batches/expiring-soon/"));
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMedicineBatches, getLowStockMedicines } from "../../services/api";
+import { getExpiringBatches, getLowStockMedicines } from "../../services/api";
 
 export default function ExpiryAlerts() {
   const [batches, setBatches] = useState([]);
@@ -11,14 +11,16 @@ export default function ExpiryAlerts() {
 
   const load = async () => {
     setLoading(true);
+    setError("");
     try {
-      const [b, l] = await Promise.all([getMedicineBatches({ page_size: 200 }), getLowStockMedicines()]);
-      const results = b.results ?? b;
-      const today = new Date();
-      const cutoff = new Date(today.getTime() + 30 * 86400000);
-      setBatches(results.filter((x) => new Date(x.expiry_date) <= cutoff && x.quantity_remaining > 0));
+      const [b, l] = await Promise.all([getExpiringBatches(), getLowStockMedicines()]);
+      setBatches(b);
       setLowStock(l);
-    } catch (err) { setError(err.message); } finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getExpiryStatus = (expiryDate) => {
