@@ -371,8 +371,8 @@ class MedicineAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
     @admin.display(description="Stock Level")
     def stock_status(self, obj):
         if obj.is_low_stock:
-            return format_html('<span style="color:red;font-weight:bold;">Low Stock</span>')
-        return format_html('<span style="color:green;">OK</span>')
+            return format_html('<span style="color:red;font-weight:bold;">{}</span>', "Low Stock")
+        return format_html('<span style="color:green;">{}</span>', "OK")
 
 
 @admin.register(MedicineBatch)
