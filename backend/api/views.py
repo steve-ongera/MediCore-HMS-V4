@@ -1209,7 +1209,7 @@ class ReportsView(APIView):
                 ],
             }
             return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
-        
+
         elif report_type == "lab_tech_report":
             orders = LabOrder.objects.filter(ordered_at__date__gte=date_from, ordered_at__date__lte=date_to)
             completed = orders.filter(status=LabOrderStatus.COMPLETED)
@@ -1245,7 +1245,7 @@ class ReportsView(APIView):
                     {"label": "Total Orders", "value": orders.count()},
                     {"label": "Reported", "value": orders.filter(status=RadiologyOrderStatus.REPORTED).count()},
                     {"label": "Awaiting Report", "value": orders.filter(status=RadiologyOrderStatus.DONE).count()},
-                    {"label": "Pending Imaging", "value": orders.filter(status=RadiologyOrderStatus.ORDERED).count()},
+                    {"label": "Pending Imaging", "value": orders.filter(status=RadiologyOrderStatus.PENDING).count()},
                 ],
                 "charts": {
                     "top_tests": {"title": "Top Tests Ordered", "type": "bar",
@@ -1328,7 +1328,6 @@ class ReportsView(APIView):
 
         else:
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
-        
         
 
 class BulkPaymentViewSet(viewsets.GenericViewSet):
