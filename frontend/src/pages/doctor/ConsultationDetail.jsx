@@ -9,10 +9,14 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { formatDate } from "../../utils/formatters";
+import medicoreLogo from "../../assets/medicore_logo.png";
 
 const HOSPITAL_NAME = "City General Hospital";
 const HOSPITAL_ADDRESS = "P.O. Box 00100, Nairobi, Kenya  ·  Tel: +254 700 000 000";
 const BRAND_COLOR = [30, 64, 175];
+const MUTED_COLOR = [107, 114, 128];
+const LIGHT_BORDER = [229, 231, 235];
+const LIGHT_FILL = [249, 250, 251];
 
 const EDITABLE_FIELDS = [
   ["chief_complaint", "Chief Complaint", 2],
@@ -29,6 +33,28 @@ const fieldsFrom = (cons) =>
   }, {});
 
 const humanize = (value) => (value ? value.replace(/_/g, " ") : "—");
+
+// Loads the bundled logo asset and returns it as a PNG data URL, plus its
+// natural aspect ratio, so it can be embedded in the PDF without distortion.
+const loadLogoDataUrl = () =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve({ dataUrl: canvas.toDataURL("image/png"), ratio: img.naturalWidth / img.naturalHeight });
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = medicoreLogo;
+  });
 
 export default function ConsultationDetail() {
   const { id } = useParams();
@@ -111,81 +137,128 @@ export default function ConsultationDetail() {
     }
   };
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (!consultation) return;
     setDownloading(true);
     try {
+      const logo = await loadLogoDataUrl();
+
       const doc = new jsPDF({ unit: "pt", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 40;
+      const margin = 44;
       let y = margin;
 
       const ensureSpace = (needed) => {
-        if (y + needed > pageHeight - 50) {
+        if (y + needed > pageHeight - 56) {
           doc.addPage();
           y = margin;
         }
       };
 
-      doc.setFontSize(16);
+      // ---- Header: logo + hospital name/address, right-aligned doc title ----
+      const logoSize = 34;
+      let textX = margin;
+      if (logo?.dataUrl) {
+        const w = logoSize;
+        const h = logoSize / logo.ratio;
+        doc.addImage(logo.dataUrl, "PNG", margin, y - 6, w, h);
+        textX = margin + w + 10;
+      }
+
+      doc.setFontSize(15);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...BRAND_COLOR);
-      doc.text(HOSPITAL_NAME, margin, y);
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.text(HOSPITAL_ADDRESS, margin, y + 14);
-      doc.setDrawColor(...BRAND_COLOR);
-      doc.setLineWidth(1.2);
-      doc.line(margin, y + 24, pageWidth - margin, y + 24);
-      y += 48;
+      doc.text(HOSPITAL_NAME, textX, y + 6);
 
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text("Consultation Report", margin, y);
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(120, 120, 120);
-      doc.text(`Generated ${new Date().toLocaleString()}`, pageWidth - margin, y, { align: "right" });
-      doc.setTextColor(0, 0, 0);
-      y += 20;
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text(HOSPITAL_ADDRESS, textX, y + 19);
 
+      doc.setFontSize(9.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 30, 30);
+      doc.text("CONSULTATION REPORT", pageWidth - margin, y + 2, { align: "right" });
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text(`Generated ${new Date().toLocaleString()}`, pageWidth - margin, y + 13, { align: "right" });
+
+      y += 34;
+      doc.setDrawColor(...BRAND_COLOR);
+      doc.setLineWidth(1.4);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 22;
+
+      // ---- Patient summary — light card, two-column key/value pairs ----
+      const summaryRows = [
+        ["Patient", consultation.patient_name || "—", "Status", humanize(consultation.status)],
+        ["Attending Doctor", consultation.doctor_name || "—", "Started", consultation.started_at ? formatDate(consultation.started_at) : "—"],
+        ["Visit Reference", consultation.visit || "—", "Completed", consultation.completed_at ? formatDate(consultation.completed_at) : "—"],
+      ];
       autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
         theme: "plain",
-        styles: { fontSize: 9.5, cellPadding: 3 },
-        body: [
-          ["Patient", consultation.patient_name || "—", "Status", humanize(consultation.status)],
-          ["Attending Doctor", consultation.doctor_name || "—", "Started", consultation.started_at ? formatDate(consultation.started_at) : "—"],
-          ["Visit Reference", consultation.visit || "—", "Completed", consultation.completed_at ? formatDate(consultation.completed_at) : "—"],
-        ],
+        styles: { fontSize: 9.5, cellPadding: { top: 5, bottom: 5, left: 10, right: 6 } },
+        body: summaryRows,
         columnStyles: {
-          0: { fontStyle: "bold", cellWidth: 110, textColor: [90, 90, 90] },
-          1: { cellWidth: 155 },
-          2: { fontStyle: "bold", cellWidth: 110, textColor: [90, 90, 90] },
-          3: { cellWidth: 110 },
+          0: { fontStyle: "bold", cellWidth: 110, textColor: MUTED_COLOR },
+          1: { cellWidth: 155, textColor: [17, 24, 39] },
+          2: { fontStyle: "bold", cellWidth: 100, textColor: MUTED_COLOR },
+          3: { cellWidth: 115, textColor: [17, 24, 39] },
+        },
+        didParseCell: (data) => {
+          data.cell.styles.fillColor = LIGHT_FILL;
+          data.cell.styles.lineColor = LIGHT_BORDER;
+          data.cell.styles.lineWidth = 0.5;
         },
       });
-      y = doc.lastAutoTable.finalY + 16;
+      y = doc.lastAutoTable.finalY + 20;
 
+      // ---- Section heading helper: bold title + thin colored rule ----
       const addSection = (title, content) => {
-        ensureSpace(30);
+        ensureSpace(34);
         doc.setFontSize(10.5);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(...BRAND_COLOR);
-        doc.text(title, margin, y);
-        doc.setTextColor(0, 0, 0);
-        y += 13;
+        doc.text(title.toUpperCase(), margin, y);
+        doc.setDrawColor(...LIGHT_BORDER);
+        doc.setLineWidth(0.6);
+        doc.line(margin, y + 5, pageWidth - margin, y + 5);
+        y += 17;
+
         doc.setFontSize(9.5);
         doc.setFont("helvetica", "normal");
+        doc.setTextColor(30, 30, 30);
         const text = content && content.trim() ? content : "None recorded";
         const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
-        ensureSpace(lines.length * 12 + 10);
+        ensureSpace(lines.length * 12.5 + 12);
         doc.text(lines, margin, y);
-        y += lines.length * 12 + 14;
+        y += lines.length * 12.5 + 18;
+      };
+
+      const addTableSection = (title, head, body) => {
+        ensureSpace(40);
+        doc.setFontSize(10.5);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...BRAND_COLOR);
+        doc.text(title.toUpperCase(), margin, y);
+        doc.setDrawColor(...LIGHT_BORDER);
+        doc.setLineWidth(0.6);
+        doc.line(margin, y + 5, pageWidth - margin, y + 5);
+        y += 10;
+        autoTable(doc, {
+          startY: y,
+          margin: { left: margin, right: margin },
+          head: [head],
+          body,
+          styles: { fontSize: 9, cellPadding: 6, lineColor: LIGHT_BORDER, lineWidth: 0.5 },
+          headStyles: { fillColor: BRAND_COLOR, textColor: 255, fontStyle: "bold" },
+          alternateRowStyles: { fillColor: LIGHT_FILL },
+        });
+        y = doc.lastAutoTable.finalY + 20;
       };
 
       addSection("Chief Complaint", consultation.chief_complaint);
@@ -195,37 +268,18 @@ export default function ConsultationDetail() {
       addSection("Clinical Notes", consultation.clinical_notes);
 
       if (consultation.diagnoses?.length) {
-        ensureSpace(40);
-        doc.setFontSize(10.5);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(...BRAND_COLOR);
-        doc.text("Diagnoses", margin, y);
-        doc.setTextColor(0, 0, 0);
-        y += 8;
-        autoTable(doc, {
-          startY: y,
-          margin: { left: margin, right: margin },
-          head: [["Code", "Description", "Primary"]],
-          body: consultation.diagnoses.map((d) => [d.code, d.description, d.is_primary ? "Yes" : ""]),
-          styles: { fontSize: 9 },
-          headStyles: { fillColor: BRAND_COLOR, textColor: 255 },
-        });
-        y = doc.lastAutoTable.finalY + 18;
+        addTableSection(
+          "Diagnoses",
+          ["Code", "Description", "Primary"],
+          consultation.diagnoses.map((d) => [d.code, d.description, d.is_primary ? "Yes" : ""])
+        );
       }
 
       if (consultation.prescriptions?.length) {
-        ensureSpace(40);
-        doc.setFontSize(10.5);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(...BRAND_COLOR);
-        doc.text("Prescriptions", margin, y);
-        doc.setTextColor(0, 0, 0);
-        y += 8;
-        autoTable(doc, {
-          startY: y,
-          margin: { left: margin, right: margin },
-          head: [["Medicine", "Dosage", "Frequency", "Duration", "Qty", "Instructions", "Dispensed"]],
-          body: consultation.prescriptions.map((rx) => [
+        addTableSection(
+          "Prescriptions",
+          ["Medicine", "Dosage", "Frequency", "Duration", "Qty", "Instructions", "Dispensed"],
+          consultation.prescriptions.map((rx) => [
             rx.medicine_name,
             rx.dosage,
             rx.frequency || "—",
@@ -233,62 +287,38 @@ export default function ConsultationDetail() {
             rx.quantity,
             rx.instructions || "—",
             rx.is_dispensed ? "Yes" : "No",
-          ]),
-          styles: { fontSize: 8.5 },
-          headStyles: { fillColor: BRAND_COLOR, textColor: 255 },
-        });
-        y = doc.lastAutoTable.finalY + 18;
+          ])
+        );
       }
 
       if (consultation.lab_orders?.length) {
-        ensureSpace(40);
-        doc.setFontSize(10.5);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(...BRAND_COLOR);
-        doc.text("Lab Orders", margin, y);
-        doc.setTextColor(0, 0, 0);
-        y += 8;
-        autoTable(doc, {
-          startY: y,
-          margin: { left: margin, right: margin },
-          head: [["Test", "Status", "Paid"]],
-          body: consultation.lab_orders.map((o) => [o.test_name, humanize(o.status), o.is_paid ? "Yes" : "No"]),
-          styles: { fontSize: 9 },
-          headStyles: { fillColor: BRAND_COLOR, textColor: 255 },
-        });
-        y = doc.lastAutoTable.finalY + 18;
+        addTableSection(
+          "Lab Orders",
+          ["Test", "Status", "Paid"],
+          consultation.lab_orders.map((o) => [o.test_name, humanize(o.status), o.is_paid ? "Yes" : "No"])
+        );
       }
 
       if (consultation.radiology_orders?.length) {
-        ensureSpace(40);
-        doc.setFontSize(10.5);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(...BRAND_COLOR);
-        doc.text("Radiology Orders", margin, y);
-        doc.setTextColor(0, 0, 0);
-        y += 8;
-        autoTable(doc, {
-          startY: y,
-          margin: { left: margin, right: margin },
-          head: [["Test", "Status", "Paid"]],
-          body: consultation.radiology_orders.map((o) => [o.test_name, humanize(o.status), o.is_paid ? "Yes" : "No"]),
-          styles: { fontSize: 9 },
-          headStyles: { fillColor: BRAND_COLOR, textColor: 255 },
-        });
-        y = doc.lastAutoTable.finalY + 18;
+        addTableSection(
+          "Radiology Orders",
+          ["Test", "Status", "Paid"],
+          consultation.radiology_orders.map((o) => [o.test_name, humanize(o.status), o.is_paid ? "Yes" : "No"])
+        );
       }
 
+      // ---- Footer: rule + confidentiality line + pagination on every page ----
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(
-          `${HOSPITAL_NAME} — Confidential Medical Record — Page ${i} of ${pageCount}`,
-          pageWidth / 2,
-          pageHeight - 20,
-          { align: "center" }
-        );
+        doc.setDrawColor(...LIGHT_BORDER);
+        doc.setLineWidth(0.6);
+        doc.line(margin, pageHeight - 34, pageWidth - margin, pageHeight - 34);
+        doc.setFontSize(7.5);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...MUTED_COLOR);
+        doc.text(`${HOSPITAL_NAME} — Confidential Medical Record`, margin, pageHeight - 20);
+        doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 20, { align: "right" });
       }
 
       const safeName = (consultation.patient_name || "patient").replace(/[^a-z0-9]+/gi, "_");
