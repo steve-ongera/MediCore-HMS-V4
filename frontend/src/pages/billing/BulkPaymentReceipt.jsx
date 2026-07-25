@@ -56,6 +56,7 @@ const RECEIPT_DOC_STYLES = `
     background: #f9fafb; color: #6b7280; font-size: 10.5px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.5px; text-align: left;
     padding: 12px 28px; border-bottom: 1px solid #e5e7eb;
+    margin-right: 12px;
   }
   .receipt-doc__table thead th.text-right { text-align: right; }
   .receipt-doc__table tbody td {
