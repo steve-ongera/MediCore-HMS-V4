@@ -1209,6 +1209,122 @@ class ReportsView(APIView):
                 ],
             }
             return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+        
+        elif report_type == "lab_tech_report":
+            orders = LabOrder.objects.filter(ordered_at__date__gte=date_from, ordered_at__date__lte=date_to)
+            completed = orders.filter(status=LabOrderStatus.COMPLETED)
+            avg_turnaround = None
+            completed_with_time = [o for o in completed.select_related("result") if hasattr(o, "result") and o.result]
+            if completed_with_time:
+                deltas = [(o.result.completed_at - o.ordered_at).total_seconds() / 3600 for o in completed_with_time if o.result.completed_at]
+                avg_turnaround = round(sum(deltas) / len(deltas), 1) if deltas else None
+
+            data = {
+                "cards": [
+                    {"label": "Total Orders", "value": orders.count()},
+                    {"label": "Completed", "value": completed.count()},
+                    {"label": "Pending", "value": orders.exclude(status__in=[LabOrderStatus.COMPLETED, LabOrderStatus.CANCELLED]).count()},
+                    {"label": "Avg Turnaround (hrs)", "value": avg_turnaround or "—"},
+                ],
+                "charts": {
+                    "top_tests": {"title": "Top Tests Ordered", "type": "bar",
+                                "data": [{"name": r["test__name"], "value": r["count"]} for r in orders.values("test__name").annotate(count=Count("id")).order_by("-count")[:10]]},
+                    "trend": {"title": "Orders — Daily", "type": "line",
+                            "data": [{"name": str(d), "value": orders.filter(ordered_at__date=d).count()} for d in sorted(set(o.ordered_at.date() for o in orders))]},
+                    "by_status": {"title": "Status Breakdown", "type": "pie",
+                                "data": [{"name": r["status"], "value": r["count"]} for r in orders.values("status").annotate(count=Count("id"))]},
+                },
+                "table": list(orders.select_related("test").values("test__name", "status", "ordered_at")[:200]),
+            }
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+
+        elif report_type == "radiologist_report":
+            orders = RadiologyOrder.objects.filter(ordered_at__date__gte=date_from, ordered_at__date__lte=date_to)
+            data = {
+                "cards": [
+                    {"label": "Total Orders", "value": orders.count()},
+                    {"label": "Reported", "value": orders.filter(status=RadiologyOrderStatus.REPORTED).count()},
+                    {"label": "Awaiting Report", "value": orders.filter(status=RadiologyOrderStatus.DONE).count()},
+                    {"label": "Pending Imaging", "value": orders.filter(status=RadiologyOrderStatus.ORDERED).count()},
+                ],
+                "charts": {
+                    "top_tests": {"title": "Top Tests Ordered", "type": "bar",
+                                "data": [{"name": r["test__name"], "value": r["count"]} for r in orders.values("test__name").annotate(count=Count("id")).order_by("-count")[:10]]},
+                    "trend": {"title": "Orders — Daily", "type": "line",
+                            "data": [{"name": str(d), "value": orders.filter(ordered_at__date=d).count()} for d in sorted(set(o.ordered_at.date() for o in orders))]},
+                    "by_status": {"title": "Status Breakdown", "type": "pie",
+                                "data": [{"name": r["status"], "value": r["count"]} for r in orders.values("status").annotate(count=Count("id"))]},
+                },
+                "table": list(orders.select_related("test").values("test__name", "status", "ordered_at")[:200]),
+            }
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+
+        elif report_type == "pharmacist_report":
+            dispenses = PharmacyDispense.objects.filter(dispensed_at__date__gte=date_from, dispensed_at__date__lte=date_to)
+            low_stock = len([m for m in Medicine.objects.all() if m.is_low_stock])
+            expiring_soon = MedicineBatch.objects.filter(expiry_date__lte=date.today() + timedelta(days=30), expiry_date__gte=date.today(), quantity_remaining__gt=0).count()
+            data = {
+                "cards": [
+                    {"label": "Dispensed (range)", "value": dispenses.count()},
+                    {"label": "Low Stock Items", "value": low_stock},
+                    {"label": "Batches Expiring (30d)", "value": expiring_soon},
+                    {"label": "OTC Sales (range)", "value": OTCSale.objects.filter(sold_at__date__gte=date_from, sold_at__date__lte=date_to).count()},
+                ],
+                "charts": {
+                    "top_meds": {"title": "Top Medicines Dispensed", "type": "bar",
+                                "data": [{"name": r["prescription__medicine__name"], "value": r["qty"]} for r in dispenses.values("prescription__medicine__name").annotate(qty=Sum("quantity_dispensed")).order_by("-qty")[:10]]},
+                    "trend": {"title": "Dispenses — Daily", "type": "line",
+                            "data": [{"name": str(d), "value": dispenses.filter(dispensed_at__date=d).count()} for d in sorted(set(x.dispensed_at.date() for x in dispenses))]},
+                    "stock_txn": {"title": "Stock Transactions", "type": "pie",
+                                "data": [{"name": r["transaction_type"], "value": r["count"]} for r in StockTransaction.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to).values("transaction_type").annotate(count=Count("id"))]},
+                },
+                "table": list(dispenses.select_related("prescription__medicine").values("prescription__medicine__name", "quantity_dispensed", "dispensed_at")[:200]),
+            }
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+
+        elif report_type == "mortuary_report":
+            from mortuary.models import MortuaryAdmission, MortuaryStatus
+            cases = MortuaryAdmission.objects.filter(admitted_at__date__gte=date_from, admitted_at__date__lte=date_to)
+            data = {
+                "cards": [
+                    {"label": "Cases (range)", "value": cases.count()},
+                    {"label": "Currently In Storage", "value": MortuaryAdmission.objects.filter(status=MortuaryStatus.ADMITTED).count()},
+                    {"label": "Released (range)", "value": cases.filter(status=MortuaryStatus.RELEASED).count()},
+                    {"label": "Avg Days in Storage", "value": round(sum(c.days_in_storage for c in cases) / cases.count(), 1) if cases.count() else 0},
+                ],
+                "charts": {
+                    "by_source": {"title": "Cases by Source", "type": "bar",
+                                "data": [{"name": r["source"], "value": r["count"]} for r in cases.values("source").annotate(count=Count("id"))]},
+                    "trend": {"title": "Admissions — Daily", "type": "line",
+                            "data": [{"name": str(d), "value": cases.filter(admitted_at__date=d).count()} for d in sorted(set(c.admitted_at.date() for c in cases))]},
+                    "by_status": {"title": "Status Breakdown", "type": "pie",
+                                "data": [{"name": r["status"], "value": r["count"]} for r in cases.values("status").annotate(count=Count("id"))]},
+                },
+                "table": list(cases.values("case_number", "deceased_name_freetext", "source", "status", "admitted_at")[:200]),
+            }
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+
+        elif report_type == "ambulance_report":
+            from ambulance.models import AmbulanceDispatch, DispatchStatus
+            dispatches = AmbulanceDispatch.objects.filter(requested_at__date__gte=date_from, requested_at__date__lte=date_to)
+            data = {
+                "cards": [
+                    {"label": "Dispatches (range)", "value": dispatches.count()},
+                    {"label": "Completed", "value": dispatches.filter(status=DispatchStatus.COMPLETED).count()},
+                    {"label": "Cancelled", "value": dispatches.filter(status=DispatchStatus.CANCELLED).count()},
+                    {"label": "Active Now", "value": AmbulanceDispatch.objects.exclude(status__in=[DispatchStatus.COMPLETED, DispatchStatus.CANCELLED]).count()},
+                ],
+                "charts": {
+                    "by_type": {"title": "Dispatches by Type", "type": "bar",
+                            "data": [{"name": r["dispatch_type"], "value": r["count"]} for r in dispatches.values("dispatch_type").annotate(count=Count("id"))]},
+                    "trend": {"title": "Dispatches — Daily", "type": "line",
+                            "data": [{"name": str(d), "value": dispatches.filter(requested_at__date=d).count()} for d in sorted(set(x.requested_at.date() for x in dispatches))]},
+                    "by_status": {"title": "Status Breakdown", "type": "pie",
+                                "data": [{"name": r["status"], "value": r["count"]} for r in dispatches.values("status").annotate(count=Count("id"))]},
+                },
+                "table": list(dispatches.select_related("ambulance").values("dispatch_number", "ambulance__registration_number", "dispatch_type", "status", "requested_at")[:200]),
+            }
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
 
         else:
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
