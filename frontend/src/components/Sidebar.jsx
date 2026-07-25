@@ -75,6 +75,10 @@ const NAV_GROUPS = [
     links: [
       { to: "/laboratory", label: "Laboratory", icon: "bi-droplet-half", roles: [ROLES.LAB_TECHNOLOGIST] },
       { to: "/radiology", label: "Radiology", icon: "bi-camera", roles: [ROLES.RADIOLOGIST] },
+      { to: "/laboratory/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.LAB_TECHNOLOGIST] },
+      { to: "/laboratory/catalog", label: "Test Catalog", icon: "bi-clipboard2-data", roles: [ROLES.LAB_TECHNOLOGIST] },
+      { to: "/radiology/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.RADIOLOGIST] },
+      { to: "/radiology/catalog", label: "Test Catalog", icon: "bi-clipboard2-data", roles: [ROLES.RADIOLOGIST] },
     ],
   },
   {
@@ -84,6 +88,9 @@ const NAV_GROUPS = [
       { to: "/pharmacy", label: "Pharmacy", icon: "bi-capsule" },
       { to: "/inventory", label: "Inventory", icon: "bi-box-seam" },
       { to: "/suppliers", label: "Suppliers", icon: "bi-truck" },
+      { to: "/pharmacy/reports", label: "My Reports", icon: "bi-graph-up" },
+      { to: "/pharmacy/alerts", label: "Expiry & Stock Alerts", icon: "bi-exclamation-triangle" },
+
     ],
   },
   {
@@ -158,6 +165,8 @@ const NAV_GROUPS = [
       { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill" },
       { to: "/ambulance/request", label: "Request Dispatch", icon: "bi-telephone-plus-fill" },
       { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [ROLES.AMBULANCE_DISPATCHER] },
+      { to: "/ambulance/reports", label: "My Reports", icon: "bi-graph-up" },
+      { to: "/ambulance/maintenance", label: "Maintenance History", icon: "bi-tools" },
     ],
   },
   {
@@ -166,6 +175,9 @@ const NAV_GROUPS = [
     links: [
       { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill" },
       { to: "/mortuary/admit", label: "Admit Deceased", icon: "bi-file-earmark-plus" },
+      { to: "/mortuary/reports", label: "My Reports", icon: "bi-graph-up" },
+      { to: "/mortuary/releases", label: "Release History", icon: "bi-box-arrow-right" },
+
     ],
   },
   {

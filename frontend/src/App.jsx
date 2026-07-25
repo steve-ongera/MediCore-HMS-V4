@@ -161,6 +161,17 @@ import ICUAdmissionDetail from "./pages/icu/ICUAdmissionDetail.jsx";
 import BulkPayment from "./pages/billing/BulkPayment.jsx";
 import BulkPaymentReceipt from "./pages/billing/BulkPaymentReceipt.jsx";
 
+import LabTechReport from "./pages/reports/LabTechReport.jsx";
+import RadiologistReport from "./pages/reports/RadiologistReport.jsx";
+import PharmacistReport from "./pages/reports/PharmacistReport.jsx";
+import MortuaryReport from "./pages/reports/MortuaryReport.jsx";
+import AmbulanceReport from "./pages/reports/AmbulanceReport.jsx";
+import LabTestCatalogManagement from "./pages/laboratory/LabTestCatalogManagement.jsx";
+import RadiologyTestCatalogManagement from "./pages/radiology/RadiologyTestCatalogManagement.jsx";
+import ExpiryAlerts from "./pages/pharmacy/ExpiryAlerts.jsx";
+import BodyReleaseHistory from "./pages/mortuary/BodyReleaseHistory.jsx";
+import MaintenanceHistory from "./pages/ambulance/MaintenanceHistory.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -696,6 +707,17 @@ export default function App() {
 
         <Route path="/billing/bulk-payment" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPayment /></ProtectedRoute>} />
         <Route path="/billing/bulk-payment/:id/receipt" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPaymentReceipt /></ProtectedRoute>} />
+
+        <Route path="/laboratory/reports" element={<ProtectedRoute allowedRoles={[ROLES.LAB_TECHNOLOGIST]}><LabTechReport /></ProtectedRoute>} />
+        <Route path="/laboratory/catalog" element={<ProtectedRoute allowedRoles={[ROLES.LAB_TECHNOLOGIST]}><LabTestCatalogManagement /></ProtectedRoute>} />
+        <Route path="/radiology/reports" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST]}><RadiologistReport /></ProtectedRoute>} />
+        <Route path="/radiology/catalog" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST]}><RadiologyTestCatalogManagement /></ProtectedRoute>} />
+        <Route path="/pharmacy/reports" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><PharmacistReport /></ProtectedRoute>} />
+        <Route path="/pharmacy/alerts" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><ExpiryAlerts /></ProtectedRoute>} />
+        <Route path="/mortuary/reports" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><MortuaryReport /></ProtectedRoute>} />
+        <Route path="/mortuary/releases" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><BodyReleaseHistory /></ProtectedRoute>} />
+        <Route path="/ambulance/reports" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><AmbulanceReport /></ProtectedRoute>} />
+        <Route path="/ambulance/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><MaintenanceHistory /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route
