@@ -7,6 +7,7 @@ export default function EmergencyMedicineOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [administeringId, setAdministeringId] = useState(null);
+  const [givenIds, setGivenIds] = useState(new Set());
 
   useEffect(() => { load(); }, []);
 
@@ -16,6 +17,7 @@ export default function EmergencyMedicineOrders() {
     try {
       const data = await getAllActiveEmergencyMedicationOrders();
       setOrders(data.results ?? data);
+      setGivenIds(new Set());
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -24,7 +26,7 @@ export default function EmergencyMedicineOrders() {
     setError("");
     try {
       await recordEmergencyMedicationAdministration({ medication_order: orderId, status: "GIVEN" });
-      load();
+      setGivenIds((prev) => new Set(prev).add(orderId));
     } catch (err) { setError(err.message); } finally { setAdministeringId(null); }
   };
 
@@ -104,43 +106,46 @@ export default function EmergencyMedicineOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => (
-                    <tr key={o.id}>
-                      <td className="cell-mono">{o.emergency_visit_number || o.emergency_visit}</td>
-                      <td className="cell-primary">{o.patient_name || "—"}</td>
-                      <td>{o.medicine_name}</td>
-                      <td>{o.dosage}</td>
-                      <td>
-                        <span className="tag">{o.route}</span>
-                      </td>
-                      <td className="cell-numeric">{o.quantity}</td>
-                      <td className="cell-actions">
-                        <div className="flex gap-1 justify-end">
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={() => handleGive(o.id)}
-                            disabled={administeringId === o.id}
-                          >
-                            {administeringId === o.id ? (
-                              <>
-                                <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
-                                Giving...
-                              </>
-                            ) : (
-                              <>
-                                <i className="bi bi-check-circle me-1"></i> Give
-                              </>
+                  {orders.map((o) => {
+                    const isGiven = givenIds.has(o.id);
+                    return (
+                      <tr key={o.id}>
+                        <td className="cell-mono">{o.emergency_visit_number || "—"}</td>
+                        <td className="cell-primary">{o.patient_name || "—"}</td>
+                        <td>{o.medicine_name}</td>
+                        <td>{o.dosage}</td>
+                        <td>
+                          <span className="tag">{o.route}</span>
+                        </td>
+                        <td className="cell-numeric">{o.quantity}</td>
+                        <td className="cell-actions">
+                          <div className="flex gap-1 justify-end">
+                            <button
+                              className={`btn btn-sm ${isGiven ? "btn-success" : "btn-primary"}`}
+                              onClick={() => handleGive(o.id)}
+                              disabled={administeringId === o.id || isGiven}
+                            >
+                              {isGiven ? (
+                                <><i className="bi bi-check-circle me-1"></i> Given</>
+                              ) : administeringId === o.id ? (
+                                <>
+                                  <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
+                                  Giving...
+                                </>
+                              ) : (
+                                <><i className="bi bi-check-circle me-1"></i> Give</>
+                              )}
+                            </button>
+                            {o.emergency_visit && (
+                              <Link to={`/emergency/${o.emergency_visit}`} className="btn btn-secondary btn-sm">
+                                <i className="bi bi-eye me-1"></i> View
+                              </Link>
                             )}
-                          </button>
-                          {o.emergency_visit && (
-                            <Link to={`/emergency/${o.emergency_visit}`} className="btn btn-secondary btn-sm">
-                              <i className="bi bi-eye me-1"></i> View
-                            </Link>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -71,15 +71,16 @@ class EmergencyProcedureSerializer(serializers.ModelSerializer):
 class EmergencyMedicationOrderSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     ordered_by_name = serializers.CharField(source="ordered_by.get_full_name", read_only=True)
+    patient_name = serializers.CharField(source="emergency_visit.patient.full_name", read_only=True)
+    emergency_visit_number = serializers.CharField(source="emergency_visit.visit_number", read_only=True)
 
     class Meta:
         model = EmergencyMedicationOrder
         fields = [
-            "id", "emergency_visit", "medicine", "medicine_name", "dosage", "route",
-            "quantity", "is_active", "ordered_by", "ordered_by_name", "ordered_at",
+            "id", "emergency_visit", "emergency_visit_number", "patient_name", "medicine", "medicine_name",
+            "dosage", "route", "quantity", "is_active", "ordered_by", "ordered_by_name", "ordered_at",
         ]
         read_only_fields = ["id", "ordered_by", "ordered_at"]
-
 
 class EmergencyMedicationAdministrationSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medication_order.medicine.name", read_only=True)

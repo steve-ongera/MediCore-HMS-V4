@@ -7,6 +7,7 @@ export default function AdmissionMedicineOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [administeringId, setAdministeringId] = useState(null);
+  const [givenIds, setGivenIds] = useState(new Set());
 
   useEffect(() => { load(); }, []);
 
@@ -16,6 +17,7 @@ export default function AdmissionMedicineOrders() {
     try {
       const data = await getAllActiveMedicationOrders();
       setOrders(data.results ?? data);
+      setGivenIds(new Set());
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -24,7 +26,7 @@ export default function AdmissionMedicineOrders() {
     setError("");
     try {
       await recordMedicationAdministration({ medication_order: orderId, status: "GIVEN" });
-      load();
+      setGivenIds((prev) => new Set(prev).add(orderId));
     } catch (err) { setError(err.message); } finally { setAdministeringId(null); }
   };
 
@@ -104,44 +106,47 @@ export default function AdmissionMedicineOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => (
-                    <tr key={o.id}>
-                      <td className="cell-mono">{o.admission_number || o.admission}</td>
-                      <td className="cell-primary">{o.patient_name || "—"}</td>
-                      <td>{o.medicine_name}</td>
-                      <td>{o.dosage}</td>
-                      <td>
-                        <span className="tag">{o.route}</span>
-                      </td>
-                      <td>{o.frequency}</td>
-                      <td className="cell-numeric">{o.quantity}</td>
-                      <td className="cell-actions">
-                        <div className="flex gap-1 justify-end">
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={() => handleGive(o.id)}
-                            disabled={administeringId === o.id}
-                          >
-                            {administeringId === o.id ? (
-                              <>
-                                <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
-                                Giving...
-                              </>
-                            ) : (
-                              <>
-                                <i className="bi bi-check-circle me-1"></i> Give
-                              </>
+                  {orders.map((o) => {
+                    const isGiven = givenIds.has(o.id);
+                    return (
+                      <tr key={o.id}>
+                        <td className="cell-mono">{o.admission_number || "—"}</td>
+                        <td className="cell-primary">{o.patient_name || "—"}</td>
+                        <td>{o.medicine_name}</td>
+                        <td>{o.dosage}</td>
+                        <td>
+                          <span className="tag">{o.route}</span>
+                        </td>
+                        <td>{o.frequency}</td>
+                        <td className="cell-numeric">{o.quantity}</td>
+                        <td className="cell-actions">
+                          <div className="flex gap-1 justify-end">
+                            <button
+                              className={`btn btn-sm ${isGiven ? "btn-success" : "btn-primary"}`}
+                              onClick={() => handleGive(o.id)}
+                              disabled={administeringId === o.id || isGiven}
+                            >
+                              {isGiven ? (
+                                <><i className="bi bi-check-circle me-1"></i> Given</>
+                              ) : administeringId === o.id ? (
+                                <>
+                                  <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
+                                  Giving...
+                                </>
+                              ) : (
+                                <><i className="bi bi-check-circle me-1"></i> Give</>
+                              )}
+                            </button>
+                            {o.admission && (
+                              <Link to={`/inpatient/admissions/${o.admission}`} className="btn btn-secondary btn-sm">
+                                <i className="bi bi-eye me-1"></i> View
+                              </Link>
                             )}
-                          </button>
-                          {o.admission && (
-                            <Link to={`/inpatient/admissions/${o.admission}`} className="btn btn-secondary btn-sm">
-                              <i className="bi bi-eye me-1"></i> View
-                            </Link>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -41,12 +41,15 @@ export default function Pharmacy() {
         getPendingCompletionDispenses(),
         getDispenses({ page_size: 100 }),
       ]);
-      setPrescriptions(presData.results ?? presData);
-      setReadyToComplete(dispData);
 
       const allHistory = historyData.results ?? historyData;
       setHistory(allHistory);
+      setReadyToComplete(dispData);
       setAwaitingPayment(allHistory.filter((d) => d.status === "PENDING_PAYMENT" && d.invoice_status !== "PAID"));
+
+      const preparedPrescriptionIds = new Set(allHistory.map((d) => d.prescription));
+      const allPrescriptions = presData.results ?? presData;
+      setPrescriptions(allPrescriptions.filter((p) => !preparedPrescriptionIds.has(p.id)));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -165,13 +168,16 @@ export default function Pharmacy() {
           </div>
         </div>
         <div className="card-body">
-          {/* Pending Prescriptions — Stage 1: Prepare */}
+          {/* Pending Prescriptions */}
           {activeTab === "pending" && (
             <div className="tab-content">
-              <h5 className="card-title" style={{ marginBottom: "var(--space-2)" }}>
-                Pending Prescriptions ({prescriptions.length})
-              </h5>
+              <div className="flex items-center gap-3 flex-wrap" style={{ marginBottom: "var(--space-2)" }}>
+                <h5 className="card-title" style={{ marginBottom: 0 }}>
+                  Pending Prescriptions ({prescriptions.length})
+                </h5>
+              </div>
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
+                <i className="bi bi-info-circle me-1"></i>
                 Select a payment method before preparing — the invoice raised will use the price matching
                 that method (cash/M-Pesa/card vs insurance). Stock is <strong>not</strong> deducted at this step.
               </div>
@@ -254,6 +260,7 @@ export default function Pharmacy() {
                 Awaiting Payment ({awaitingPayment.length})
               </h5>
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
+                <i className="bi bi-info-circle me-1"></i>
                 Prepared, invoiced, but not yet paid in full — direct the patient to Billing to settle before this can be completed.
               </div>
               {awaitingPayment.length === 0 ? (
@@ -300,13 +307,14 @@ export default function Pharmacy() {
             </div>
           )}
 
-          {/* Ready to Complete — Stage 2 */}
+          {/* Ready to Complete */}
           {activeTab === "ready" && (
             <div className="tab-content">
               <h5 className="card-title" style={{ marginBottom: "var(--space-2)" }}>
                 Ready to Complete ({readyToComplete.length})
               </h5>
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
+                <i className="bi bi-info-circle me-1"></i>
                 Invoice confirmed paid — completing here deducts stock via FEFO batch selection.
               </div>
               {readyToComplete.length === 0 ? (

@@ -87,12 +87,15 @@ class InpatientVitalsSerializer(serializers.ModelSerializer):
 class MedicationOrderSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     ordered_by_name = serializers.CharField(source="ordered_by.get_full_name", read_only=True)
+    patient_name = serializers.CharField(source="admission.patient.full_name", read_only=True)
+    admission_number = serializers.CharField(source="admission.admission_number", read_only=True)
 
     class Meta:
         model = MedicationOrder
         fields = [
-            "id", "admission", "medicine", "medicine_name", "dosage", "route", "frequency",
-            "quantity", "start_date", "end_date", "is_active", "ordered_by", "ordered_by_name",
+            "id", "admission", "admission_number", "patient_name", "medicine", "medicine_name",
+            "dosage", "route", "frequency", "quantity", "start_date", "end_date",
+            "is_active", "ordered_by", "ordered_by_name",
         ]
         read_only_fields = ["id", "start_date", "ordered_by"]
 
