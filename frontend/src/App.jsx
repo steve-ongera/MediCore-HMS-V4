@@ -172,6 +172,9 @@ import ExpiryAlerts from "./pages/pharmacy/ExpiryAlerts.jsx";
 import BodyReleaseHistory from "./pages/mortuary/BodyReleaseHistory.jsx";
 import MaintenanceHistory from "./pages/ambulance/MaintenanceHistory.jsx";
 
+import AdmissionMedicineOrders from "./pages/pharmacy/AdmissionMedicineOrders.jsx";
+import EmergencyMedicineOrders from "./pages/pharmacy/EmergencyMedicineOrders.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -718,6 +721,9 @@ export default function App() {
         <Route path="/mortuary/releases" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><BodyReleaseHistory /></ProtectedRoute>} />
         <Route path="/ambulance/reports" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><AmbulanceReport /></ProtectedRoute>} />
         <Route path="/ambulance/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><MaintenanceHistory /></ProtectedRoute>} />
+
+        <Route path="/pharmacy/admission-orders" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><AdmissionMedicineOrders /></ProtectedRoute>} />
+        <Route path="/pharmacy/emergency-orders" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><EmergencyMedicineOrders /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route

@@ -705,6 +705,9 @@ export const prepareDispense = (payload) => unwrap(client.post("/pharmacy-dispen
 export const completeDispense = (id) => unwrap(client.post(`/pharmacy-dispenses/${id}/complete/`));
 export const getPendingCompletionDispenses = () => unwrap(client.get("/pharmacy-dispenses/pending-completion/"));
 
+export const getAllActiveMedicationOrders = () => unwrap(client.get("/medication-orders/", { params: { is_active: true, page_size: 200 } }));
+export const getAllActiveEmergencyMedicationOrders = () => unwrap(client.get("/emergency-medication-orders/", { params: { is_active: true, page_size: 200 } }));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

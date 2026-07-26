@@ -40,9 +40,17 @@ from api.serializers import (
     RadiologyTestCatalogSerializer, RadiologyOrderSerializer, RadiologyResultSerializer,
     SupplierSerializer, MedicineSerializer, MedicineBatchSerializer, StockTransactionSerializer,
     PharmacyDispenseSerializer, AuditLogSerializer, OTCSaleSerializer, OTCSaleCreateSerializer,
-    TransactionSerializer, CreateBulkPaymentSerializer, BulkPaymentLineSerializer , BulkPaymentSerializer
+    TransactionSerializer, CreateBulkPaymentSerializer, BulkPaymentLineSerializer , BulkPaymentSerializer , PrepareDispenseSerializer
 )
 from api.utils import generate_qr_code
+from datetime import date, timedelta
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db import transaction
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework import status
 
 
 # ---------------------------------------------------------------------------
@@ -575,6 +583,16 @@ class MedicineBatchViewSet(BaseModelViewSet):
             quantity=batch.quantity_received, reason="New batch received",
             performed_by=self.request.user,
         )
+        
+    @action(detail=False, methods=["get"], url_path="expiring-soon")
+    def expiring_soon(self, request):
+        cutoff = date.today() + timedelta(days=30)
+        qs = self.get_queryset().filter(
+            expiry_date__lte=cutoff,
+            expiry_date__gte=date.today(),
+            quantity_remaining__gt=0,
+        ).order_by("expiry_date")
+        return Response(self.get_serializer(qs, many=True).data)
 
 
 class StockTransactionViewSet(BaseModelViewSet):
@@ -587,49 +605,109 @@ class StockTransactionViewSet(BaseModelViewSet):
         serializer.save(performed_by=self.request.user)
 
 
+from django.db import transaction
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework import status
+
+
 class PharmacyDispenseViewSet(BaseModelViewSet):
-    queryset = PharmacyDispense.objects.select_related("prescription__medicine", "batch").all()
+    queryset = PharmacyDispense.objects.select_related("prescription__medicine", "invoice", "batch").all()
     serializer_class = PharmacyDispenseSerializer
-    filterset_fields = ["prescription"]
+    filterset_fields = ["status", "payment_method"]
+    http_method_names = ["get", "post", "head", "options"]
 
-    def perform_create(self, serializer):
-        prescription = serializer.validated_data["prescription"]
-        quantity = serializer.validated_data["quantity_dispensed"]
+    def create(self, request, *args, **kwargs):
+        """
+        Stage 1 — Prepare. Records intent to dispense and raises the invoice
+        at the price matching the chosen payment method. Does NOT touch
+        stock — that only happens once the invoice is confirmed fully paid,
+        via the `complete` action below.
+        """
+        serializer = PrepareDispenseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        prescription = Prescription.objects.select_related("medicine", "consultation__visit__patient").filter(
+            pk=data["prescription"]
+        ).first()
+        if not prescription:
+            raise ValidationError({"prescription": "Prescription not found."})
+
         medicine = prescription.medicine
+        quantity = data["quantity_dispensed"]
+        payment_method = data["payment_method"]
+        unit_price = medicine.price_for_method(payment_method)
 
-        # Pick the earliest-expiring batch with enough stock (FEFO).
+        with transaction.atomic():
+            patient = prescription.consultation.visit.patient
+            visit = prescription.consultation.visit
+            invoice = Invoice.objects.create(
+                patient=patient, visit=visit,
+                source_type=InvoiceSourceType.PHARMACY,
+                description=f"{medicine.name} x{quantity} ({payment_method})",
+                amount=unit_price * quantity,
+            )
+            dispense = PharmacyDispense.objects.create(
+                prescription=prescription, quantity_dispensed=quantity,
+                payment_method=payment_method, status="PENDING_PAYMENT",
+                invoice=invoice, dispensed_by=request.user,
+            )
+
+        return Response(PharmacyDispenseSerializer(dispense).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="complete")
+    def complete(self, request, pk=None):
+        """
+        Stage 2 — Complete. Only allowed once the linked invoice shows
+        status=PAID (checked here server-side — never trust the frontend
+        on this). This is the moment stock actually moves: FEFO batch
+        selection, quantity_remaining deduction, StockTransaction log —
+        exactly the same mechanism your other modules already use.
+        """
+        dispense = self.get_object()
+        if dispense.status != "PENDING_PAYMENT":
+            raise ValidationError({"detail": "This dispense is not awaiting completion."})
+        if not dispense.invoice or dispense.invoice.status != "PAID":
+            raise ValidationError({"detail": "Invoice must be fully paid before completing this dispense."})
+
+        medicine = dispense.prescription.medicine
+        quantity = dispense.quantity_dispensed
+
         batch = (
             MedicineBatch.objects.filter(medicine=medicine, quantity_remaining__gte=quantity)
             .order_by("expiry_date").first()
         )
         if not batch:
-            raise OutOfStockError()
+            raise OutOfStockError(f"{medicine.name} is out of stock.")
 
         with transaction.atomic():
-            dispense = serializer.save(batch=batch, dispensed_by=self.request.user)
-
             batch.quantity_remaining -= quantity
             batch.save(update_fields=["quantity_remaining"])
 
             StockTransaction.objects.create(
                 medicine=medicine, batch=batch, transaction_type=StockTransactionType.STOCK_OUT,
-                quantity=quantity, reason=f"Dispensed for prescription {prescription.id}",
-                performed_by=self.request.user,
+                quantity=quantity, reason=f"Pharmacy dispense - {dispense.prescription.id}",
+                performed_by=request.user,
             )
 
-            invoice = Invoice.objects.create(
-                patient=prescription.consultation.visit.patient,
-                visit=prescription.consultation.visit,
-                source_type=InvoiceSourceType.PHARMACY,
-                description=f"Pharmacy - {medicine.name} x{quantity}",
-                amount=medicine.unit_price * quantity,
-            )
-            dispense.invoice = invoice
-            dispense.save(update_fields=["invoice"])
+            dispense.batch = batch
+            dispense.status = "COMPLETED"
+            dispense.completed_by = request.user
+            dispense.completed_at = timezone.now()
+            dispense.save(update_fields=["batch", "status", "completed_by", "completed_at"])
 
-            prescription.is_dispensed = True
-            prescription.save(update_fields=["is_dispensed"])
+            dispense.prescription.is_dispensed = True
+            dispense.prescription.save(update_fields=["is_dispensed"])
 
+        return Response(PharmacyDispenseSerializer(dispense).data)
+
+    @action(detail=False, methods=["get"], url_path="pending-completion")
+    def pending_completion(self, request):
+        """Dispenses whose invoice is now PAID and are ready for stock deduction — the pharmacist's worklist."""
+        qs = self.get_queryset().filter(status="PENDING_PAYMENT", invoice__status="PAID")
+        return Response(PharmacyDispenseSerializer(qs, many=True).data)
 
 class OutOfStockError(APIException):
     status_code = status.HTTP_409_CONFLICT

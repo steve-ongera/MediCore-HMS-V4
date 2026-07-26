@@ -607,6 +607,13 @@ class Medicine(BaseModel):
     unit = models.CharField(max_length=30, default="tablet")  # tablet, syrup, injection...
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     reorder_level = models.PositiveIntegerField(default=20)
+    
+    insurance_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Price billed when this dispense is paid via insurance. Falls back to unit_price if not set."
+    )
+    
+    
 
     class Meta:
         db_table = "medicines"
@@ -618,6 +625,11 @@ class Medicine(BaseModel):
     @property
     def is_low_stock(self):
         return self.current_stock <= self.reorder_level
+    
+    def price_for_method(self, payment_method):
+        if payment_method == "INSURANCE" and self.insurance_price is not None:
+            return self.insurance_price
+        return self.unit_price
 
     def __str__(self):
         return self.name
@@ -658,12 +670,26 @@ class StockTransaction(BaseModel):
     class Meta:
         db_table = "stock_transactions"
 
+class DispenseStatus(models.TextChoices):
+    PENDING_PAYMENT = "PENDING_PAYMENT", "Prepared — Awaiting Payment"
+    COMPLETED = "COMPLETED", "Completed — Stock Deducted"
+    CANCELLED = "CANCELLED", "Cancelled"
 
 class PharmacyDispense(BaseModel):
     prescription = models.OneToOneField(Prescription, on_delete=models.CASCADE, related_name="dispense")
-    batch = models.ForeignKey(MedicineBatch, null=True, on_delete=models.SET_NULL, related_name="dispenses")
+    payment_method = models.CharField(
+        max_length=20,
+        choices=[("CASH", "Cash"), ("MPESA", "M-Pesa"), ("CARD", "Card"), ("INSURANCE", "Insurance")],
+        default="CASH",
+    )
+    status = models.CharField(max_length=20, choices=DispenseStatus.choices, default=DispenseStatus.PENDING_PAYMENT)
+    batch = models.ForeignKey(
+        "MedicineBatch", null=True, blank=True, on_delete=models.SET_NULL, related_name="dispenses"
+    )  # only set once Stage 2 actually picks a batch via FEFO
     quantity_dispensed = models.PositiveIntegerField()
-    invoice = models.ForeignKey(Invoice, null=True, blank=True, on_delete=models.SET_NULL, related_name="pharmacy_dispenses")
+    invoice = models.ForeignKey("Invoice", null=True, blank=True, on_delete=models.SET_NULL, related_name="pharmacy_dispenses")
+    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="dispenses_completed")
     dispensed_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="dispenses_made")
     dispensed_at = models.DateTimeField(auto_now_add=True)
 

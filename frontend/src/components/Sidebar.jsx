@@ -90,6 +90,8 @@ const NAV_GROUPS = [
       { to: "/suppliers", label: "Suppliers", icon: "bi-truck" },
       { to: "/pharmacy/reports", label: "My Reports", icon: "bi-graph-up" },
       { to: "/pharmacy/alerts", label: "Expiry & Stock Alerts", icon: "bi-exclamation-triangle" },
+      { to: "/pharmacy/admission-orders", label: "Admission Medicine Orders", icon: "bi-hospital" },
+      { to: "/pharmacy/emergency-orders", label: "Emergency Medicine Orders", icon: "bi-heart-pulse-fill" },
 
     ],
   },

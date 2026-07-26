@@ -399,15 +399,23 @@ class StockTransactionSerializer(serializers.ModelSerializer):
 class PharmacyDispenseSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="prescription.medicine.name", read_only=True)
     patient_name = serializers.CharField(source="prescription.consultation.visit.patient.full_name", read_only=True)
+    invoice_status = serializers.CharField(source="invoice.status", read_only=True)
+    invoice_balance = serializers.DecimalField(source="invoice.balance", max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = PharmacyDispense
         fields = [
-            "id", "prescription", "medicine_name", "patient_name", "batch",
-            "quantity_dispensed", "invoice", "dispensed_by", "dispensed_at",
+            "id", "prescription", "medicine_name", "patient_name", "quantity_dispensed",
+            "payment_method", "status", "invoice", "invoice_status", "invoice_balance",
+            "batch", "dispensed_by", "dispensed_at", "completed_by", "completed_at",
         ]
-        read_only_fields = ["id", "invoice", "dispensed_by", "dispensed_at"]
+        read_only_fields = ["id", "status", "invoice", "batch", "dispensed_by", "dispensed_at", "completed_by", "completed_at"]
 
+
+class PrepareDispenseSerializer(serializers.Serializer):
+    prescription = serializers.UUIDField()
+    quantity_dispensed = serializers.IntegerField(min_value=1)
+    payment_method = serializers.ChoiceField(choices=["CASH", "MPESA", "CARD", "INSURANCE"])
 
 # ---------------------------------------------------------------------------
 # Walk-in / OTC Pharmacy Sales (POS)
