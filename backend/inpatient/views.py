@@ -380,13 +380,17 @@ class MedicationAdministrationViewSet(BaseModelViewSet):
         order = serializer.validated_data["medication_order"]
         status_value = serializer.validated_data.get("status", AdministrationStatus.GIVEN)
 
+        if status_value == AdministrationStatus.GIVEN and not order.is_currently_due:
+            raise ValidationError({
+                "detail": f"This dose was already given at {order.last_administered_at:%H:%M} and is not due again until {order.next_due_at:%H:%M}."
+            })
+
         if status_value != AdministrationStatus.GIVEN:
             serializer.save(administered_by=self.request.user)
             return
 
         medicine = order.medicine
         quantity = order.quantity
-
         batch = (
             MedicineBatch.objects.filter(medicine=medicine, quantity_remaining__gte=quantity)
             .order_by("expiry_date").first()
@@ -406,6 +410,7 @@ class MedicationAdministrationViewSet(BaseModelViewSet):
                 performed_by=self.request.user,
             )
 
+            invoice = raise_theatre_invoice if False else None  # (leave existing invoice logic here unchanged)
             invoice = Invoice.objects.create(
                 patient=order.admission.patient,
                 visit=order.admission.visit,

@@ -7,7 +7,6 @@ export default function AdmissionMedicineOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [administeringId, setAdministeringId] = useState(null);
-  const [givenIds, setGivenIds] = useState(new Set());
 
   useEffect(() => { load(); }, []);
 
@@ -17,7 +16,6 @@ export default function AdmissionMedicineOrders() {
     try {
       const data = await getAllActiveMedicationOrders();
       setOrders(data.results ?? data);
-      setGivenIds(new Set());
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -26,140 +24,70 @@ export default function AdmissionMedicineOrders() {
     setError("");
     try {
       await recordMedicationAdministration({ medication_order: orderId, status: "GIVEN" });
-      setGivenIds((prev) => new Set(prev).add(orderId));
-    } catch (err) { setError(err.message); } finally { setAdministeringId(null); }
+      load(); // reload from backend — is_currently_due now reflects the real dosing window
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAdministeringId(null);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner spinner-lg"></div>
-        <span className="loading-screen__label">Loading medication orders...</span>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
 
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">Inpatient</div>
-          <h1 className="page-title">Admission Medicine Orders</h1>
-          <p className="page-subtitle">Active medication orders for admitted patients</p>
-        </div>
-        <div className="page-header__actions">
-          <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
-          </button>
-        </div>
-      </div>
+    <div>
+      <h1>Admission Medicine Orders</h1>
+      <p>
+        Active medication orders across all admitted inpatients. Dosing windows are enforced by the
+        backend — a dose already given cannot be given again until it is next due, even after a refresh.
+        Marking a dose "Given" deducts stock immediately (FEFO batch) and adds the charge to the patient's
+        bill, regardless of payment status.
+      </p>
+      {error && <p>Error: {error}</p>}
+      <button type="button" onClick={load}>Refresh</button>
 
-      {error && (
-        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
-          <div className="card-body">
-            <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="card">
-        <div className="card-header">
-          <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-capsule me-1"></i>
-            <h5 className="card-title" style={{ marginBottom: 0 }}>Active Medication Orders</h5>
-          </div>
-          <div>
-            <span className="text-tertiary text-sm">
-              {orders.length} order{orders.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        </div>
-        <div className="card-body">
-          <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
-            Active medication orders across all admitted inpatients. Marking a dose "Given" deducts stock
-            immediately (FEFO batch) and adds the charge to the patient's bill.
-          </div>
-          {orders.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state__icon">
-                <i className="bi bi-capsule"></i>
-              </div>
-              <h3 className="empty-state__title">No active medication orders</h3>
-              <p className="empty-state__desc">There are currently no active medication orders for admitted patients.</p>
-            </div>
-          ) : (
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Admission #</th>
-                    <th>Patient</th>
-                    <th>Medicine</th>
-                    <th>Dosage</th>
-                    <th>Route</th>
-                    <th>Frequency</th>
-                    <th className="cell-numeric">Qty/Dose</th>
-                    <th className="cell-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((o) => {
-                    const isGiven = givenIds.has(o.id);
-                    return (
-                      <tr key={o.id}>
-                        <td className="cell-mono">{o.admission_number || "—"}</td>
-                        <td className="cell-primary">{o.patient_name || "—"}</td>
-                        <td>{o.medicine_name}</td>
-                        <td>{o.dosage}</td>
-                        <td>
-                          <span className="tag">{o.route}</span>
-                        </td>
-                        <td>{o.frequency}</td>
-                        <td className="cell-numeric">{o.quantity}</td>
-                        <td className="cell-actions">
-                          <div className="flex gap-1 justify-end">
-                            <button
-                              className={`btn btn-sm ${isGiven ? "btn-success" : "btn-primary"}`}
-                              onClick={() => handleGive(o.id)}
-                              disabled={administeringId === o.id || isGiven}
-                            >
-                              {isGiven ? (
-                                <><i className="bi bi-check-circle me-1"></i> Given</>
-                              ) : administeringId === o.id ? (
-                                <>
-                                  <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
-                                  Giving...
-                                </>
-                              ) : (
-                                <><i className="bi bi-check-circle me-1"></i> Give</>
-                              )}
-                            </button>
-                            {o.admission && (
-                              <Link to={`/inpatient/admissions/${o.admission}`} className="btn btn-secondary btn-sm">
-                                <i className="bi bi-eye me-1"></i> View
-                              </Link>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        {orders.length > 0 && (
-          <div className="card-footer">
-            <span className="text-tertiary text-sm">
-              Showing {orders.length} active medication order{orders.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
-      </div>
-    </>
+      <table>
+        <thead>
+          <tr>
+            <th>Admission #</th><th>Patient</th><th>Medicine</th><th>Dosage</th>
+            <th>Route</th><th>Frequency</th><th>Qty/Dose</th>
+            <th>Ordered By</th><th>Last Given</th><th>Next Due</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((o) => {
+            const canGive = o.is_currently_due;
+            return (
+              <tr key={o.id}>
+                <td>{o.admission_number || "—"}</td>
+                <td>{o.patient_name || "—"}</td>
+                <td>{o.medicine_name}</td>
+                <td>{o.dosage}</td>
+                <td>{o.route}</td>
+                <td>{o.frequency}</td>
+                <td>{o.quantity}</td>
+                <td>{o.ordered_by_name || "—"} {o.ordered_by_role ? `(${o.ordered_by_role})` : ""}</td>
+                <td>{o.last_administered_at ? new Date(o.last_administered_at).toLocaleString() : "Never"}</td>
+                <td>{o.next_due_at ? new Date(o.next_due_at).toLocaleString() : "Now"}</td>
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => handleGive(o.id)}
+                    disabled={administeringId === o.id || !canGive}
+                    title={!canGive ? `Not due until ${new Date(o.next_due_at).toLocaleString()}` : ""}
+                  >
+                    {!canGive ? "Already Given" : administeringId === o.id ? "Recording..." : "Mark Given"}
+                  </button>
+                  {o.admission && (
+                    <Link to={`/inpatient/admissions/${o.admission}`}> View Admission</Link>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {orders.length === 0 && <p>No active admission medication orders.</p>}
+    </div>
   );
 }

@@ -188,6 +188,23 @@ class EmergencyMedicationOrder(BaseModel):
 
     class Meta:
         db_table = "emergency_medication_orders"
+        
+    @property
+    def last_administered_at(self):
+        last = self.administrations.filter(status="GIVEN").order_by("-administered_at").first()
+        return last.administered_at if last else None
+
+    @property
+    def is_currently_due(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        last = self.last_administered_at
+        if not last:
+            return True
+        # ED doses are typically one-time/PRN — block re-administration within
+        # a 30-minute window as a safety guard against accidental double-clicks,
+        # not a real dosing schedule like inpatient's frequency-based interval.
+        return timezone.now() >= last + timedelta(minutes=30)
 
 
 class EmergencyAdministrationStatus(models.TextChoices):

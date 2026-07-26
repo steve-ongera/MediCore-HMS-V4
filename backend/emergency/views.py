@@ -346,9 +346,9 @@ class EmergencyMedicationAdministrationViewSet(BaseModelViewSet):
         order = serializer.validated_data["medication_order"]
         status_value = serializer.validated_data.get("status", EmergencyAdministrationStatus.GIVEN)
 
-        if status_value != EmergencyAdministrationStatus.GIVEN:
-            serializer.save(administered_by=self.request.user)
-            return
+        if status_value == EmergencyAdministrationStatus.GIVEN and not order.is_currently_due:
+            raise ValidationError({"detail": "This dose was already given recently. Please wait before administering again."})
+
 
         medicine = order.medicine
         quantity = order.quantity

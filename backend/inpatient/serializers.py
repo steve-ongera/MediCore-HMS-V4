@@ -87,28 +87,34 @@ class InpatientVitalsSerializer(serializers.ModelSerializer):
 class MedicationOrderSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     ordered_by_name = serializers.CharField(source="ordered_by.get_full_name", read_only=True)
+    ordered_by_role = serializers.CharField(source="ordered_by.role", read_only=True)
     patient_name = serializers.CharField(source="admission.patient.full_name", read_only=True)
     admission_number = serializers.CharField(source="admission.admission_number", read_only=True)
+    is_currently_due = serializers.BooleanField(read_only=True)
+    next_due_at = serializers.DateTimeField(read_only=True)
+    last_administered_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = MedicationOrder
         fields = [
             "id", "admission", "admission_number", "patient_name", "medicine", "medicine_name",
             "dosage", "route", "frequency", "quantity", "start_date", "end_date",
-            "is_active", "ordered_by", "ordered_by_name",
+            "is_active", "ordered_by", "ordered_by_name", "ordered_by_role",
+            "is_currently_due", "next_due_at", "last_administered_at",
         ]
         read_only_fields = ["id", "start_date", "ordered_by"]
 
 
 class MedicationAdministrationSerializer(serializers.ModelSerializer):
     administered_by_name = serializers.CharField(source="administered_by.get_full_name", read_only=True)
+    administered_by_role = serializers.CharField(source="administered_by.role", read_only=True)
     medicine_name = serializers.CharField(source="medication_order.medicine.name", read_only=True)
 
     class Meta:
         model = MedicationAdministration
         fields = [
             "id", "medication_order", "medicine_name", "administered_by", "administered_by_name",
-            "status", "notes", "batch", "invoice", "administered_at",
+            "administered_by_role", "status", "notes", "batch", "invoice", "administered_at",
         ]
         read_only_fields = ["id", "administered_by", "batch", "invoice", "administered_at"]
 

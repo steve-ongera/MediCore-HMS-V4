@@ -1,7 +1,9 @@
 import uuid
 from django.db import models
 from django.core.validators import MinValueValidator
-
+import re
+from datetime import timedelta
+from django.utils import timezone
 from api.models import BaseModel, User, Patient, Visit, Invoice, Medicine, ICD10Code, Role
 
 
@@ -232,7 +234,7 @@ class MedicationOrder(BaseModel):
     dosage = models.CharField(max_length=100)
     route = models.CharField(max_length=20, choices=MedicationRoute.choices, default=MedicationRoute.ORAL)
     frequency = models.CharField(max_length=100)
-    quantity = models.PositiveIntegerField(default=1)  # <-- NEW: units consumed per administration, used for stock + billing
+    quantity = models.PositiveIntegerField(default=1)
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -240,6 +242,37 @@ class MedicationOrder(BaseModel):
 
     class Meta:
         db_table = "medication_orders"
+
+    def _frequency_hours(self):
+        """Parses common frequency phrasings into an hour interval. Falls back to 8h if unparseable, matching the most common dosing schedule."""
+        text = (self.frequency or "").lower()
+        if "once" in text or "daily" in text or "24" in text:
+            return 24
+        if "twice" in text or "12" in text:
+            return 12
+        match = re.search(r"(\d+)\s*hour", text)
+        if match:
+            return int(match.group(1))
+        return 8
+
+    @property
+    def last_administered_at(self):
+        last = self.administrations.filter(status="GIVEN").order_by("-administered_at").first()
+        return last.administered_at if last else None
+
+    @property
+    def next_due_at(self):
+        last = self.last_administered_at
+        if not last:
+            return None  # never given yet — due immediately
+        return last + timedelta(hours=self._frequency_hours())
+
+    @property
+    def is_currently_due(self):
+        due = self.next_due_at
+        if due is None:
+            return True
+        return timezone.now() >= due
 
 
 class AdministrationStatus(models.TextChoices):
