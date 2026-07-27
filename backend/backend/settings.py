@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "dialysis",
     "icu",
     "security",
+    "stockcontrol",
 ]
 
 MIDDLEWARE = [
