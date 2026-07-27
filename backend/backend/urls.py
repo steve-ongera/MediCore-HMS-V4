@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
@@ -34,9 +35,13 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    
-    
+else:
+    # In production, media is best served by nginx/whitenoise-equivalent,
+    # not Django itself. This keeps media reachable if you haven't set
+    # that up yet — swap it out once you have a real media host.
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # SITE BRANDING
 # ─────────────────────────────────────────────────────────────────────────────

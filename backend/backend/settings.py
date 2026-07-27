@@ -23,12 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ehv6%k&)3gc2dav3$k^d^m(#i5wa#po)@bp=2cn0@(xhasz_g!'
+SECRET_KEY = config(
+    "SECRET_KEY",
+    default="django-insecure-ehv6%k&)3gc2dav3$k^d^m(#i5wa#po)@bp=2cn0@(xhasz_g!",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())
 
 
 # Application definition
@@ -40,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
      # Third party
     "rest_framework",
     "rest_framework_simplejwt",
@@ -48,7 +51,7 @@ INSTALLED_APPS = [
     "django_filters",
     "corsheaders",
     "drf_spectacular",
- 
+
     # Local
     "api",
     "inpatient",
@@ -74,6 +77,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -84,7 +88,7 @@ MIDDLEWARE = [
     "security.middleware.LoginRateLimitMiddleware",
     "security.middleware.SessionIdleTimeoutMiddleware",
 ]
- 
+
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -118,7 +122,7 @@ DATABASES = {
 
 
 AUTH_USER_MODEL = "api.User"
- 
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
@@ -133,14 +137,15 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Nairobi"
 USE_I18N = True
 USE_TZ = True
- 
+
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
- 
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
- 
+
 # ---------------------------------------------------------------------------
 # DRF / JWT / Filtering / Docs
 # ---------------------------------------------------------------------------
@@ -158,7 +163,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
-    "PAGE_SIZE_QUERY_PARAM": "page_size",   # <-- ADD THIS
+    "PAGE_SIZE_QUERY_PARAM": "page_size",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
@@ -166,31 +171,31 @@ REST_FRAMEWORK = {
     ),
     "EXCEPTION_HANDLER": "api.exceptions.custom_exception_handler",
 }
- 
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=8),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
 }
- 
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "HMIS API",
     "DESCRIPTION": "Hospital Management Information System - REST API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
- 
+
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
     default="http://localhost:5173,http://localhost:3000,http://192.168.181.92:3000",
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True
- 
+
 # Hospital branding used on receipts / PDFs
 HOSPITAL_NAME = config("HOSPITAL_NAME", default="City General Hospital")
 HOSPITAL_LOGO_PATH = BASE_DIR / "static" / "logo.png"
@@ -217,12 +222,3 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@yourhospital.com")
-
-# Access tokens short-lived to work with the 5-minute idle timeout enforced
-# by SessionIdleTimeoutMiddleware; refresh tokens live longer so a still-active
-# user doesn't get bounced, but idle users get cut off by the middleware first.
-SIMPLE_JWT = {
-    **globals().get("SIMPLE_JWT", {}),
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(hours=8),
-}
