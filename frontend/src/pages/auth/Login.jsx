@@ -24,9 +24,13 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await login(username, password);
-      toast.success("Welcome back!");
-      navigate(from, { replace: true });
+      const result = await login(username, password);
+      if (result?.otpRequired) {
+        navigate("/verify-otp", { state: { userId: result.userId } });
+      } else {
+        toast.success("Welcome back!");
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       toast.error(err.message || "Invalid credentials");
     } finally {
