@@ -726,6 +726,24 @@ export const getPendingVarianceShifts = () => unwrap(client.get("/cashier-shifts
 export const approveShiftVariance = (id) => unwrap(client.post(`/cashier-shifts/${id}/approve-variance/`));
 export const getCashierShifts = (params) => unwrap(client.get(`/cashier-shifts/${qs(params)}`));
 
+export const getStoreLocations = (params) => unwrap(client.get(`/store-locations/${qs(params)}`));
+export const createStoreLocation = (payload) => unwrap(client.post("/store-locations/", payload));
+export const getLocationStock = (id) => unwrap(client.get(`/store-locations/${id}/stock/`));
+
+export const getStockTransfers = (params) => unwrap(client.get(`/stock-transfers/${qs(params)}`));
+export const getStockTransfer = (id) => unwrap(client.get(`/stock-transfers/${id}/`));
+export const createStockTransfer = (payload) => unwrap(client.post("/stock-transfers/", payload));
+export const approveStockTransfer = (id) => unwrap(client.post(`/stock-transfers/${id}/approve/`));
+export const dispatchStockTransfer = (id, payload) => unwrap(client.post(`/stock-transfers/${id}/dispatch/`, payload));
+export const receiveStockTransfer = (id, payload) => unwrap(client.post(`/stock-transfers/${id}/receive/`, payload));
+export const getTransferDiscrepancies = () => unwrap(client.get("/stock-transfers/discrepancies/"));
+
+export const getStockCounts = (params) => unwrap(client.get(`/stock-counts/${qs(params)}`));
+export const createStockCount = (payload) => unwrap(client.post("/stock-counts/", payload));
+export const submitStockCount = (id, payload) => unwrap(client.post(`/stock-counts/${id}/submit/`, payload));
+export const approveStockCount = (id) => unwrap(client.post(`/stock-counts/${id}/approve/`));
+export const getVariancePendingCounts = () => unwrap(client.get("/stock-counts/variance-pending/"));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
