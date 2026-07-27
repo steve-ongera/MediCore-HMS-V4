@@ -199,3 +199,67 @@ class Budget(BaseModel):
 
     def __str__(self):
         return f"{self.department.name} - {self.fiscal_period.name}"
+    
+    
+    
+    
+class ShiftStatus(models.TextChoices):
+    OPEN = "OPEN", "Open"
+    CLOSED = "CLOSED", "Closed"
+    CLOSED_WITH_VARIANCE = "CLOSED_WITH_VARIANCE", "Closed — Variance Flagged"
+
+
+class CashierShift(BaseModel):
+    """
+    One till session per cashier per work period. Opened with a counted
+    float, closed with a physical cash count — the system computes what
+    SHOULD be in the drawer from actual Payment rows during this window and
+    compares it to what the cashier actually counted. Any variance beyond
+    a small tolerance requires supervisor approval to close.
+    """
+    cashier = models.ForeignKey(User, on_delete=models.PROTECT, related_name="cashier_shifts")
+    opening_float = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    opened_at = models.DateTimeField(auto_now_add=True)
+
+    closed_at = models.DateTimeField(null=True, blank=True)
+    counted_cash = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    expected_cash = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, editable=False)
+    variance = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, editable=False)
+    variance_notes = models.TextField(blank=True)
+
+    status = models.CharField(max_length=25, choices=ShiftStatus.choices, default=ShiftStatus.OPEN)
+    approved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="cashier_shifts_approved")
+    approved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "cashier_shifts"
+        ordering = ["-opened_at"]
+
+    def __str__(self):
+        return f"{self.cashier.username} shift - {self.opened_at:%Y-%m-%d %H:%M}"
+
+
+class CashDropStatus(models.TextChoices):
+    RECORDED = "RECORDED", "Recorded"
+    VERIFIED = "VERIFIED", "Verified by Accountant"
+
+
+class CashDrop(BaseModel):
+    """
+    Mid-shift cash removal to a safe (common practice once a drawer holds
+    'too much' cash) — reduces what's physically exposed at the till and
+    reduces the expected_cash baseline the shift is reconciled against.
+    """
+    shift = models.ForeignKey(CashierShift, on_delete=models.CASCADE, related_name="cash_drops")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    reason = models.CharField(max_length=255, blank=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="cash_drops_recorded")
+    status = models.CharField(max_length=20, choices=CashDropStatus.choices, default=CashDropStatus.RECORDED)
+    verified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="cash_drops_verified")
+    dropped_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "cash_drops"
+
+    def __str__(self):
+        return f"Cash drop KES {self.amount} - {self.shift}"

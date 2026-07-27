@@ -8,6 +8,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
+from security.services import log_audit_event
+from security.models import AuditEventType
+
 
 from api.views import BaseModelViewSet
 from api.permissions import ReadOnlyOrSuperAdmin, IsCashierOrAccountant
@@ -15,12 +19,12 @@ from api.models import Payment, OTCSale, Invoice
 
 from .models import (
     Account, AccountType, FiscalPeriod, JournalEntry, JournalEntryLine, JournalEntryStatus,
-    ExpenseCategory, Expense, ExpenseStatus, Budget,
+    ExpenseCategory, Expense, ExpenseStatus, Budget, CashDrop , CashierShift
 )
 from .serializers import (
     AccountSerializer, FiscalPeriodSerializer, JournalEntrySerializer, JournalEntryListSerializer,
     CreateJournalEntrySerializer, ExpenseCategorySerializer, ExpenseSerializer,
-    RejectExpenseSerializer, BudgetSerializer,
+    RejectExpenseSerializer, BudgetSerializer, CashDropSerializer , CashierShiftSerializer , OpenShiftSerializer
 )
 from .services import post_journal_entry
 
@@ -222,3 +226,97 @@ class FinancialSummaryView(APIView):
             "outstanding_receivables": str(outstanding_receivables),
             "accounts": accounts_summary,
         })
+        
+        
+
+
+class CashierShiftViewSet(BaseModelViewSet):
+    queryset = CashierShift.objects.select_related("cashier", "approved_by").all()
+    filterset_fields = ["status", "cashier"]
+    http_method_names = ["get", "post", "head", "options"]
+
+    def get_serializer_class(self):
+        return CashierShiftSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Cashiers only ever see their own shifts; Accountant/Super Admin see everyone's.
+        if self.request.user.role == "CASHIER":
+            return qs.filter(cashier=self.request.user)
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        if CashierShift.objects.filter(cashier=request.user, status="OPEN").exists():
+            raise ValidationError({"detail": "You already have an open till. Close it before opening a new one."})
+
+        serializer = OpenShiftSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        shift = CashierShift.objects.create(cashier=request.user, opening_float=serializer.validated_data["opening_float"])
+        log_audit_event(AuditEventType.LOGIN, user=request.user, request=request, description=f"Cashier till opened with float KES {shift.opening_float}.")
+        return Response(CashierShiftSerializer(shift).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="record-cash-drop")
+    def record_cash_drop(self, request, pk=None):
+        shift = self.get_object()
+        if shift.status != "OPEN":
+            raise ValidationError({"detail": "Cannot record a cash drop on a closed shift."})
+        if shift.cashier != request.user:
+            raise PermissionDenied("You can only record cash drops on your own till.")
+
+        serializer = RecordCashDropSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        drop = CashDrop.objects.create(shift=shift, recorded_by=request.user, **serializer.validated_data)
+        return Response(CashDropSerializer(drop).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="close")
+    def close(self, request, pk=None):
+        shift = self.get_object()
+        if shift.status != "OPEN":
+            raise ValidationError({"detail": "This shift is already closed."})
+        if shift.cashier != request.user and request.user.role not in ("ACCOUNTANT", "SUPER_ADMIN"):
+            raise PermissionDenied("You can only close your own till.")
+
+        serializer = CloseShiftSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        from .services import close_cashier_shift
+        shift = close_cashier_shift(
+            shift, serializer.validated_data["counted_cash"],
+            serializer.validated_data.get("notes", ""), request.user,
+        )
+
+        description = f"Till closed. Expected KES {shift.expected_cash}, counted KES {shift.counted_cash}, variance KES {shift.variance}."
+        log_audit_event(AuditEventType.LOGOUT, user=shift.cashier, actor=request.user, request=request, description=description)
+
+        return Response(CashierShiftSerializer(shift).data)
+
+    @action(detail=True, methods=["post"], url_path="approve-variance")
+    def approve_variance(self, request, pk=None):
+        """Supervisor sign-off required when a shift closed with a variance over tolerance."""
+        shift = self.get_object()
+        if shift.status != "CLOSED_WITH_VARIANCE":
+            raise ValidationError({"detail": "Only variance-flagged shifts require approval."})
+        if request.user.role not in ("ACCOUNTANT", "SUPER_ADMIN"):
+            raise PermissionDenied("Only an accountant or super admin can approve a cash variance.")
+
+        shift.status = "CLOSED"
+        shift.approved_by = request.user
+        from django.utils import timezone
+        shift.approved_at = timezone.now()
+        shift.save(update_fields=["status", "approved_by", "approved_at"])
+
+        log_audit_event(AuditEventType.LOGIN, user=shift.cashier, actor=request.user, request=request,
+                         description=f"Cash variance of KES {shift.variance} approved by {request.user.username}.")
+        return Response(CashierShiftSerializer(shift).data)
+
+    @action(detail=False, methods=["get"], url_path="my-open-shift")
+    def my_open_shift(self, request):
+        shift = CashierShift.objects.filter(cashier=request.user, status="OPEN").first()
+        if not shift:
+            return Response(None)
+        return Response(CashierShiftSerializer(shift).data)
+
+    @action(detail=False, methods=["get"], url_path="pending-variance")
+    def pending_variance(self, request):
+        qs = self.get_queryset().filter(status="CLOSED_WITH_VARIANCE")
+        return Response(CashierShiftSerializer(qs, many=True).data)

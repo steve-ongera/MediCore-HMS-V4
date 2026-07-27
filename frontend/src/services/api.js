@@ -718,6 +718,14 @@ export const getSecurityAuditLogs = (params) => unwrap(client.get(`/security-aud
 export const getAccountLockouts = (params) => unwrap(client.get(`/account-lockouts/${qs(params)}`));
 export const unlockAccount = (id) => unwrap(client.post(`/account-lockouts/${id}/unlock/`));
 
+export const getMyOpenShift = () => unwrap(client.get("/cashier-shifts/my-open-shift/"));
+export const openCashierShift = (payload) => unwrap(client.post("/cashier-shifts/", payload));
+export const closeCashierShift = (id, payload) => unwrap(client.post(`/cashier-shifts/${id}/close/`, payload));
+export const recordCashDrop = (id, payload) => unwrap(client.post(`/cashier-shifts/${id}/record-cash-drop/`, payload));
+export const getPendingVarianceShifts = () => unwrap(client.get("/cashier-shifts/pending-variance/"));
+export const approveShiftVariance = (id) => unwrap(client.post(`/cashier-shifts/${id}/approve-variance/`));
+export const getCashierShifts = (params) => unwrap(client.get(`/cashier-shifts/${qs(params)}`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

@@ -2,6 +2,8 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Sum
+from api.models import Payment
+
 
 from .models import JournalEntry, JournalEntryLine, JournalEntryStatus
 
@@ -69,3 +71,40 @@ def sync_daily_patient_revenue(target_date, cash_account_id, revenue_account_id,
         ],
         source="PATIENT_REVENUE", reference=str(target_date), user=user,
     )
+    
+
+
+VARIANCE_TOLERANCE = 50  # KES — small discrepancies (change-counting errors) below this don't force supervisor approval
+
+
+def compute_expected_cash(shift):
+    """Opening float + all CASH payments recorded by this cashier during the shift window − any cash drops removed."""
+    cash_in = Payment.objects.filter(
+        cashier=shift.cashier, method="CASH",
+        paid_at__gte=shift.opened_at,
+        paid_at__lte=shift.closed_at or timezone.now(),
+    ).aggregate(t=Sum("amount"))["t"] or 0
+
+    drops = shift.cash_drops.aggregate(t=Sum("amount"))["t"] or 0
+
+    return shift.opening_float + cash_in - drops
+
+
+def close_cashier_shift(shift, counted_cash, notes, user):
+    from django.utils import timezone as tz
+
+    shift.closed_at = tz.now()
+    shift.counted_cash = counted_cash
+    shift.expected_cash = compute_expected_cash(shift)
+    shift.variance = counted_cash - shift.expected_cash
+    shift.variance_notes = notes
+
+    if abs(shift.variance) > VARIANCE_TOLERANCE:
+        shift.status = "CLOSED_WITH_VARIANCE"  # requires a supervisor to review/approve separately
+    else:
+        shift.status = "CLOSED"
+        shift.approved_by = user
+        shift.approved_at = tz.now()
+
+    shift.save()
+    return shift

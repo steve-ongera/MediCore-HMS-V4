@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from .models import (
     Account, FiscalPeriod, JournalEntry, JournalEntryLine,
-    ExpenseCategory, Expense, Budget,
+    ExpenseCategory, Expense, Budget, CashierShift , CashDrop
 )
 
 
@@ -153,3 +153,51 @@ class BudgetSerializer(serializers.ModelSerializer):
 
     def get_remaining_amount(self, obj):
         return str(obj.remaining_amount)
+    
+    
+class CashDropSerializer(serializers.ModelSerializer):
+    recorded_by_name = serializers.CharField(source="recorded_by.get_full_name", read_only=True)
+
+    class Meta:
+        model = CashDrop
+        fields = ["id", "shift", "amount", "reason", "recorded_by", "recorded_by_name", "status", "dropped_at"]
+        read_only_fields = ["id", "shift", "recorded_by", "status", "dropped_at"]
+
+
+class CashierShiftSerializer(serializers.ModelSerializer):
+    cashier_name = serializers.CharField(source="cashier.get_full_name", read_only=True)
+    approved_by_name = serializers.CharField(source="approved_by.get_full_name", read_only=True)
+    cash_drops = CashDropSerializer(many=True, read_only=True)
+    running_expected_cash = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CashierShift
+        fields = [
+            "id", "cashier", "cashier_name", "opening_float", "opened_at",
+            "closed_at", "counted_cash", "expected_cash", "variance", "variance_notes",
+            "status", "approved_by", "approved_by_name", "approved_at", "cash_drops", "running_expected_cash",
+        ]
+        read_only_fields = [
+            "id", "cashier", "opened_at", "closed_at", "expected_cash", "variance",
+            "status", "approved_by", "approved_at",
+        ]
+
+    def get_running_expected_cash(self, obj):
+        if obj.status != "OPEN":
+            return str(obj.expected_cash)
+        from .services import compute_expected_cash
+        return str(compute_expected_cash(obj))
+
+
+class OpenShiftSerializer(serializers.Serializer):
+    opening_float = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0)
+
+
+class CloseShiftSerializer(serializers.Serializer):
+    counted_cash = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class RecordCashDropSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
+    reason = serializers.CharField(required=False, allow_blank=True, default="")

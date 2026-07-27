@@ -1,96 +1,138 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getActiveSessions, getUserSessions, getAccountLockouts, unlockAccount } from "../../services/api";
 
-export default function UnderDevelopment() {
+export default function DeviceSessionMonitoring() {
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [allSessions, setAllSessions] = useState([]);
+  const [lockouts, setLockouts] = useState([]);
+  const [tab, setTab] = useState("active");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [active, all, locks] = await Promise.all([
+        getActiveSessions(),
+        getUserSessions({ page_size: 100 }),
+        getAccountLockouts({ page_size: 100 }),
+      ]);
+      setActiveSessions(active);
+      setAllSessions(all.results ?? all);
+      setLockouts(locks.results ?? locks);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnlock = async (id) => {
+    if (!window.confirm("Unlock this account? The user will be able to log in again immediately.")) return;
+    try {
+      await unlockAccount(id);
+      load();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const lockedAccounts = lockouts.filter((l) => l.is_locked);
+
+  if (loading) return <div>Loading...</div>;
+
   return (
-    <>
-      <div className="page-header">
-        <div>
-          <div className="page-eyebrow">MediCore HMIS</div>
-          <h1 className="page-title">Module Under Development</h1>
-          <p className="page-subtitle">
-            This module is currently being developed and will be available in an
-            upcoming release.
-          </p>
-        </div>
+    <div>
+      <h1>Device & Session Monitoring</h1>
+      {error && <p>Error: {error}</p>}
+      <button type="button" onClick={load}>Refresh</button>
 
-        <div className="page-header__actions">
-          <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Dashboard
-          </Link>
-        </div>
+      <div>
+        <button type="button" onClick={() => setTab("active")} style={{ fontWeight: tab === "active" ? "bold" : "normal" }}>
+          Active Sessions ({activeSessions.length})
+        </button>{" "}
+        <button type="button" onClick={() => setTab("locked")} style={{ fontWeight: tab === "locked" ? "bold" : "normal" }}>
+          Locked Accounts ({lockedAccounts.length})
+        </button>{" "}
+        <button type="button" onClick={() => setTab("history")} style={{ fontWeight: tab === "history" ? "bold" : "normal" }}>
+          Session History
+        </button>
       </div>
 
-      <div className="card shadow-sm border-0">
-        <div className="card-body text-center py-5">
+      {tab === "active" && (
+        <section>
+          <h2>Currently Active Sessions</h2>
+          <table>
+            <thead>
+              <tr><th>User</th><th>IP Address</th><th>Browser</th><th>Device</th><th>Login Time</th><th>Last Activity</th></tr>
+            </thead>
+            <tbody>
+              {activeSessions.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.full_name} ({s.username})</td>
+                  <td>{s.ip_address}</td>
+                  <td>{s.browser}</td>
+                  <td>{s.device}</td>
+                  <td>{new Date(s.login_at).toLocaleString()}</td>
+                  <td>{new Date(s.last_activity_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {activeSessions.length === 0 && <p>No active sessions right now.</p>}
+        </section>
+      )}
 
-          <div
-            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle bg-primary-soft"
-            style={{ width: 110, height: 110 }}
-          >
-            <i
-              className="bi bi-tools text-primary"
-              style={{ fontSize: "3rem" }}
-            ></i>
-          </div>
+      {tab === "locked" && (
+        <section>
+          <h2>Locked Accounts</h2>
+          <p>Accounts are locked automatically after 3 consecutive failed login attempts. Unlocking resets the failed-attempt counter.</p>
+          <table>
+            <thead>
+              <tr><th>User</th><th>Failed Attempts</th><th>Locked At</th><th></th></tr>
+            </thead>
+            <tbody>
+              {lockedAccounts.map((l) => (
+                <tr key={l.id}>
+                  <td>{l.full_name} ({l.username})</td>
+                  <td>{l.failed_attempts}</td>
+                  <td>{l.locked_at ? new Date(l.locked_at).toLocaleString() : "—"}</td>
+                  <td><button type="button" onClick={() => handleUnlock(l.id)}>Unlock Account</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {lockedAccounts.length === 0 && <p>No locked accounts.</p>}
+        </section>
+      )}
 
-          <h2 className="fw-bold mb-3">
-            We're Building Something Great
-          </h2>
-
-          <p
-            className="text-muted mx-auto"
-            style={{ maxWidth: "650px" }}
-          >
-            This module is currently under active development by the MediCore
-            engineering team. It will be available in a future update with full
-            functionality, security, reporting, and seamless integration with
-            the rest of the Hospital Management Information System.
-          </p>
-
-          <div className="row g-3 mt-4 justify-content-center">
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-code-slash fs-2 text-primary"></i>
-                <h6 className="mt-3 mb-1">Development</h6>
-                <small className="text-muted">
-                  Core features are currently being implemented.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-shield-check fs-2 text-success"></i>
-                <h6 className="mt-3 mb-1">Testing</h6>
-                <small className="text-muted">
-                  Every workflow undergoes extensive quality assurance.
-                </small>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="border rounded p-3 h-100">
-                <i className="bi bi-rocket-takeoff fs-2 text-warning"></i>
-                <h6 className="mt-3 mb-1">Coming Soon</h6>
-                <small className="text-muted">
-                  This module will be released in a future MediCore update.
-                </small>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-5">
-            <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
-              Return to Dashboard
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
+      {tab === "history" && (
+        <section>
+          <h2>Session History</h2>
+          <table>
+            <thead>
+              <tr><th>User</th><th>IP Address</th><th>Browser</th><th>Device</th><th>Login</th><th>Logout</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {allSessions.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.full_name} ({s.username})</td>
+                  <td>{s.ip_address}</td><td>{s.browser}</td><td>{s.device}</td>
+                  <td>{new Date(s.login_at).toLocaleString()}</td>
+                  <td>{s.logout_at ? new Date(s.logout_at).toLocaleString() : "—"}</td>
+                  <td>{s.is_active ? "Active" : "Ended"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {allSessions.length === 0 && <p>No session history.</p>}
+        </section>
+      )}
+    </div>
   );
 }
