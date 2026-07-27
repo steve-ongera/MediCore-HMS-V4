@@ -175,6 +175,10 @@ import MaintenanceHistory from "./pages/ambulance/MaintenanceHistory.jsx";
 import AdmissionMedicineOrders from "./pages/pharmacy/AdmissionMedicineOrders.jsx";
 import EmergencyMedicineOrders from "./pages/pharmacy/EmergencyMedicineOrders.jsx";
 
+import VerifyOTP from "./pages/auth/VerifyOTP.jsx";
+import DeviceSessionMonitoring from "./pages/settings/DeviceSessionMonitoring.jsx";
+import SecurityAuditLogPage from "./pages/settings/SecurityAuditLogPage.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -215,6 +219,7 @@ export default function App() {
       {/* Public */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
       </Route>
 
@@ -724,6 +729,9 @@ export default function App() {
 
         <Route path="/pharmacy/admission-orders" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><AdmissionMedicineOrders /></ProtectedRoute>} />
         <Route path="/pharmacy/emergency-orders" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><EmergencyMedicineOrders /></ProtectedRoute>} />
+
+        <Route path="/settings/sessions" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><DeviceSessionMonitoring /></ProtectedRoute>} />
+        <Route path="/settings/security-audit" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SecurityAuditLogPage /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route

@@ -247,6 +247,8 @@ const NAV_GROUPS = [
     roles: [],
     links: [
       { to: "/audit-logs", label: "Audit Log", icon: "bi-journal-text" },
+      { to: "/settings/sessions", label: "Device & Session Monitoring", icon: "bi-shield-lock" },
+      { to: "/settings/security-audit", label: "Security Audit Log", icon: "bi-clipboard2-pulse" },
       { to: "/users", label: "Staff", icon: "bi-person-badge" },
       { to: "/departments", label: "Departments", icon: "bi-building" },
       { to: "/settings/test-catalog", label: "Test Catalog", icon: "bi-clipboard2-data" },

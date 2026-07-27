@@ -46,12 +46,36 @@ export function AuthProvider({ children }) {
     loadMe();
   }, [loadMe]);
 
+  /**
+   * Step 1 of login: username + password.
+   * - If the backend bypasses OTP (DEBUG=True), the response already
+   *   contains tokens + user — we log in immediately, same as before.
+   * - Otherwise the response is { otp_required: true, user_id } and no
+   *   tokens are issued yet; the caller (Login.jsx) should show the OTP
+   *   step and call verifyOtp() next.
+   */
   const login = useCallback(async (username, password) => {
     const data = await api.login(username, password);
+    if (data.otp_required) {
+      return { otpRequired: true, userId: data.user_id };
+    }
+    localStorage.setItem("access_token", data.access);
+    localStorage.setItem("refresh_token", data.refresh);
+    setUser(data.user);
+    return { otpRequired: false, user: data.user };
+  }, []);
+
+  /** Step 2 of login: submit the emailed OTP code to complete authentication. */
+  const verifyOtp = useCallback(async (userId, code) => {
+    const data = await api.verifyLoginOTP({ user_id: userId, code });
     localStorage.setItem("access_token", data.access);
     localStorage.setItem("refresh_token", data.refresh);
     setUser(data.user);
     return data.user;
+  }, []);
+
+  const resendOtp = useCallback(async (userId) => {
+    return api.resendLoginOTP({ user_id: userId });
   }, []);
 
   const logout = useCallback(async () => {
@@ -90,6 +114,8 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     loading,
     login,
+    verifyOtp,
+    resendOtp,
     logout,
     refreshUser,
     hasRole,

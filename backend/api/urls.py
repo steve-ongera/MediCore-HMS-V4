@@ -94,6 +94,8 @@ urlpatterns = [
     # Authentication
     # =========================================================================
     path("auth/login/", views.LoginView.as_view(), name="login"),
+    path("auth/verify-otp/", views.VerifyOTPView.as_view()),
+    path("auth/resend-otp/", views.ResendOTPView.as_view()),
     path("auth/logout/", views.LogoutView.as_view(), name="logout"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("auth/me/", views.MeView.as_view(), name="me"),

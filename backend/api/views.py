@@ -72,39 +72,134 @@ class BaseModelViewSet(viewsets.ModelViewSet):
 # ---------------------------------------------------------------------------
 # Auth
 # ---------------------------------------------------------------------------
+from django.conf import settings
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from security.models import AccountLockout, LoginAttemptStatus, AuditEventType
+from security.services import (
+    record_failed_attempt, reset_lockout, create_and_send_otp, verify_otp,
+    start_session, log_audit_event,
+)
+from security.utils import get_client_ip
+
+
 class LoginView(APIView):
-    permission_classes = [AllowAny]
+    """
+    POST /api/auth/login/  { username, password }
+    Step 1 of login. On success:
+      - if settings.DEBUG is True: bypasses OTP, returns tokens immediately (matches existing behavior).
+      - otherwise: sends an OTP to the user's email and returns {"otp_required": true, "user_id": ...}
+        without issuing tokens yet — tokens are only issued after /api/auth/verify-otp/.
+    """
+    permission_classes = []
+    authentication_classes = []
 
     def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
+        username = request.data.get("username", "")
+        password = request.data.get("password", "")
+
         user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            from api.models import User
+            existing_user = User.objects.filter(username=username).first()
+            lockout = record_failed_attempt(existing_user, request, reason=LoginAttemptStatus.FAILED_PASSWORD)
+            log_audit_event(AuditEventType.FAILED_LOGIN, user=existing_user, request=request,
+                             description="Failed login — incorrect password.")
+            return Response({"success": False, "errors": {"detail": "Invalid username or password."}}, status=status.HTTP_401_UNAUTHORIZED)
+
+        lockout = AccountLockout.objects.filter(user=user).first()
+        if lockout and lockout.is_locked:
+            log_audit_event(AuditEventType.FAILED_LOGIN, user=user, request=request,
+                             description="Login blocked — account locked.")
+            return Response(
+                {"success": False, "errors": {"detail": "This account is locked due to repeated failed login attempts. Contact your administrator."}},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        reset_lockout(user)
+
+        if settings.DEBUG:
+            refresh = RefreshToken.for_user(user)
+            session = start_session(user, request, refresh_jti=str(refresh["jti"]))
+            return Response({
+                "success": True,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": UserSerializer(user).data,
+            })
+
+        create_and_send_otp(user, request)
+        return Response({"success": True, "otp_required": True, "user_id": str(user.id)})
+
+
+class VerifyOTPView(APIView):
+    """POST /api/auth/verify-otp/  { user_id, code } — Step 2 of login. Issues tokens on success."""
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+        from api.models import User
+
+        user_id = request.data.get("user_id")
+        code = request.data.get("code", "")
+
+        user = User.objects.filter(pk=user_id).first()
         if not user:
-            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
-        if not user.is_active or not user.is_active_staff:
-            return Response({"detail": "Account is deactivated."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"success": False, "errors": {"detail": "Invalid session — please log in again."}}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not verify_otp(user, code):
+            record_failed_attempt(user, request, reason=LoginAttemptStatus.FAILED_OTP)
+            log_audit_event(AuditEventType.FAILED_LOGIN, user=user, request=request,
+                             description="Failed login — incorrect or expired OTP.")
+            return Response({"success": False, "errors": {"detail": "Invalid or expired code."}}, status=status.HTTP_400_BAD_REQUEST)
 
         refresh = RefreshToken.for_user(user)
+        start_session(user, request, refresh_jti=str(refresh["jti"]))
+
         return Response({
+            "success": True,
             "access": str(refresh.access_token),
             "refresh": str(refresh),
             "user": UserSerializer(user).data,
         })
 
 
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+class ResendOTPView(APIView):
+    permission_classes = []
+    authentication_classes = []
 
     def post(self, request):
+        from api.models import User
+        user = User.objects.filter(pk=request.data.get("user_id")).first()
+        if not user:
+            return Response({"success": False, "errors": {"detail": "Invalid session."}}, status=status.HTTP_400_BAD_REQUEST)
+        create_and_send_otp(user, request)
+        return Response({"success": True, "detail": "A new code has been sent."})
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        from security.models import UserSession
+        from security.services import end_session
+
+        refresh_token = request.data.get("refresh")
         try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            RefreshToken(refresh_token).blacklist()
         except Exception:
             pass
-        return Response({"detail": "Logged out."}, status=status.HTTP_205_RESET_CONTENT)
 
+        session = UserSession.objects.filter(user=request.user, is_active=True).order_by("-login_at").first()
+        if session:
+            end_session(session, request=request)
 
+        return Response({"success": True})
+    
+    
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 

@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "eyeclinic",
     "dialysis",
     "icu",
+    "security",
 ]
 
 MIDDLEWARE = [
@@ -80,6 +81,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "api.middleware.AuditLogMiddleware",  # captures request.user + IP for signals
+    "security.middleware.LoginRateLimitMiddleware",
+    "security.middleware.SessionIdleTimeoutMiddleware",
 ]
  
 
@@ -203,3 +206,23 @@ ETIMS_API_KEY = config("ETIMS_API_KEY", default="")
 ETIMS_KRA_PIN = config("ETIMS_KRA_PIN", default="")
 ETIMS_BRANCH_ID = config("ETIMS_BRANCH_ID", default="00")
 ETIMS_CU_SERIAL = config("ETIMS_CU_SERIAL", default="")
+
+SECURITY_ADMIN_EMAIL = config("SECURITY_ADMIN_EMAIL", default="admin@yourhospital.com")
+
+# Email backend — configure real SMTP in production; console backend is fine for dev
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@yourhospital.com")
+
+# Access tokens short-lived to work with the 5-minute idle timeout enforced
+# by SessionIdleTimeoutMiddleware; refresh tokens live longer so a still-active
+# user doesn't get bounced, but idle users get cut off by the middleware first.
+SIMPLE_JWT = {
+    **globals().get("SIMPLE_JWT", {}),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=8),
+}

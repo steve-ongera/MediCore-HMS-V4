@@ -708,6 +708,16 @@ export const getPendingCompletionDispenses = () => unwrap(client.get("/pharmacy-
 export const getAllActiveMedicationOrders = () => unwrap(client.get("/medication-orders/", { params: { is_active: true, page_size: 200 } }));
 export const getAllActiveEmergencyMedicationOrders = () => unwrap(client.get("/emergency-medication-orders/", { params: { is_active: true, page_size: 200 } }));
 
+export const verifyLoginOTP = (payload) => unwrap(client.post("/auth/verify-otp/", payload));
+export const resendLoginOTP = (payload) => unwrap(client.post("/auth/resend-otp/", payload));
+
+export const getLoginAttempts = (params) => unwrap(client.get(`/login-attempts/${qs(params)}`));
+export const getUserSessions = (params) => unwrap(client.get(`/user-sessions/${qs(params)}`));
+export const getActiveSessions = () => unwrap(client.get("/user-sessions/active/"));
+export const getSecurityAuditLogs = (params) => unwrap(client.get(`/security-audit-logs/${qs(params)}`));
+export const getAccountLockouts = (params) => unwrap(client.get(`/account-lockouts/${qs(params)}`));
+export const unlockAccount = (id) => unwrap(client.post(`/account-lockouts/${id}/unlock/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
