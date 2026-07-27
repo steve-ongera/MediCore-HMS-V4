@@ -179,6 +179,9 @@ import VerifyOTP from "./pages/auth/VerifyOTP.jsx";
 import DeviceSessionMonitoring from "./pages/settings/DeviceSessionMonitoring.jsx";
 import SecurityAuditLogPage from "./pages/settings/SecurityAuditLogPage.jsx";
 
+import CashTillDashboard from "./pages/billing/CashTillDashboard.jsx";
+import VarianceApprovals from "./pages/finance/VarianceApprovals.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -732,6 +735,10 @@ export default function App() {
 
         <Route path="/settings/sessions" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><DeviceSessionMonitoring /></ProtectedRoute>} />
         <Route path="/settings/security-audit" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SecurityAuditLogPage /></ProtectedRoute>} />
+
+        <Route path="/billing/till" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER]}><CashTillDashboard /></ProtectedRoute>} />
+        <Route path="/finance/variance-approvals" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><VarianceApprovals /></ProtectedRoute>} />
+
 
         {/* Profile - any authenticated user */}
         <Route

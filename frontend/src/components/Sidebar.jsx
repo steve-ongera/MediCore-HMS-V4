@@ -26,6 +26,7 @@ const NAV_GROUPS = [
       { to: "/billing/bulk-payment", label: "Bulk Payment", icon: "bi-stack" },
       { to: "/billing/walk-in-sale", label: "Walk-in Sale", icon: "bi-bag-check" },
       { to: "/billing/payments", label: "Payments", icon: "bi-receipt" },
+      { to: "/billing/till", label: "Cash Till", icon: "bi-safe" }
     ],
   },
   {
@@ -198,6 +199,7 @@ const NAV_GROUPS = [
       { to: "/finance/journal", label: "Journal Entries", icon: "bi-journal-text" },
       { to: "/finance/expenses", label: "Expenses", icon: "bi-receipt-cutoff" },
       { to: "/finance/budgets", label: "Budgets", icon: "bi-pie-chart" },
+      { to: "/finance/variance-approvals", label: "Variance Approvals", icon: "bi-exclamation-octagon" }
     ],
   },
   {
