@@ -97,6 +97,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Stock Control",
+    roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT],
+    links: [
+      { to: "/stockcontrol/locations", label: "Store Locations", icon: "bi-geo-alt", roles: [] },
+      { to: "/stockcontrol/transfers", label: "Internal Transfers", icon: "bi-arrow-left-right" },
+      { to: "/stockcontrol/counts", label: "Stock Counts", icon: "bi-clipboard2-check" },
+      { to: "/stockcontrol/discrepancies", label: "Discrepancy Report", icon: "bi-exclamation-triangle-fill" },
+    ],
+  },
+  {
     label: "Insights",
     roles: [ROLES.ACCOUNTANT],
     links: [
