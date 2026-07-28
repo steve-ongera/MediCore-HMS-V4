@@ -27,6 +27,7 @@ from api.permissions import (
     HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor,
     IsLabTechnologist, IsRadiologist, IsPharmacist, ReadOnlyOrSuperAdmin, IsSuperAdmin,
 )
+from finance.permissions import RequiresOpenTill
 from api.filters import (
     PatientFilter, VisitFilter, InvoiceFilter, PaymentFilter, QueueEntryFilter,
     LabOrderFilter, RadiologyOrderFilter, MedicineFilter, MedicineBatchFilter,
@@ -342,6 +343,7 @@ class InvoiceViewSet(BaseModelViewSet):
 
 
 class PaymentViewSet(BaseModelViewSet):
+    permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
     queryset = Payment.objects.select_related("invoice", "cashier").all()
     serializer_class = PaymentSerializer
     filterset_class = PaymentFilter
@@ -819,6 +821,7 @@ class OTCSaleViewSet(BaseModelViewSet):
     than a clinical workflow. Sales are immutable once made (no PATCH/PUT),
     matching the PaymentViewSet/InvoiceViewSet convention elsewhere.
     """
+    permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
     queryset = OTCSale.objects.prefetch_related("items__medicine").select_related("served_by").all()
     serializer_class = OTCSaleSerializer
     search_fields = ["sale_number", "customer_name", "customer_phone"]
@@ -1509,7 +1512,7 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
     InvoiceViewSet — those remain exactly as they are for the existing
     single-invoice Payments.jsx screen.
     """
-    permission_classes = [IsCashierOrAccountant]
+    permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
     queryset = BulkPayment.objects.select_related("patient", "cashier").prefetch_related("lines__invoice", "lines__payment")
 
     @action(detail=False, methods=["get"], url_path="outstanding-invoices")

@@ -448,6 +448,26 @@ class Consultation(BaseModel):
     def __str__(self):
         return f"Consultation - {self.visit.visit_number}"
 
+class ConsultationProcedure(BaseModel):
+    """
+    Ad-hoc procedure performed and billed during a consultation — e.g.
+    suturing, wound dressing, minor excision, ECG. Free-text description
+    with a manually entered amount, billed the instant it's recorded —
+    same lightweight pattern as MCH/Mortuary ad-hoc charges.
+    """
+    consultation = models.ForeignKey(Consultation, on_delete=models.CASCADE, related_name="procedures")
+    description = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
+    performed_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="consultation_procedures_performed")
+    invoice = models.ForeignKey(Invoice, null=True, blank=True, on_delete=models.SET_NULL, related_name="consultation_procedures")
+    performed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "consultation_procedures"
+        ordering = ["performed_at"]
+
+    def __str__(self):
+        return f"{self.description} - {self.consultation}"
 
 class ConsultationDiagnosis(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

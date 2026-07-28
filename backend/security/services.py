@@ -66,14 +66,19 @@ def reset_lockout(user):
 
 
 def create_and_send_otp(user, request):
-    LoginOTP.objects.filter(user=user, is_used=False).update(is_used=True)  # invalidate any prior active code
+    LoginOTP.objects.filter(user=user, is_used=False).update(is_used=True)
     code = generate_otp_code()
     LoginOTP.objects.create(
         user=user, code=code, purpose=OTPPurpose.LOGIN,
         expires_at=timezone.now() + timedelta(minutes=OTP_VALIDITY_MINUTES),
         ip_address=get_client_ip(request),
     )
-    send_otp_email(user, code)
+    try:
+        send_otp_email(user, code)
+    except Exception as exc:
+        import logging
+        logging.getLogger("security").error(f"Failed to send OTP email to {user.email}: {exc}")
+        raise  # re-raise so LoginView can return a clean 503, not a raw 500
 
 
 def verify_otp(user, code):
