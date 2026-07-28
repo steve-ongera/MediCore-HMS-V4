@@ -743,6 +743,8 @@ export const createStockCount = (payload) => unwrap(client.post("/stock-counts/"
 export const submitStockCount = (id, payload) => unwrap(client.post(`/stock-counts/${id}/submit/`, payload));
 export const approveStockCount = (id) => unwrap(client.post(`/stock-counts/${id}/approve/`));
 export const getVariancePendingCounts = () => unwrap(client.get("/stock-counts/variance-pending/"));
+export const addConsultationProcedure = (consultationId, payload) => unwrap(client.post(`/consultations/${consultationId}/add-procedure/`, payload));
+
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads

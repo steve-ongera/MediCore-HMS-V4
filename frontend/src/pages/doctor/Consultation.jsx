@@ -20,6 +20,7 @@ import {
   createRadiologyOrder,
   getLabTestCatalog,
   getRadiologyTestCatalog,
+  addConsultationProcedure,
 } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Modal from "../../components/Modal";
@@ -30,6 +31,7 @@ const TABS = [
   { key: "notes", label: "Clinical Notes", icon: "bi-file-text" },
   { key: "diagnoses", label: "Diagnoses", icon: "bi-clipboard-check" },
   { key: "prescriptions", label: "Prescriptions", icon: "bi-capsule" },
+  { key: "procedures", label: "Procedures", icon: "bi-heart-pulse" },
   { key: "orders", label: "Lab & Radiology", icon: "bi-list-ul" },
 ];
 
@@ -74,6 +76,9 @@ export default function Consultation() {
     quantity: "",
     instructions: "",
   });
+
+  const [showProcedureModal, setShowProcedureModal] = useState(false);
+  const [procedureForm, setProcedureForm] = useState({ description: "", amount: "" });
 
   const [labTests, setLabTests] = useState([]);
   const [radiologyTests, setRadiologyTests] = useState([]);
@@ -335,6 +340,28 @@ export default function Consultation() {
     }
   };
 
+  const addProcedureToConsultation = async () => {
+    if (!procedureForm.description || !procedureForm.amount) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await addConsultationProcedure(consultation.id, {
+        description: procedureForm.description,
+        amount: parseFloat(procedureForm.amount),
+      });
+      toast.success("Procedure added and billed");
+      setShowProcedureModal(false);
+      setProcedureForm({ description: "", amount: "" });
+      loadConsultation();
+    } catch (err) {
+      toast.error(err.message || "Failed to add procedure");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCreateLabOrder = async () => {
     if (!labForm.test) {
       toast.error("Please select a test");
@@ -469,6 +496,7 @@ export default function Consultation() {
 
   const diagnosesCount = consultation?.diagnoses?.length || 0;
   const prescriptionsCount = consultation?.prescriptions?.length || 0;
+  const proceduresCount = consultation?.procedures?.length || 0;
   const ordersCount = (consultation?.lab_orders?.length || 0) + (consultation?.radiology_orders?.length || 0);
 
   return (
@@ -630,6 +658,9 @@ export default function Consultation() {
                 )}
                 {tab.key === "prescriptions" && prescriptionsCount > 0 && (
                   <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{prescriptionsCount}</span>
+                )}
+                {tab.key === "procedures" && proceduresCount > 0 && (
+                  <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{proceduresCount}</span>
                 )}
                 {tab.key === "orders" && ordersCount > 0 && (
                   <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{ordersCount}</span>
@@ -821,6 +852,59 @@ export default function Consultation() {
                             <td>
                               <StatusBadge status={rx.is_dispensed ? "DISPENSED" : "PENDING"} />
                             </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Procedures Tab */}
+          {activeTab === "procedures" && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Procedures Performed</h5>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setShowProcedureModal(true)}
+                >
+                  <i className="bi bi-plus-lg me-1"></i>
+                  Add Procedure
+                </button>
+              </div>
+              <div className="card-body p-0">
+                {proceduresCount === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-state__icon">
+                      <i className="bi bi-heart-pulse" style={{ fontSize: "1.5rem" }}></i>
+                    </div>
+                    <h3 className="empty-state__title">No procedures recorded</h3>
+                    <p className="empty-state__desc">
+                      Record any procedure done during this consultation — it bills the patient immediately, separate from the consultation fee.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="table-scroll">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Description</th>
+                          <th>Amount</th>
+                          <th>Performed By</th>
+                          <th>Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {consultation?.procedures?.map((p) => (
+                          <tr key={p.id}>
+                            <td className="cell-primary">{p.description}</td>
+                            <td>KES {p.amount}</td>
+                            <td>{p.performed_by_name || "—"}</td>
+                            <td>{p.performed_at ? formatDateTime(p.performed_at) : "—"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1222,6 +1306,69 @@ export default function Consultation() {
               onChange={(e) => setPrescriptionForm((prev) => ({ ...prev, instructions: e.target.value }))}
             />
           </div>
+        </div>
+      </Modal>
+
+      {/* Add Procedure Modal */}
+      <Modal
+        show={showProcedureModal}
+        onClose={() => {
+          setShowProcedureModal(false);
+          setProcedureForm({ description: "", amount: "" });
+        }}
+        title="Add & Bill Procedure"
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowProcedureModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={addProcedureToConsultation}
+              disabled={submitting || !procedureForm.description || !procedureForm.amount}
+            >
+              {submitting ? (
+                <span className="spinner-border spinner-border-sm" />
+              ) : (
+                <>
+                  <i className="bi bi-plus-lg me-2"></i>
+                  Add & Bill Procedure
+                </>
+              )}
+            </button>
+          </>
+        }
+      >
+        <div className="field">
+          <label className="field-label" htmlFor="proc_description">
+            Description <span className="required">*</span>
+          </label>
+          <input
+            id="proc_description"
+            type="text"
+            className="input"
+            placeholder="e.g., Wound suturing, ECG, Nebulization"
+            value={procedureForm.description}
+            onChange={(e) => setProcedureForm((prev) => ({ ...prev, description: e.target.value }))}
+          />
+        </div>
+        <div className="field mb-0">
+          <label className="field-label" htmlFor="proc_amount">
+            Amount (KES) <span className="required">*</span>
+          </label>
+          <input
+            id="proc_amount"
+            type="number"
+            className="input"
+            placeholder="e.g., 1500"
+            value={procedureForm.amount}
+            onChange={(e) => setProcedureForm((prev) => ({ ...prev, amount: e.target.value }))}
+          />
         </div>
       </Modal>
 
