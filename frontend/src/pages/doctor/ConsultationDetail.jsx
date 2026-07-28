@@ -8,7 +8,7 @@ import { getConsultation, saveConsultation, deleteConsultation } from "../../ser
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, formatDateTime } from "../../utils/formatters";
 import medicoreLogo from "../../assets/medicore_logo.png";
 
 const HOSPITAL_NAME = "City General Hospital";
@@ -291,6 +291,19 @@ export default function ConsultationDetail() {
         );
       }
 
+      if (consultation.procedures?.length) {
+        addTableSection(
+          "Procedures Performed",
+          ["Description", "Amount", "Performed By", "Time"],
+          consultation.procedures.map((p) => [
+            p.description,
+            `KES ${p.amount}`,
+            p.performed_by_name || "—",
+            p.performed_at ? formatDateTime(p.performed_at) : "—",
+          ])
+        );
+      }
+
       if (consultation.lab_orders?.length) {
         addTableSection(
           "Lab Orders",
@@ -339,6 +352,7 @@ export default function ConsultationDetail() {
     { id: "clinical", label: "Clinical Notes", icon: "bi-file-text" },
     { id: "diagnoses", label: "Diagnoses", icon: "bi-clipboard-check" },
     { id: "prescriptions", label: "Prescriptions", icon: "bi-capsule" },
+    { id: "procedures", label: "Procedures", icon: "bi-heart-pulse" },
     { id: "orders", label: "Orders", icon: "bi-list-ul" },
   ];
 
@@ -449,6 +463,12 @@ export default function ConsultationDetail() {
                   <div className="info-item__label">Prescriptions</div>
                   <div className="info-item__value">
                     <span className="badge badge-primary">{consultation.prescriptions?.length || 0}</span>
+                  </div>
+                </div>
+                <div className="info-item" style={{ marginTop: "var(--space-3)" }}>
+                  <div className="info-item__label">Procedures</div>
+                  <div className="info-item__value">
+                    <span className="badge badge-primary">{consultation.procedures?.length || 0}</span>
                   </div>
                 </div>
               </div>
@@ -582,6 +602,50 @@ export default function ConsultationDetail() {
                     </div>
                     <h3 className="empty-state__title">No prescriptions</h3>
                     <p className="empty-state__desc">Prescriptions will appear here once added.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Procedures Tab */}
+          {activeTab === "procedures" && (
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Procedures Performed</h5>
+                <span className="badge badge-primary">{consultation.procedures?.length || 0}</span>
+              </div>
+              <div className="card-body p-0">
+                {consultation.procedures?.length ? (
+                  <div className="table-scroll">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Description</th>
+                          <th>Amount</th>
+                          <th>Performed By</th>
+                          <th>Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {consultation.procedures.map((p) => (
+                          <tr key={p.id}>
+                            <td className="cell-primary">{p.description}</td>
+                            <td>KES {p.amount}</td>
+                            <td>{p.performed_by_name || "—"}</td>
+                            <td>{p.performed_at ? formatDateTime(p.performed_at) : "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-state__icon">
+                      <i className="bi bi-heart-pulse"></i>
+                    </div>
+                    <h3 className="empty-state__title">No procedures recorded</h3>
+                    <p className="empty-state__desc">Procedures performed during this consultation will appear here.</p>
                   </div>
                 )}
               </div>
