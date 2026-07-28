@@ -175,3 +175,5 @@ class ReadOnlyOrSuperAdmin(BasePermission):
         if request.method in self.SAFE_METHODS:
             return True
         return request.user.role == Role.SUPER_ADMIN
+    
+    

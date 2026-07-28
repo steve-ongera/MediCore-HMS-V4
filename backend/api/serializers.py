@@ -1,5 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from api.models import ConsultationProcedure
 
 from api.models import (
     User, Department, Patient, Allergy, MedicalHistoryNote, Visit,
@@ -550,3 +551,19 @@ class CreateBulkPaymentSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
     method = serializers.ChoiceField(choices=["CASH", "MPESA", "CARD", "INSURANCE"])
     reference_number = serializers.CharField(required=False, allow_blank=True, default="")
+    
+    
+
+
+class ConsultationProcedureSerializer(serializers.ModelSerializer):
+    performed_by_name = serializers.CharField(source="performed_by.get_full_name", read_only=True)
+
+    class Meta:
+        model = ConsultationProcedure
+        fields = ["id", "consultation", "description", "amount", "performed_by", "performed_by_name", "invoice", "performed_at"]
+        read_only_fields = ["id", "consultation", "performed_by", "invoice", "performed_at"]
+
+
+class AddConsultationProcedureSerializer(serializers.Serializer):
+    description = serializers.CharField(max_length=255)
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0.01)

@@ -53,6 +53,10 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 
+from api.models import ConsultationProcedure, InvoiceSourceType
+from api.serializers import AddConsultationProcedureSerializer, ConsultationProcedureSerializer
+
+
 
 # ---------------------------------------------------------------------------
 # Base ViewSet: keeps thread-local user in sync (for audit signals) and
@@ -515,6 +519,29 @@ class ConsultationViewSet(BaseModelViewSet):
         consultation.completed_at = timezone.now()
         consultation.save()
         return Response(ConsultationSerializer(consultation).data)
+    
+    @action(detail=True, methods=["post"], url_path="add-procedure")
+    def add_procedure(self, request, pk=None):
+        """Records a procedure performed during this consultation and bills it immediately against the visit."""
+        consultation = self.get_object()
+        serializer = AddConsultationProcedureSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        with transaction.atomic():
+            invoice = Invoice.objects.create(
+                patient=consultation.visit.patient,
+                visit=consultation.visit,
+                source_type=InvoiceSourceType.PROCEDURE,
+                description=f"Procedure - {data['description']} ({consultation.visit.visit_number})",
+                amount=data["amount"],
+            )
+            procedure = ConsultationProcedure.objects.create(
+                consultation=consultation, description=data["description"],
+                amount=data["amount"], performed_by=request.user, invoice=invoice,
+            )
+
+        return Response(ConsultationProcedureSerializer(procedure).data, status=status.HTTP_201_CREATED)
 
 
 class PrescriptionViewSet(BaseModelViewSet):
