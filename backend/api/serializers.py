@@ -285,12 +285,28 @@ class RadiologyOrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "status", "is_paid", "invoice", "ordered_by", "ordered_at"]
 
+
+class ConsultationProcedureSerializer(serializers.ModelSerializer):
+    performed_by_name = serializers.CharField(source="performed_by.get_full_name", read_only=True)
+
+    class Meta:
+        model = ConsultationProcedure
+        fields = ["id", "consultation", "description", "amount", "performed_by", "performed_by_name", "invoice", "performed_at"]
+        read_only_fields = ["id", "consultation", "performed_by", "invoice", "performed_at"]
+
+
+class AddConsultationProcedureSerializer(serializers.Serializer):
+    description = serializers.CharField(max_length=255)
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0.01)
+    
+    
 class ConsultationSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="visit.patient.full_name", read_only=True)
     diagnoses = ConsultationDiagnosisSerializer(source="consultationdiagnosis_set", many=True, read_only=True)
     prescriptions = PrescriptionSerializer(many=True, read_only=True)
     lab_orders = LabOrderSerializer(many=True, read_only=True)
     radiology_orders = RadiologyOrderSerializer(many=True, read_only=True)
+    procedures = ConsultationProcedureSerializer(many=True, read_only=True)   # ← ADD THIS LINE
     vitals = VitalSignsSerializer(source="visit.vitals", read_only=True)
 
     class Meta:
@@ -299,10 +315,10 @@ class ConsultationSerializer(serializers.ModelSerializer):
             "id", "visit", "patient_name", "doctor", "chief_complaint",
             "history_of_present_illness", "physical_examination", "treatment_plan",
             "clinical_notes", "diagnoses", "prescriptions", "lab_orders", "radiology_orders",
+            "procedures",                                                      # ← AND ADD THIS
             "vitals", "status", "pause_reason", "pause_notes", "started_at", "completed_at",
         ]
-        read_only_fields = ["id", "doctor", "started_at", "completed_at"]  # ✅ added "doctor"
-
+        read_only_fields = ["id", "doctor", "started_at", "completed_at"]
 
 class ConsultationPauseSerializer(serializers.Serializer):
     pause_reason = serializers.ChoiceField(choices=["WAITING_LAB", "WAITING_RADIOLOGY", "PATIENT_NOT_READY", "OTHER"])
@@ -554,16 +570,3 @@ class CreateBulkPaymentSerializer(serializers.Serializer):
     
     
 
-
-class ConsultationProcedureSerializer(serializers.ModelSerializer):
-    performed_by_name = serializers.CharField(source="performed_by.get_full_name", read_only=True)
-
-    class Meta:
-        model = ConsultationProcedure
-        fields = ["id", "consultation", "description", "amount", "performed_by", "performed_by_name", "invoice", "performed_at"]
-        read_only_fields = ["id", "consultation", "performed_by", "invoice", "performed_at"]
-
-
-class AddConsultationProcedureSerializer(serializers.Serializer):
-    description = serializers.CharField(max_length=255)
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0.01)
