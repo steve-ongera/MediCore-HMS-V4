@@ -114,6 +114,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Revenue Leakage",
+    roles: [ROLES.ACCOUNTANT],
+    links: [
+      { to: "/leakage", label: "Leakage Dashboard", icon: "bi-exclamation-diamond-fill" },
+      { to: "/leakage/records", label: "All Leakage Records", icon: "bi-list-check" },
+    ],
+  },
+  {
     label: "Analytics Reports",
     roles: [ROLES.ACCOUNTANT],
     links: [
