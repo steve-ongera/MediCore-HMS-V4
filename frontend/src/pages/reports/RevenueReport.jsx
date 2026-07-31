@@ -2,8 +2,15 @@ import { useEffect, useState } from "react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { getReports } from "../../services/api";
 import { exportTableToExcel, exportTableToPDF } from "../../utils/reportExport";
+import { formatDisplayValue, formatCurrency } from "../../utils/formatters";
 
 const COLORS = ["#2962FF", "#00C48C", "#FFAB00", "#FF5252", "#7C4DFF", "#00BCD4"];
+
+// Formats numeric chart values (tooltips, axis ticks) with comma separators
+const formatChartValue = (value) => {
+  const num = Number(value);
+  return isNaN(num) ? value : num.toLocaleString("en-US");
+};
 
 export default function RevenueReport() {
   const [data, setData] = useState(null);
@@ -60,7 +67,7 @@ export default function RevenueReport() {
         {data.cards.map((c) => (
           <div className="stat-card" key={c.label}>
             <div className="stat-card__top"><span className="stat-card__label">{c.label}</span></div>
-            <div className="stat-card__value">{c.value}</div>
+            <div className="stat-card__value">{formatDisplayValue(c.value)}</div>
           </div>
         ))}
       </div>
@@ -76,7 +83,7 @@ export default function RevenueReport() {
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={formatChartValue} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -90,8 +97,8 @@ export default function RevenueReport() {
               <BarChart data={data.charts.by_source.data}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis />
-                <Tooltip />
+                <YAxis tickFormatter={formatChartValue} />
+                <Tooltip formatter={formatChartValue} />
                 <Bar dataKey="value" fill="#2962FF" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -105,8 +112,8 @@ export default function RevenueReport() {
               <LineChart data={data.charts.trend.data}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis />
-                <Tooltip />
+                <YAxis tickFormatter={formatChartValue} />
+                <Tooltip formatter={formatChartValue} />
                 <Line type="monotone" dataKey="value" stroke="#00C48C" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
@@ -133,7 +140,7 @@ export default function RevenueReport() {
                   <tr key={i}>
                     <td className="cell-mono">{row.receipt_number}</td>
                     <td className="cell-mono">{row.invoice__invoice_number}</td>
-                    <td className="cell-numeric">KES {row.amount}</td>
+                    <td className="cell-numeric">{formatCurrency(row.amount)}</td>
                     <td>{row.method}</td>
                     <td>{new Date(row.paid_at).toLocaleString()}</td>
                   </tr>
