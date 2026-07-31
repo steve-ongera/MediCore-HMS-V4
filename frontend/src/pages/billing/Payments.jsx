@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getPayments, createPayment, getInvoices, getInvoice } from "../../services/api";
+import { getPayments, createPayment, getInvoices, getInvoice, getMyOpenShift } from "../../services/api";
 import DataTable from "../../components/DataTable";
 import SearchBar from "../../components/SearchBar";
 import Pagination from "../../components/Pagination";
@@ -13,6 +13,10 @@ import { formatCurrency, formatDateTime } from "../../utils/formatters";
 export default function Payments() {
   const [searchParams] = useSearchParams();
   const invoiceIdParam = searchParams.get("invoice");
+
+  // Till gate — null = still checking, false = no open till, true = OK to proceed.
+  const [tillOpen, setTillOpen] = useState(null);
+  const [tillCheckError, setTillCheckError] = useState("");
 
   const [payments, setPayments] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -39,10 +43,29 @@ export default function Payments() {
   const pageSize = 20;
 
   useEffect(() => {
-    loadPayments();
-    loadInvoices();
-    if (invoiceIdParam) setShowModal(true);
-  }, [page, search, invoiceIdParam]);
+    checkTill();
+  }, []);
+
+  useEffect(() => {
+    if (tillOpen) {
+      loadPayments();
+      loadInvoices();
+      if (invoiceIdParam) setShowModal(true);
+    }
+  }, [tillOpen, page, search, invoiceIdParam]);
+
+  const checkTill = async () => {
+    setTillCheckError("");
+    try {
+      const shift = await getMyOpenShift();
+      setTillOpen(!!shift);
+    } catch (err) {
+      // A failed check is treated as "no till open" — safer default than
+      // silently letting billing proceed if the till-status call itself errors.
+      setTillOpen(false);
+      setTillCheckError(err.message || "Could not verify till status.");
+    }
+  };
 
   const loadPayments = async () => {
     setLoading(true);
@@ -62,18 +85,12 @@ export default function Payments() {
   const loadInvoices = async () => {
     try {
       // Don't filter by status here — an invoice can be UNPAID or PARTIAL
-      // and still have an outstanding balance (e.g. after a partial payment,
-      // or a bed charge / lab / procedure invoice raised mid-stay). Filtering
-      // to UNPAID only was silently hiding any invoice that had already
-      // received a partial payment from this dropdown.
+      // and still have an outstanding balance. Fetch a wide page and filter
+      // client-side on balance > 0, same approach used elsewhere in this app.
       const data = await getInvoices({ page: 1, page_size: 200 });
       let results = data.results || [];
       const outstanding = results.filter((inv) => Number(inv.balance) > 0);
 
-      // If we arrived via ?invoice=xxx (e.g. from Inpatient Billing "Take
-      // Payment" button) and that invoice isn't in the first page of
-      // results — or was already fully paid off by the time this loads —
-      // fetch it directly so the dropdown always has a matching option.
       if (invoiceIdParam && !outstanding.some((inv) => inv.id === invoiceIdParam)) {
         try {
           const specific = await getInvoice(invoiceIdParam);
@@ -81,8 +98,7 @@ export default function Payments() {
             outstanding.unshift(specific);
           }
         } catch {
-          // Invoice may not exist / already fully paid — safe to ignore,
-          // the select will just show no pre-selected match.
+          // Invoice may not exist / already fully paid — safe to ignore.
         }
       }
 
@@ -111,6 +127,10 @@ export default function Payments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!tillOpen) {
+      toast.error("You must open your cash till before processing payments.");
+      return;
+    }
     if (!validate()) return;
 
     setSubmitting(true);
@@ -127,10 +147,11 @@ export default function Payments() {
       loadPayments();
       loadInvoices();
 
-      // Immediately surface the printable/downloadable receipt for the new payment
       setSelectedReceiptId(payment.id);
       setShowReceiptModal(true);
     } catch (err) {
+      // Surfaces the backend's RequiresOpenTill 403 message cleanly if the
+      // till was closed by someone else mid-session, or any other API error.
       toast.error(err.message || "Failed to process payment");
     } finally {
       setSubmitting(false);
@@ -204,6 +225,46 @@ export default function Payments() {
       ),
     },
   ];
+
+  // ---------------------------------------------------------------------
+  // Till gate screens — nothing below this point renders until a till is
+  // confirmed open, matching the backend's RequiresOpenTill permission.
+  // ---------------------------------------------------------------------
+  if (tillOpen === null) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+        <LoadingSpinner />
+        <p className="text-muted mt-3">Checking till status...</p>
+      </div>
+    );
+  }
+
+  if (tillOpen === false) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center text-center" style={{ minHeight: "60vh" }}>
+        <div className="card p-4" style={{ maxWidth: 480 }}>
+          <i className="bi bi-safe2 fs-1 text-warning mb-3"></i>
+          <h4>Till Not Open</h4>
+          <p className="text-muted">
+            You must open your cash till and record a starting float before you can process any payments today.
+          </p>
+          {tillCheckError && (
+            <p className="text-danger small">Could not verify till status: {tillCheckError}</p>
+          )}
+          <div className="d-flex gap-2 justify-content-center mt-2">
+            <Link to="/billing/till" className="btn btn-primary">
+              <i className="bi bi-safe2 me-2"></i>
+              Open Cash Till
+            </Link>
+            <button type="button" className="btn btn-outline-secondary" onClick={checkTill}>
+              <i className="bi bi-arrow-clockwise me-2"></i>
+              Re-check
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
