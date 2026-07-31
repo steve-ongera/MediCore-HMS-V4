@@ -746,6 +746,12 @@ export const getVariancePendingCounts = () => unwrap(client.get("/stock-counts/v
 export const addConsultationProcedure = (consultationId, payload) => unwrap(client.post(`/consultations/${consultationId}/add-procedure/`, payload));
 
 
+export const getLeakageDashboard = () => unwrap(client.get("/revenue-leakage/dashboard/"));
+export const getLeakageRecords = (params) => unwrap(client.get(`/revenue-leakage/${qs(params)}`));
+export const resolveLeak = (id) => unwrap(client.post(`/revenue-leakage/${id}/resolve/`));
+export const writeOffLeak = (id, payload) => unwrap(client.post(`/revenue-leakage/${id}/write-off/`, payload));
+export const scanForLeaksNow = () => unwrap(client.post("/revenue-leakage/scan-now/"));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
