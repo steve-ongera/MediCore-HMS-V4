@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getLeakageDashboard, scanForLeaksNow } from "../../services/api";
 import { formatCurrency } from "../../utils/formatters";
 
