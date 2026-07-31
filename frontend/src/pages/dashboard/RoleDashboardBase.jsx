@@ -5,8 +5,15 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts";
 import { getMyDashboard } from "../../services/api";
+import { formatDisplayValue } from "../../utils/formatters";
 
 const COLORS = ["#4f46e5", "#16a34a", "#0891b2", "#d97706", "#dc2626", "#64748b", "#9333ea", "#0d9488"];
+
+// Formats numeric chart values (tooltips, axis ticks) with comma separators
+const formatChartValue = (value) => {
+  const num = Number(value);
+  return isNaN(num) ? value : num.toLocaleString("en-US");
+};
 
 export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActions }) {
   const [data, setData] = useState(null);
@@ -68,7 +75,7 @@ export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActio
         {cards.map((c) => (
           <div className="stat-card" key={c.label}>
             <div className="stat-card__top"><span className="stat-card__label">{c.label}</span></div>
-            <div className="stat-card__value">{c.value}</div>
+            <div className="stat-card__value">{formatDisplayValue(c.value)}</div>
           </div>
         ))}
       </div>
@@ -82,8 +89,8 @@ export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActio
                 <LineChart data={line.data}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis />
-                  <Tooltip />
+                  <YAxis tickFormatter={formatChartValue} />
+                  <Tooltip formatter={formatChartValue} />
                   <Line type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -99,8 +106,8 @@ export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActio
                 <BarChart data={bar.data}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-15} textAnchor="end" height={50} />
-                  <YAxis />
-                  <Tooltip />
+                  <YAxis tickFormatter={formatChartValue} />
+                  <Tooltip formatter={formatChartValue} />
                   <Bar dataKey="value" fill="#16a34a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -117,7 +124,7 @@ export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActio
                   <Pie data={pie.data} dataKey="value" nameKey="name" outerRadius={85} label>
                     {pie.data.map((entry, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={formatChartValue} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

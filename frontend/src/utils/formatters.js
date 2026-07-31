@@ -1,12 +1,35 @@
-// Replace your existing formatCurrency with this:
 export function formatCurrency(amount, currency = "KES") {
   const value = Number(amount ?? 0);
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    minimumFractionDigits: 0,  // Changed from 2 to 0
-    maximumFractionDigits: 0,  // Added this
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+    useGrouping: true, // ensures thousands separators like 25,000
   }).format(value);
+}
+
+// Reformats a backend-provided display string (e.g. "KES 169750", "1896480.00")
+// by inserting comma separators, without needing a raw number.
+export function formatDisplayValue(value) {
+  if (value === null || value === undefined) return value;
+
+  const str = String(value).trim();
+  // Captures: optional prefix (e.g. "KES "), the numeric part, optional suffix
+  const match = str.match(/^([^\d.-]*)([\d,]+(?:\.\d+)?)(.*)$/);
+  if (!match) return value; // not a recognizable number, leave as-is
+
+  const [, prefix, numPart, suffix] = match;
+  const num = parseFloat(numPart.replace(/,/g, ""));
+  if (isNaN(num)) return value;
+
+  const hasDecimals = numPart.includes(".");
+  const formattedNum = num.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: hasDecimals ? 2 : 0,
+  });
+
+  return `${prefix}${formattedNum}${suffix}`;
 }
 
 export function formatDate(dateString, options = {}) {
