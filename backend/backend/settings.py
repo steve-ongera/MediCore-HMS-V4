@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "icu",
     "security",
     "stockcontrol",
+    "leakage",
 ]
 
 MIDDLEWARE = [
