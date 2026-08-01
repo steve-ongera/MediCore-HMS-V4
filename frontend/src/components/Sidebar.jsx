@@ -294,6 +294,7 @@ const NAV_GROUPS = [
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
+      { to: "/messages", label: "Messages", icon: "bi bi-chat-left" },
       { to: "/settings", label: "Settings", icon: "bi-gear", roles: [] },
     ],
   },

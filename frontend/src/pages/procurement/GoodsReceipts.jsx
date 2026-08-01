@@ -80,6 +80,7 @@ export default function GoodsReceipts() {
                     <th>PO #</th>
                     <th>Supplier</th>
                     <th>Received By</th>
+                    <th>Destination</th>
                     <th>Date</th>
                   </tr>
                 </thead>
@@ -90,6 +91,7 @@ export default function GoodsReceipts() {
                       <td className="cell-mono">{r.po_number}</td>
                       <td>{r.supplier_name}</td>
                       <td>{r.received_by_name}</td>
+                      <td>{r.destination_location_name || "—"}</td>
                       <td>{new Date(r.received_at).toLocaleString()}</td>
                     </tr>
                   ))}
@@ -134,6 +136,45 @@ export default function GoodsReceipts() {
                   </div>
                 </div>
                 <div className="card-body p-0">
+                  <div className="info-grid" style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--border-color)" }}>
+                    <div className="info-item">
+                      <div className="info-item__label">Received By</div>
+                      <div className="info-item__value">
+                        {r.received_by_name || "—"}
+                        {r.receiver_contact_phone && ` (${r.receiver_contact_phone})`}
+                      </div>
+                    </div>
+                    <div className="info-item">
+                      <div className="info-item__label">Delivered By</div>
+                      <div className="info-item__value">
+                        {r.delivered_by_name || "—"}
+                        {r.delivered_by_phone && ` — ${r.delivered_by_phone}`}
+                        {r.delivered_by_company && ` (${r.delivered_by_company})`}
+                      </div>
+                    </div>
+                    <div className="info-item">
+                      <div className="info-item__label">Inspection</div>
+                      <div className="info-item__value">
+                        {r.inspected_by_name || "—"}
+                        {" — "}
+                        {r.inspection_passed === true
+                          ? <span className="text-success">Passed</span>
+                          : r.inspection_passed === false
+                            ? <span className="text-danger">Failed</span>
+                            : "Not inspected"}
+                      </div>
+                    </div>
+                    <div className="info-item">
+                      <div className="info-item__label">Destination</div>
+                      <div className="info-item__value">{r.destination_location_name || "—"}</div>
+                    </div>
+                    {r.inspection_notes && (
+                      <div className="info-item" style={{ gridColumn: "span 2" }}>
+                        <div className="info-item__label">Inspection Notes</div>
+                        <div className="info-item__value">{r.inspection_notes}</div>
+                      </div>
+                    )}
+                  </div>
                   <div className="table-scroll">
                     <table className="data-table">
                       <thead>

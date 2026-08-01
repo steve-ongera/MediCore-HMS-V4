@@ -1,0 +1,148 @@
+/* ChatDropdown.css
+   Uses the app's existing --space-*, --border-color, --danger, --primary
+   custom properties where they exist elsewhere in the app; falls back to
+   plain values so this still renders correctly if those aren't defined. */
+
+.chat-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.chat-dropdown__trigger {
+  position: relative;
+}
+
+.chat-dropdown__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger, #dc3545);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.chat-dropdown__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 340px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-color, #e2e5ea);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(15, 23, 42, 0.12));
+  z-index: 1000;
+}
+
+.chat-dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--border-color, #eee);
+  position: sticky;
+  top: 0;
+  background: var(--surface, #fff);
+}
+
+.chat-dropdown__header strong {
+  font-size: 14px;
+}
+
+.chat-dropdown__new-btn {
+  border: none;
+  background: none;
+  color: var(--primary, #2962ff);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm, 6px);
+}
+
+.chat-dropdown__new-btn:hover {
+  background: var(--primary-soft, rgba(41, 98, 255, 0.08));
+}
+
+.chat-dropdown__empty {
+  padding: var(--space-4, 16px);
+  color: var(--text-tertiary, #8a92a3);
+  font-size: 13px;
+  text-align: center;
+  margin: 0;
+}
+
+.chat-dropdown__item {
+  padding: var(--space-3, 10px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--border-color-soft, #f0f1f4);
+  cursor: pointer;
+  background: var(--surface, #fff);
+  transition: background 0.12s ease;
+}
+
+.chat-dropdown__item:last-child {
+  border-bottom: none;
+}
+
+.chat-dropdown__item:hover {
+  background: var(--bg-secondary, #f7f8fa);
+}
+
+.chat-dropdown__item.is-unread {
+  background: var(--primary-soft, #f5f8ff);
+}
+
+.chat-dropdown__item.is-unread:hover {
+  background: var(--primary-soft-strong, #eef2ff);
+}
+
+.chat-dropdown__item-title {
+  font-size: 13.5px;
+  color: var(--text-primary, #1a1d29);
+  font-weight: 500;
+}
+
+.chat-dropdown__item.is-unread .chat-dropdown__item-title {
+  font-weight: 700;
+}
+
+.chat-dropdown__item-role {
+  color: var(--text-tertiary, #8a92a3);
+  font-weight: 400;
+}
+
+.chat-dropdown__item-preview {
+  font-size: 12px;
+  color: var(--text-tertiary, #6b7280);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-dropdown__item-count {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--danger, #dc3545);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Narrow viewports: let the panel use most of the width instead of
+   overflowing off-screen on mobile. */
+@media (max-width: 480px) {
+  .chat-dropdown__panel {
+    width: calc(100vw - 32px);
+    right: -8px;
+  }
+}

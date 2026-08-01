@@ -766,6 +766,12 @@ export const generateInsightsNow = () => unwrap(client.post("/business-insights/
 export const acknowledgeInsight = (id) => unwrap(client.post(`/business-insights/${id}/acknowledge/`));
 export const getStoreLocationsForDropdown = () => unwrap(client.get("/store-locations/"));
 
+export const getConversations = () => unwrap(client.get("/conversations/"));
+export const startConversation = (userId) => unwrap(client.post("/conversations/start/", { user_id: userId }));
+export const getConversationMessages = (id) => unwrap(client.get(`/conversations/${id}/messages/`));
+export const sendMessage = (id, text) => unwrap(client.post(`/conversations/${id}/send/`, { text }));
+export const markConversationRead = (id) => unwrap(client.post(`/conversations/${id}/mark-read/`));
+export const getUnreadMessageCount = () => unwrap(client.get("/conversations/unread-count/"));
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads

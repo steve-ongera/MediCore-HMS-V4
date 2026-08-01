@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import ChatDropdown from "./ChatDropdown.jsx";
 
 // "/billing/payments" -> "Billing / Payments"
 function useBreadcrumbs() {
@@ -78,13 +79,11 @@ export default function Navbar({ onToggleSidebar }) {
       </div>
 
       <div className="navbar__right">
+        <ChatDropdown />
+
         <button type="button" className="navbar__icon-btn" aria-label="Notifications">
           <i className="bi bi-bell" style={{ fontSize: 17 }} aria-hidden="true" />
           <span className="dot" />
-        </button>
-
-        <button type="button" className="navbar__icon-btn" aria-label="Help">
-          <i className="bi bi-question-circle" style={{ fontSize: 17 }} aria-hidden="true" />
         </button>
 
         <div className="navbar__divider" />

@@ -196,6 +196,10 @@ import RefundsManagement from "./pages/executive/RefundsManagement.jsx";
 import BusinessInsights from "./pages/insights/BusinessInsights.jsx";
 import RequestRefund from "./pages/billing/RequestRefund.jsx";
 
+import Messages from "./pages/messaging/Messages.jsx";
+import ChatThread from "./pages/messaging/ChatThread.jsx";
+import StaffDirectory from "./pages/messaging/StaffDirectory.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -766,7 +770,11 @@ export default function App() {
         <Route path="/executive/refunds" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ACCOUNTANT]}><RefundsManagement /></ProtectedRoute>} />
         <Route path="/insights" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><BusinessInsights /></ProtectedRoute>} />
         <Route path="/billing/request-refund" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER]}><RequestRefund /></ProtectedRoute>} />
-        
+
+        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/messages/directory" element={<ProtectedRoute><StaffDirectory /></ProtectedRoute>} />
+        <Route path="/messages/:id" element={<ProtectedRoute><ChatThread /></ProtectedRoute>} />
+                
 
 
         {/* Profile - any authenticated user */}
