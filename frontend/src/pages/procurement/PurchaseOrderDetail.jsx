@@ -1,21 +1,48 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getPurchaseOrder, cancelPurchaseOrder, createGoodsReceipt, createSupplierInvoice } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import {
+  getPurchaseOrder,
+  cancelPurchaseOrder,
+  createGoodsReceipt,
+  createSupplierInvoice,
+  getUsers,
+  getStoreLocations,
+} from "../../services/api";
 
 export default function PurchaseOrderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [po, setPo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [receiptForm, setReceiptForm] = useState({ delivery_note_ref: "", notes: "" });
+  const [receiptForm, setReceiptForm] = useState({
+    delivery_note_ref: "",
+    receiver_contact_phone: "",
+    delivered_by_name: "",
+    delivered_by_phone: "",
+    delivered_by_company: "",
+    inspected_by: "",
+    inspection_passed: "",
+    inspection_notes: "",
+    destination_location: "",
+    notes: "",
+  });
   const [receiptItems, setReceiptItems] = useState({});
+
+  const [users, setUsers] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   const [invoiceForm, setInvoiceForm] = useState({ supplier_invoice_ref: "", amount: "", due_date: "" });
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    load();
+    loadUsers();
+    loadLocations();
+  }, [id]);
 
   const load = async () => {
     setLoading(true);
@@ -31,6 +58,20 @@ export default function PurchaseOrderDetail() {
       });
       setReceiptItems(initial);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const data = await getUsers();
+      setUsers(data.results ?? data);
+    } catch (err) { setError(err.message); }
+  };
+
+  const loadLocations = async () => {
+    try {
+      const data = await getStoreLocations();
+      setLocations(data.results ?? data);
+    } catch (err) { setError(err.message); }
   };
 
   const handleCancel = async () => {
@@ -60,14 +101,37 @@ export default function PurchaseOrderDetail() {
       setError("Select at least one item to receive.");
       return;
     }
+    if (!receiptForm.destination_location) {
+      setError("Select a destination location for the received goods.");
+      return;
+    }
     try {
       await createGoodsReceipt({
         purchase_order: id,
         delivery_note_ref: receiptForm.delivery_note_ref,
+        receiver_contact_phone: receiptForm.receiver_contact_phone,
+        delivered_by_name: receiptForm.delivered_by_name,
+        delivered_by_phone: receiptForm.delivered_by_phone,
+        delivered_by_company: receiptForm.delivered_by_company,
+        inspected_by: receiptForm.inspected_by || undefined,
+        inspection_passed: receiptForm.inspection_passed === "" ? undefined : receiptForm.inspection_passed === "true",
+        inspection_notes: receiptForm.inspection_notes,
+        destination_location: receiptForm.destination_location,
         notes: receiptForm.notes,
         items: itemsToSend,
       });
-      setReceiptForm({ delivery_note_ref: "", notes: "" });
+      setReceiptForm({
+        delivery_note_ref: "",
+        receiver_contact_phone: "",
+        delivered_by_name: "",
+        delivered_by_phone: "",
+        delivered_by_company: "",
+        inspected_by: "",
+        inspection_passed: "",
+        inspection_notes: "",
+        destination_location: "",
+        notes: "",
+      });
       load();
     } catch (err) { setError(err.message); }
   };
@@ -251,6 +315,7 @@ export default function PurchaseOrderDetail() {
           </div>
           <div className="card-body">
             <form onSubmit={submitReceipt}>
+              <h4 className="text-sm font-bold" style={{ marginBottom: "var(--space-2)" }}>Delivery Details</h4>
               <div className="field-row">
                 <div className="field" style={{ marginBottom: 0, flex: 1 }}>
                   <label className="field-label">Delivery Note Reference</label>
@@ -272,6 +337,125 @@ export default function PurchaseOrderDetail() {
                     onChange={(e) => setReceiptForm((p) => ({ ...p, notes: e.target.value }))}
                   />
                 </div>
+              </div>
+
+              <h4 className="text-sm font-bold" style={{ marginTop: "var(--space-4)", marginBottom: "var(--space-2)" }}>
+                Who Received It (Hospital Staff)
+              </h4>
+              <div className="field-row">
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Received By</label>
+                  <div className="input" style={{ display: "flex", alignItems: "center", background: "var(--surface-muted, #f4f5f7)" }}>
+                    You{user?.full_name ? ` (${user.full_name})` : ""}
+                  </div>
+                </div>
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Your Direct Contact Phone</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Optional"
+                    value={receiptForm.receiver_contact_phone}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, receiver_contact_phone: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <h4 className="text-sm font-bold" style={{ marginTop: "var(--space-4)", marginBottom: "var(--space-2)" }}>
+                Who Delivered It (Courier / Driver)
+              </h4>
+              <div className="field-row">
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Delivery Person's Name <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Full name"
+                    value={receiptForm.delivered_by_name}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, delivered_by_name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Delivery Person's Phone <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Phone number"
+                    value={receiptForm.delivered_by_phone}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, delivered_by_phone: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Transport / Courier Company</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="If different from supplier"
+                    value={receiptForm.delivered_by_company}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, delivered_by_company: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <h4 className="text-sm font-bold" style={{ marginTop: "var(--space-4)", marginBottom: "var(--space-2)" }}>
+                Inspection
+              </h4>
+              <div className="field-row">
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Inspected By</label>
+                  <select
+                    className="input"
+                    value={receiptForm.inspected_by}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, inspected_by: e.target.value }))}
+                  >
+                    <option value="">Select inspector</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>{u.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="field-label">Inspection Result</label>
+                  <select
+                    className="input"
+                    value={receiptForm.inspection_passed}
+                    onChange={(e) => setReceiptForm((p) => ({ ...p, inspection_passed: e.target.value }))}
+                  >
+                    <option value="">Select result</option>
+                    <option value="true">Passed</option>
+                    <option value="false">Failed / Issues Found</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field" style={{ marginTop: "var(--space-3)" }}>
+                <label className="field-label">Inspection Notes</label>
+                <textarea
+                  className="input"
+                  placeholder="Condition on arrival, packaging, expiry dates checked"
+                  rows={2}
+                  value={receiptForm.inspection_notes}
+                  onChange={(e) => setReceiptForm((p) => ({ ...p, inspection_notes: e.target.value }))}
+                />
+              </div>
+
+              <h4 className="text-sm font-bold" style={{ marginTop: "var(--space-4)", marginBottom: "var(--space-2)" }}>
+                Where the Goods Are Going
+              </h4>
+              <div className="field" style={{ marginBottom: "var(--space-3)" }}>
+                <label className="field-label">Destination Location <span className="required">*</span></label>
+                <select
+                  className="input"
+                  value={receiptForm.destination_location}
+                  onChange={(e) => setReceiptForm((p) => ({ ...p, destination_location: e.target.value }))}
+                  required
+                >
+                  <option value="">Select destination location</option>
+                  {locations.map((l) => (
+                    <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="table-scroll" style={{ marginTop: "var(--space-3)" }}>

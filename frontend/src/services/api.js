@@ -764,6 +764,7 @@ export const cancelBill = (payload) => unwrap(client.post("/bill-cancellations/"
 export const getActiveInsights = () => unwrap(client.get("/business-insights/active/"));
 export const generateInsightsNow = () => unwrap(client.post("/business-insights/generate-now/"));
 export const acknowledgeInsight = (id) => unwrap(client.post(`/business-insights/${id}/acknowledge/`));
+export const getStoreLocationsForDropdown = () => unwrap(client.get("/store-locations/"));
 
 
 // ---------------------------------------------------------------------------
