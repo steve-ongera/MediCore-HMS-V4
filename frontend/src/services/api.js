@@ -752,6 +752,14 @@ export const resolveLeak = (id) => unwrap(client.post(`/revenue-leakage/${id}/re
 export const writeOffLeak = (id, payload) => unwrap(client.post(`/revenue-leakage/${id}/write-off/`, payload));
 export const scanForLeaksNow = () => unwrap(client.post("/revenue-leakage/scan-now/"));
 
+export const getExecutiveDashboard = (params) => unwrap(client.get(`/executive/dashboard/${qs(params)}`));
+export const getRefunds = (params) => unwrap(client.get(`/refunds/${qs(params)}`));
+export const requestRefund = (payload) => unwrap(client.post("/refunds/", payload));
+export const approveRefund = (id) => unwrap(client.post(`/refunds/${id}/approve/`));
+export const rejectRefund = (id, payload) => unwrap(client.post(`/refunds/${id}/reject/`, payload));
+export const getBillCancellations = (params) => unwrap(client.get(`/bill-cancellations/${qs(params)}`));
+export const cancelBill = (payload) => unwrap(client.post("/bill-cancellations/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

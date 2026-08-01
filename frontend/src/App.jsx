@@ -191,6 +191,9 @@ import DiscrepancyReport from "./pages/stockcontrol/DiscrepancyReport.jsx";
 import RevenueLeakageDashboard from "./pages/leakage/RevenueLeakageDashboard.jsx";
 import LeakageRecords from "./pages/leakage/LeakageRecords.jsx";
 
+import ExecutiveDashboard from "./pages/executive/ExecutiveDashboard.jsx";
+import RefundsManagement from "./pages/executive/RefundsManagement.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -756,6 +759,9 @@ export default function App() {
 
         <Route path="/leakage" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><RevenueLeakageDashboard /></ProtectedRoute>} />
         <Route path="/leakage/records" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><LeakageRecords /></ProtectedRoute>} />
+
+        <Route path="/executive" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ACCOUNTANT]}><ExecutiveDashboard /></ProtectedRoute>} />
+        <Route path="/executive/refunds" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ACCOUNTANT]}><RefundsManagement /></ProtectedRoute>} />
 
 
         {/* Profile - any authenticated user */}

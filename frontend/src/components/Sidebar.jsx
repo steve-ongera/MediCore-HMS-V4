@@ -150,6 +150,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Executive Dashboard",
+    roles: [ROLES.ACCOUNTANT],
+    links: [
+      { to: "/executive", label: "Executive Overview", icon: "bi-speedometer" },
+      { to: "/executive/refunds", label: "Refunds", icon: "bi-arrow-counterclockwise" },
+    ],
+  },
+  {
     label: "Asset Management",
     roles: [ROLES.ACCOUNTANT],
     links: [
