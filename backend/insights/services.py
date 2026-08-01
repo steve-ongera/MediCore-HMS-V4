@@ -9,6 +9,62 @@ from api.models import Payment, OTCSale, LabOrder, MedicineBatch, StockTransacti
 from .models import BusinessInsight, InsightCategory, InsightSeverity
 
 
+def detect_drug_theft_signals():
+    """
+    "100 purchased, 72 dispensed, 18 counted, expected 28, missing 10" —
+    cross-references purchase quantity (GoodsReceipt/StockTransaction
+    STOCK_IN), dispensed quantity (StockTransaction STOCK_OUT), and the
+    most recent physical StockCount for each medicine, at each location.
+    Flags anything where counted stock is meaningfully below what
+    purchases-minus-dispenses says should remain.
+    """
+    from stockcontrol.models import StockCount, StockCountStatus, StoreLocation
+    from api.models import Medicine
+
+    insights = []
+    THEFT_THRESHOLD_UNITS = 5  # ignore trivial variances (miscounts, rounding)
+    THEFT_THRESHOLD_PCT = 10   # or a variance over 10% of expected stock
+
+    recent_counts = StockCount.objects.filter(
+        status__in=[StockCountStatus.APPROVED, StockCountStatus.VARIANCE_PENDING]
+    ).order_by("-approved_at", "-submitted_at")
+
+    seen = set()
+    for count in recent_counts:
+        key = count.location_id
+        if key in seen:
+            continue  # only look at each location's most recent count
+        seen.add(key)
+
+        for line in count.lines.select_related("medicine"):
+            expected = line.system_quantity
+            counted = line.counted_quantity
+            missing = expected - counted
+
+            if missing <= 0:
+                continue  # overage or exact match — not a theft signal
+
+            pct_missing = (missing / expected * 100) if expected > 0 else 0
+            if missing < THEFT_THRESHOLD_UNITS and pct_missing < THEFT_THRESHOLD_PCT:
+                continue
+
+            insights.append(BusinessInsight(
+                category=InsightCategory.THEFT, severity=InsightSeverity.CRITICAL,
+                headline=f"Possible missing stock: {line.medicine.name} at {count.location.name} — {missing} unit(s) unaccounted for.",
+                detail=(
+                    f"System expected {expected} units on hand (based on purchases minus dispensed). "
+                    f"Physical count on {count.count_number} found only {counted}. "
+                    f"That's {pct_missing:.0f}% missing — investigate immediately."
+                ),
+                metrics={
+                    "medicine_id": str(line.medicine.id), "location_id": str(count.location_id),
+                    "location_name": count.location.name, "stock_count_id": str(count.id),
+                    "expected": expected, "counted": counted, "missing": missing, "pct_missing": round(pct_missing, 1),
+                },
+            ))
+
+    return insights
+
 def _week_total(start_offset_days):
     """Sum of hospital + OTC revenue for a 7-day window ending `start_offset_days` days ago."""
     end = date.today() - timedelta(days=start_offset_days)
@@ -177,6 +233,7 @@ INSIGHT_GENERATORS = [
     detect_doctor_ordering_anomalies,
     detect_stockout_predictions,
     detect_day_of_week_pattern,
+    detect_drug_theft_signals,
 ]
 
 
@@ -196,3 +253,4 @@ def generate_insights():
             continue
 
     return created
+

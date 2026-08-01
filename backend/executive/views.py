@@ -81,6 +81,12 @@ class RefundViewSet(viewsets.ModelViewSet):
         refund.rejection_reason = serializer.validated_data["rejection_reason"]
         refund.save(update_fields=["status", "rejection_reason"])
         return Response(RefundSerializer(refund).data)
+    
+    def get_permissions(self):
+        if self.action == "create":
+            from api.permissions import IsCashierOrAccountant
+            return [IsCashierOrAccountant()]
+        return super().get_permissions()
 
 
 class BillCancellationViewSet(viewsets.ModelViewSet):
