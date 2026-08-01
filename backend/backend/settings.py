@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "leakage",
     "executive",
     "insights",
+    "messaging",
 ]
 
 MIDDLEWARE = [
