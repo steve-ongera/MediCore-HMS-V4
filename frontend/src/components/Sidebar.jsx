@@ -4,6 +4,9 @@ import medicoreLogo from "../assets/medicore_logo.png";
 
 // Each link declares which roles can see it. Omit `roles` to show it to
 // everyone (Super Admin always sees everything, per useAuth().hasRole).
+// IMPORTANT: keep these in sync with the `allowedRoles` enforced on each
+// route in App.jsx — a mismatch means a user either sees a link that 404s
+// into Unauthorized, or a route they can access never shows in the nav.
 const NAV_GROUPS = [
   {
     label: "Overview",
@@ -26,8 +29,8 @@ const NAV_GROUPS = [
       { to: "/billing/bulk-payment", label: "Bulk Payment", icon: "bi-stack" },
       { to: "/billing/walk-in-sale", label: "Walk-in Sale", icon: "bi-bag-check" },
       { to: "/billing/payments", label: "Payments", icon: "bi-receipt" },
-      { to: "/billing/till", label: "Cash Till", icon: "bi-safe" },
-      { to: "/billing/request-refund", label: "Request Refund", icon: "bi-arrow-counterclockwise" },
+      { to: "/billing/till", label: "Cash Till", icon: "bi-safe", roles: [ROLES.CASHIER] },
+      { to: "/billing/request-refund", label: "Request Refund", icon: "bi-arrow-counterclockwise", roles: [ROLES.CASHIER] },
     ],
   },
   {
@@ -88,21 +91,20 @@ const NAV_GROUPS = [
     roles: [ROLES.PHARMACIST],
     links: [
       { to: "/pharmacy", label: "Pharmacy", icon: "bi-capsule" },
-      { to: "/inventory", label: "Inventory", icon: "bi-box-seam" },
-      { to: "/suppliers", label: "Suppliers", icon: "bi-truck" },
+      { to: "/inventory", label: "Inventory", icon: "bi-box-seam", roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT] },
+      { to: "/suppliers", label: "Suppliers", icon: "bi-truck", roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT] },
       { to: "/pharmacy/reports", label: "My Reports", icon: "bi-graph-up" },
       { to: "/pharmacy/alerts", label: "Expiry & Stock Alerts", icon: "bi-exclamation-triangle" },
       { to: "/pharmacy/admission-orders", label: "Admission Medicine Orders", icon: "bi-hospital" },
       { to: "/pharmacy/emergency-orders", label: "Emergency Medicine Orders", icon: "bi-heart-pulse-fill" },
-
     ],
   },
   {
     label: "Stock Control",
     roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT],
     links: [
-      { to: "/stockcontrol/locations", label: "Store Locations", icon: "bi-geo-alt", roles: [] },
-      { to: "/stockcontrol/transfers", label: "Internal Transfers", icon: "bi-arrow-left-right" },
+      { to: "/stockcontrol/locations", label: "Store Locations", icon: "bi-geo-alt", roles: [ROLES.PHARMACIST] },
+      { to: "/stockcontrol/transfers", label: "Internal Transfers", icon: "bi-arrow-left-right", roles: [ROLES.PHARMACIST, ROLES.NURSE] },
       { to: "/stockcontrol/counts", label: "Stock Counts", icon: "bi-clipboard2-check" },
       { to: "/stockcontrol/discrepancies", label: "Discrepancy Report", icon: "bi-exclamation-triangle-fill" },
     ],
@@ -156,7 +158,7 @@ const NAV_GROUPS = [
     links: [
       { to: "/executive", label: "Executive Overview", icon: "bi-speedometer" },
       { to: "/executive/refunds", label: "Refunds", icon: "bi-arrow-counterclockwise" },
-      {to: "/insights", label: "AI Business Insights", icon: "bi-lightbulb-fill" },
+      { to: "/insights", label: "AI Business Insights", icon: "bi-lightbulb-fill" },
     ],
   },
   {
@@ -172,9 +174,9 @@ const NAV_GROUPS = [
     label: "Procurement",
     roles: [ROLES.PROCUREMENT_OFFICER],
     links: [
-      { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check" },
-      { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4" },
-      { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down" },
+      { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
+      { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
+      { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
       { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
     ],
   },
@@ -196,8 +198,8 @@ const NAV_GROUPS = [
       { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill" },
       { to: "/ambulance/request", label: "Request Dispatch", icon: "bi-telephone-plus-fill" },
       { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [ROLES.AMBULANCE_DISPATCHER] },
-      { to: "/ambulance/reports", label: "My Reports", icon: "bi-graph-up" },
-      { to: "/ambulance/maintenance", label: "Maintenance History", icon: "bi-tools" },
+      { to: "/ambulance/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.AMBULANCE_DISPATCHER] },
+      { to: "/ambulance/maintenance", label: "Maintenance History", icon: "bi-tools", roles: [ROLES.AMBULANCE_DISPATCHER] },
     ],
   },
   {
@@ -206,9 +208,8 @@ const NAV_GROUPS = [
     links: [
       { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill" },
       { to: "/mortuary/admit", label: "Admit Deceased", icon: "bi-file-earmark-plus" },
-      { to: "/mortuary/reports", label: "My Reports", icon: "bi-graph-up" },
-      { to: "/mortuary/releases", label: "Release History", icon: "bi-box-arrow-right" },
-
+      { to: "/mortuary/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.MORTUARY_ATTENDANT] },
+      { to: "/mortuary/releases", label: "Release History", icon: "bi-box-arrow-right", roles: [ROLES.MORTUARY_ATTENDANT] },
     ],
   },
   {
@@ -227,7 +228,7 @@ const NAV_GROUPS = [
       { to: "/finance/journal", label: "Journal Entries", icon: "bi-journal-text" },
       { to: "/finance/expenses", label: "Expenses", icon: "bi-receipt-cutoff" },
       { to: "/finance/budgets", label: "Budgets", icon: "bi-pie-chart" },
-      { to: "/finance/variance-approvals", label: "Variance Approvals", icon: "bi-exclamation-octagon" }
+      { to: "/finance/variance-approvals", label: "Variance Approvals", icon: "bi-exclamation-octagon" },
     ],
   },
   {
@@ -293,17 +294,24 @@ const NAV_GROUPS = [
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
-      { to: "/settings", label: "Settings", icon: "bi-gear" },
+      { to: "/settings", label: "Settings", icon: "bi-gear", roles: [] },
     ],
   },
 ];
 
 export default function Sidebar({ onNavigate }) {
-  const { hasRole } = useAuth();
+  const { user, hasRole } = useAuth();
 
-  // roles: [] on a group/link means "Super Admin only" (hasRole already
-  // grants Super Admin everything; an empty array blocks every other role).
-  const canSee = (roles) => (roles === undefined ? true : hasRole(...roles));
+  // roles: [] on a group/link means "Super Admin only". We can't route this
+  // through hasRole(...roles) — spreading an empty array calls hasRole()
+  // with zero arguments, which AuthContext defines as "is anyone logged
+  // in" (true for every role), not "no roles allowed". So the empty-array
+  // case is checked directly against user.role instead.
+  const canSee = (roles) => {
+    if (roles === undefined) return true; // no restriction — any authenticated role
+    if (roles.length === 0) return user?.role === ROLES.SUPER_ADMIN; // explicit Super Admin only
+    return hasRole(...roles);
+  };
 
   return (
     <aside className="sidebar">
