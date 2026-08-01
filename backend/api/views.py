@@ -355,11 +355,24 @@ class PaymentViewSet(BaseModelViewSet):
 
     def perform_create(self, serializer):
         payment = serializer.save(cashier=self.request.user)
+
         # Generate a printable QR code encoding the receipt number + amount,
         # for verification at pickup / audit time.
         qr_payload = f"RECEIPT:{payment.receipt_number}|AMOUNT:{payment.amount}|INVOICE:{payment.invoice.invoice_number}"
         payment.qr_code = generate_qr_code(qr_payload, f"receipt_{payment.receipt_number}")
         payment.save(update_fields=["qr_code"])
+
+        from notifications.services import notify
+        from notifications.models import NotificationType, NotificationCategory
+
+        notify(
+            payment.cashier,
+            NotificationType.PAYMENT_RECEIVED,
+            f"Payment received: KES {payment.amount}",
+            f"Receipt {payment.receipt_number} for {payment.invoice.patient.full_name}",
+            link="/billing/payments",
+            category=NotificationCategory.BILLING,
+        )
 
     @action(detail=True, methods=["get"], url_path="receipt")
     def receipt(self, request, pk=None):
@@ -601,11 +614,34 @@ class LabResultViewSet(BaseModelViewSet):
 
     def perform_create(self, serializer):
         order = serializer.validated_data["lab_order"]
+
         if not order.is_paid:
             raise PermissionDeniedPaymentRequired()
-        result = serializer.save(technologist=self.request.user, completed_at=timezone.now())
+
+        result = serializer.save(
+            technologist=self.request.user,
+            completed_at=timezone.now()
+        )
+
         order.status = LabOrderStatus.COMPLETED
         order.save(update_fields=["status"])
+
+        from notifications.services import notify
+        from notifications.models import (
+            NotificationType,
+            NotificationCategory,
+            NotificationPriority,
+        )
+
+        notify(
+            order.ordered_by,
+            NotificationType.LAB_RESULTS_READY,
+            f"Lab results ready: {order.test.name}",
+            f"For patient {order.consultation.visit.patient.full_name}",
+            link="/laboratory",
+            category=NotificationCategory.CLINICAL,
+            priority=NotificationPriority.HIGH,
+        )
 
 
 # Small helper exception so LabResultViewSet.perform_create can short-circuit with 402.
