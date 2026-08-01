@@ -68,6 +68,7 @@ class User(AbstractUser):
     )
     profile_photo = models.ImageField(upload_to="staff_photos/", null=True, blank=True)
     is_active_staff = models.BooleanField(default=True)
+    password_changed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "users"
