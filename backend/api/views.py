@@ -231,7 +231,6 @@ class ChangePasswordView(APIView):
 # ---------------------------------------------------------------------------
 class UserViewSet(BaseModelViewSet):
     queryset = User.objects.all().order_by("first_name")
-    permission_classes = [IsSuperAdmin]
     filterset_fields = ["role", "department", "is_active_staff"]
     search_fields = ["username", "first_name", "last_name", "email", "phone"]
     ordering_fields = ["first_name", "date_joined"]

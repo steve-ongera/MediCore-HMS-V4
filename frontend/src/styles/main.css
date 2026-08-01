@@ -732,6 +732,7 @@ table {
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  margin-left: 3px;
 }
 
 /* ==========================================================================
@@ -3553,4 +3554,18 @@ fieldset legend {
   .chat-messages::-webkit-scrollbar-track {
     background: var(--bg-secondary);
   }
+}
+
+.fullscreen-resume-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  background: var(--color-primary, #2563eb);
+  color: #fff;
+  text-align: center;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
 }

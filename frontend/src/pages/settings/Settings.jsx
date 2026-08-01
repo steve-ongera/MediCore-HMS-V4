@@ -16,6 +16,8 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { ROLES, ROLE_LABELS } from "../../utils/roles";
 
+const PAGE_SIZE = 20;
+
 export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("users");
@@ -28,6 +30,12 @@ export default function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Pagination state — kept separate per tab
+  const [userPage, setUserPage] = useState(1);
+  const [userCount, setUserCount] = useState(0);
+  const [deptPage, setDeptPage] = useState(1);
+  const [deptCount, setDeptCount] = useState(0);
 
   const [userForm, setUserForm] = useState({
     username: "",
@@ -46,23 +54,47 @@ export default function Settings() {
     is_active: true,
   });
 
+  // Reload users whenever userPage changes
   useEffect(() => {
-    loadData();
-  }, []);
+    loadUsers(userPage);
+  }, [userPage]);
 
-  const loadData = async () => {
+  // Reload departments whenever deptPage changes
+  useEffect(() => {
+    loadDepartments(deptPage);
+  }, [deptPage]);
+
+  const loadUsers = async (page = 1) => {
     setLoading(true);
     try {
-      const [userData, deptData] = await Promise.all([
-        getUsers({ page: 1, page_size: 100 }),
-        getDepartments({ page: 1, page_size: 50 }),
-      ]);
-      setUsers(userData.results || []);
-      setDepartments(deptData.results || []);
+      const data = await getUsers({ page, page_size: PAGE_SIZE });
+      setUsers(data.results || []);
+      setUserCount(data.count ?? (data.results ? data.results.length : 0));
     } catch (err) {
-      toast.error(err.message || "Failed to load settings");
+      toast.error(err.message || "Failed to load users");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDepartments = async (page = 1) => {
+    setLoading(true);
+    try {
+      const data = await getDepartments({ page, page_size: PAGE_SIZE });
+      setDepartments(data.results || []);
+      setDeptCount(data.count ?? (data.results ? data.results.length : 0));
+    } catch (err) {
+      toast.error(err.message || "Failed to load departments");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadCurrentTab = () => {
+    if (activeTab === "users") {
+      loadUsers(userPage);
+    } else {
+      loadDepartments(deptPage);
     }
   };
 
@@ -86,7 +118,7 @@ export default function Settings() {
       setShowUserModal(false);
       setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
       setEditingUser(null);
-      loadData();
+      loadUsers(userPage);
     } catch (err) {
       toast.error(err.message || "Failed to save user");
     } finally {
@@ -113,7 +145,7 @@ export default function Settings() {
       setShowDeptModal(false);
       setDeptForm({ name: "", consultation_fee: "", description: "", is_active: true });
       setEditingDept(null);
-      loadData();
+      loadDepartments(deptPage);
     } catch (err) {
       toast.error(err.message || "Failed to save department");
     } finally {
@@ -127,11 +159,21 @@ export default function Settings() {
       if (deleteTarget.type === "user") {
         await deleteUser(deleteTarget.id);
         toast.success("User deleted");
+        // if we deleted the last item on a page > 1, step back a page
+        if (users.length === 1 && userPage > 1) {
+          setUserPage((p) => p - 1);
+        } else {
+          loadUsers(userPage);
+        }
       } else {
         await deleteDepartment(deleteTarget.id);
         toast.success("Department deleted");
+        if (departments.length === 1 && deptPage > 1) {
+          setDeptPage((p) => p - 1);
+        } else {
+          loadDepartments(deptPage);
+        }
       }
-      loadData();
     } catch (err) {
       toast.error(err.message || "Failed to delete");
     } finally {
@@ -289,7 +331,12 @@ export default function Settings() {
     },
   ];
 
-  if (loading) return <LoadingSpinner />;
+  const currentPage = activeTab === "users" ? userPage : deptPage;
+  const currentCount = activeTab === "users" ? userCount : deptCount;
+  const totalPages = Math.max(1, Math.ceil(currentCount / PAGE_SIZE));
+  const setCurrentPage = activeTab === "users" ? setUserPage : setDeptPage;
+
+  if (loading && users.length === 0 && departments.length === 0) return <LoadingSpinner />;
 
   return (
     <>
@@ -308,14 +355,14 @@ export default function Settings() {
           className={`tabs__item ${activeTab === "users" ? "is-active" : ""}`}
           onClick={() => setActiveTab("users")}
         >
-          Users ({users.length})
+          Users ({userCount})
         </button>
         <button
           type="button"
           className={`tabs__item ${activeTab === "departments" ? "is-active" : ""}`}
           onClick={() => setActiveTab("departments")}
         >
-          Departments ({departments.length})
+          Departments ({deptCount})
         </button>
       </div>
 
@@ -352,6 +399,39 @@ export default function Settings() {
             emptyMessage={`No ${activeTab} found`}
           />
         </div>
+
+        {/* Pagination footer */}
+        {currentCount > PAGE_SIZE && (
+          <div className="card-footer d-flex align-items-center justify-content-between">
+            <span className="text-xs text-muted">
+              Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+              {Math.min(currentPage * PAGE_SIZE, currentCount)} of {currentCount}
+            </span>
+            <div className="d-flex align-items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary"
+                disabled={currentPage <= 1 || loading}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                <i className="bi bi-chevron-left"></i>
+                Prev
+              </button>
+              <span className="text-xs">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary"
+                disabled={currentPage >= totalPages || loading}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User Modal */}

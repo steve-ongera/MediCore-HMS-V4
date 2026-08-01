@@ -165,7 +165,7 @@ export default function StaffDirectory() {
                             <div className="cell-primary" style={{ fontWeight: 500 }}>
                               {u.full_name}
                             </div>
-                            <div className="text-2xs text-tertiary">@{u.username}</div>
+                            <div className="text-2xs text-tertiary">{u.phone}</div>
                           </div>
                         </div>
                       </td>

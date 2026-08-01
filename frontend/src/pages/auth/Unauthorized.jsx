@@ -10,6 +10,12 @@ export default function Unauthorized() {
         >
           <i className="bi bi-shield-lock text-danger fs-1"></i>
         </div>
+        <div
+          className="fw-bold text-danger mb-3"
+          style={{ fontSize: "6rem", lineHeight: 1 }}
+        >
+          401
+        </div>
         <h2 className="mb-2">Access Denied</h2>
         <p className="text-muted mb-4">
           You don't have permission to access this page.
