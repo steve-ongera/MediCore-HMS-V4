@@ -3849,3 +3849,204 @@ fieldset legend {
     background: #4b5563;
   }
 }
+
+/* ============================================
+   FLASH NOTIFICATIONS STYLES
+   ============================================ */
+
+/* Container */
+.flash-notifications {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 380px;
+  max-width: calc(100vw - 20px);
+  pointer-events: none;
+}
+
+.flash-notifications > * {
+  pointer-events: auto;
+}
+
+/* Individual Flash Item */
+.flash-notification {
+  background: var(--surface-color, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  cursor: pointer;
+  animation: flashSlideIn 0.3s ease-out;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.flash-notification:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.16);
+}
+
+/* Priority Colors - Using your consistent colors */
+.flash-notification--critical {
+  border-left: 4px solid var(--danger-strong, #dc2626);
+  background: var(--danger-soft, #fef2f2);
+}
+
+.flash-notification--high {
+  border-left: 4px solid var(--warning-strong, #f59e0b);
+  background: var(--warning-soft, #fffbeb);
+}
+
+.flash-notification--normal {
+  border-left: 4px solid var(--primary, #3b82f6);
+  background: var(--primary-soft, #eff6ff);
+}
+
+.flash-notification--low {
+  border-left: 4px solid var(--text-tertiary, #9ca3af);
+  background: var(--bg-secondary, #f9fafb);
+}
+
+/* Flash Header */
+.flash-notification__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.flash-notification__title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-color, #111827);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flash-notification__title i {
+  font-size: 16px;
+}
+
+/* Priority Icon Colors */
+.flash-notification__icon--critical {
+  color: var(--danger-strong, #dc2626);
+}
+
+.flash-notification__icon--high {
+  color: var(--warning-strong, #f59e0b);
+}
+
+.flash-notification__icon--normal {
+  color: var(--primary, #3b82f6);
+}
+
+.flash-notification__icon--low {
+  color: var(--text-tertiary, #9ca3af);
+}
+
+.flash-notification__close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary, #9ca3af);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.flash-notification__close:hover {
+  color: var(--text-color, #111827);
+}
+
+/* Flash Message */
+.flash-notification__message {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 4px;
+  line-height: 1.4;
+  padding-left: 28px;
+}
+
+/* Animations */
+@keyframes flashSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes flashSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+}
+
+.flash-notification--exiting {
+  animation: flashSlideOut 0.25s ease-in forwards;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .flash-notification {
+    background: var(--surface-color, #1f2937);
+    border-color: var(--border-color, #374151);
+  }
+  
+  .flash-notification--critical {
+    background: var(--danger-soft, #1f2937);
+  }
+  
+  .flash-notification--high {
+    background: var(--warning-soft, #1f2937);
+  }
+  
+  .flash-notification--normal {
+    background: var(--primary-soft, #1f2937);
+  }
+  
+  .flash-notification--low {
+    background: var(--bg-secondary, #1f2937);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .flash-notifications {
+    width: calc(100vw - 20px);
+    top: 12px;
+  }
+  
+  .flash-notification {
+    padding: 10px 14px;
+  }
+  
+  .flash-notification__title {
+    font-size: 12px;
+  }
+  
+  .flash-notification__title i {
+    font-size: 14px;
+  }
+  
+  .flash-notification__message {
+    font-size: 11px;
+    padding-left: 24px;
+  }
+}
