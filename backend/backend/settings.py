@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "stockcontrol",
     "leakage",
     "executive",
+    "insights",
 ]
 
 MIDDLEWARE = [
