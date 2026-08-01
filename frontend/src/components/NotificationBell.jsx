@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUnreadNotifications, getNotificationUnreadCount, markNotificationRead, markAllNotificationsRead } from "../services/api";
 
-const PRIORITY_COLOR = { CRITICAL: "#dc2626", HIGH: "#f59e0b", NORMAL: "#3b82f6", LOW: "#9ca3af" };
+const PRIORITY_CLASS = {
+  CRITICAL: "notification-bell__item--critical",
+  HIGH: "notification-bell__item--high",
+  NORMAL: "notification-bell__item--normal",
+  LOW: "notification-bell__item--low",
+};
 
 export default function NotificationBell() {
   const navigate = useNavigate();
@@ -64,40 +69,54 @@ export default function NotificationBell() {
   };
 
   return (
-    <div ref={dropdownRef} style={{ position: "relative", display: "inline-block" }}>
-      <button type="button" onClick={() => setOpen((o) => !o)} style={{ position: "relative" }}>
-        <i className="bi bi-bell-fill"></i>
+    <div ref={dropdownRef} className="notification-bell">
+      <button 
+        type="button" 
+        className="notification-bell__btn" 
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Notifications"
+      >
+        <i className="bi bi-bell"></i>
         {unreadCount > 0 && (
-          <span style={{
-            position: "absolute", top: -4, right: -4, background: "red", color: "white",
-            borderRadius: "50%", fontSize: "10px", padding: "2px 5px",
-          }}>
+          <span className="notification-bell__badge">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div style={{
-          position: "absolute", right: 0, top: "100%", width: 340, maxHeight: 420, overflowY: "auto",
-          background: "white", border: "1px solid #ccc", zIndex: 1000, boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        }}>
-          <div style={{ padding: "8px 12px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between" }}>
+        <div className="notification-bell__dropdown">
+          <div className="notification-bell__header">
             <strong>Notifications</strong>
-            <button type="button" onClick={handleMarkAll}>Mark all read</button>
+            {notifications.length > 0 && (
+              <button 
+                type="button" 
+                className="notification-bell__mark-all" 
+                onClick={handleMarkAll}
+              >
+                <i className="bi bi-check-all me-1"></i> Mark all read
+              </button>
+            )}
           </div>
+
           {notifications.length === 0 ? (
-            <p style={{ padding: "12px" }}>No unread notifications.</p>
+            <div className="notification-bell__empty">
+              <i className="bi bi-bell-slash icon"></i>
+              No unread notifications
+            </div>
           ) : (
             notifications.map((n) => (
               <div
                 key={n.id}
+                className={`notification-bell__item ${PRIORITY_CLASS[n.priority] || ""}`}
                 onClick={() => handleClickNotification(n)}
-                style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0", cursor: "pointer", borderLeft: `3px solid ${PRIORITY_COLOR[n.priority]}` }}
               >
-                <div style={{ fontWeight: "bold" }}>{n.title}</div>
-                {n.message && <div style={{ fontSize: "0.85em", color: "#666" }}>{n.message}</div>}
-                <div style={{ fontSize: "0.75em", color: "#999" }}>{new Date(n.created_at).toLocaleString()}</div>
+                <div className="notification-bell__title">{n.title}</div>
+                {n.message && <div className="notification-bell__message">{n.message}</div>}
+                <div className="notification-bell__time">
+                  <i className="bi bi-clock me-1"></i>
+                  {new Date(n.created_at).toLocaleString()}
+                </div>
               </div>
             ))
           )}
