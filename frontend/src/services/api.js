@@ -773,6 +773,13 @@ export const sendMessage = (id, text) => unwrap(client.post(`/conversations/${id
 export const markConversationRead = (id) => unwrap(client.post(`/conversations/${id}/mark-read/`));
 export const getUnreadMessageCount = () => unwrap(client.get("/conversations/unread-count/"));
 
+
+export const getUnreadNotifications = () => unwrap(client.get("/notifications/unread/"));
+export const getNotificationUnreadCount = () => unwrap(client.get("/notifications/unread-count/"));
+export const markNotificationRead = (id) => unwrap(client.post(`/notifications/${id}/mark-read/`));
+export const markAllNotificationsRead = () => unwrap(client.post("/notifications/mark-all-read/"));
+export const getAllNotifications = (params) => unwrap(client.get(`/notifications/${qs(params)}`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

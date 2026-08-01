@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import ChatDropdown from "./ChatDropdown.jsx";
+import NotificationBell from "./NotificationBell.jsx";
 import useFullscreen from "../hooks/useFullscreen.js";
 
 // "/billing/payments" -> "Billing / Payments"
@@ -108,10 +109,7 @@ export default function Navbar({ onToggleSidebar }) {
             />
           </button>
 
-          <button type="button" className="navbar__icon-btn" aria-label="Notifications">
-            <i className="bi bi-bell" style={{ fontSize: 17 }} aria-hidden="true" />
-            <span className="dot" />
-          </button>
+          <NotificationBell />
 
           <div className="navbar__divider" />
 

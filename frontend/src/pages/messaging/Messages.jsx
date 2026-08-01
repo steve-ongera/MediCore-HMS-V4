@@ -73,7 +73,7 @@ export default function Messages() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-chat-dots me-1"></i>
+            <i className="bi bi-chat-left me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Conversations</h5>
           </div>
           <div>

@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
+import FlashNotifications from "../components/FlashNotifications.jsx";
 import { SidebarContext } from "../context/SidebarContext.jsx";
 import useIdleLogout from "../hooks/useIdleLogout.js";
 
@@ -28,6 +29,7 @@ export default function DashboardLayout() {
 
   return (
     <div className={`app-shell ${collapsed ? "is-sidebar-collapsed" : ""} ${mobileOpen ? "is-sidebar-open" : ""}`}>
+      <FlashNotifications />
       <Sidebar onNavigate={closeMobile} />
       <div className="app-main">
         <Navbar onToggleSidebar={toggleSidebar} />

@@ -427,7 +427,7 @@ table {
 }
 
 .app-shell.is-sidebar-collapsed .app-main {
-  margin-left: var(--sidebar-width-collapsed);
+  margin-left: 0;
 }
 
 .app-content {
@@ -750,11 +750,12 @@ table {
   display: flex;
   flex-direction: column;
   z-index: var(--z-sidebar);
-  transition: width var(--duration-base) var(--ease-standard);
+  transform: translateX(0);
+  transition: transform var(--duration-base) var(--ease-standard);
 }
 
 .app-shell.is-sidebar-collapsed .sidebar {
-  width: var(--sidebar-width-collapsed);
+  transform: translateX(-100%);
 }
 
 .sidebar__brand {
