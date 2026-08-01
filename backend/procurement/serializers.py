@@ -82,8 +82,54 @@ class GoodsReceiptItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "goods_receipt", "medicine_batch", "asset"]
 
+class ReceiptItemInputSerializer(serializers.Serializer):
+    po_item = serializers.UUIDField()
+    quantity_received = serializers.IntegerField(min_value=1)
+    batch_number = serializers.CharField(required=False, allow_blank=True, default="")
+    expiry_date = serializers.DateField(required=False, allow_null=True)
+
 
 class GoodsReceiptSerializer(serializers.ModelSerializer):
+    po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
+    supplier_name = serializers.CharField(source="purchase_order.supplier.name", read_only=True)
+    supplier_contact_phone = serializers.CharField(source="purchase_order.supplier.phone", read_only=True)
+    received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
+    inspected_by_name = serializers.CharField(source="inspected_by.get_full_name", read_only=True)
+    destination_location_name = serializers.CharField(source="destination_location.name", read_only=True)
+    items = GoodsReceiptItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = GoodsReceipt
+        fields = [
+            "id", "grn_number", "purchase_order", "po_number", "supplier_name", "supplier_contact_phone",
+            "received_by", "received_by_name", "receiver_contact_phone",
+            "delivered_by_name", "delivered_by_phone", "delivered_by_company",
+            "delivery_note_ref",
+            "inspected_by", "inspected_by_name", "inspection_passed", "inspection_notes",
+            "destination_location", "destination_location_name",
+            "notes", "items", "received_at",
+        ]
+        read_only_fields = ["id", "grn_number", "received_by", "received_at"]
+
+
+class CreateGoodsReceiptSerializer(serializers.Serializer):
+    purchase_order = serializers.UUIDField()
+    receiver_contact_phone = serializers.CharField(required=False, allow_blank=True, default="")
+    delivered_by_name = serializers.CharField(required=False, allow_blank=True, default="")
+    delivered_by_phone = serializers.CharField(required=False, allow_blank=True, default="")
+    delivered_by_company = serializers.CharField(required=False, allow_blank=True, default="")
+    delivery_note_ref = serializers.CharField(required=False, allow_blank=True, default="")
+    inspected_by = serializers.UUIDField(required=False, allow_null=True)
+    inspection_passed = serializers.BooleanField(required=False, allow_null=True, default=None)
+    inspection_notes = serializers.CharField(required=False, allow_blank=True, default="")
+    destination_location = serializers.UUIDField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+    items = ReceiptItemInputSerializer(many=True)
+
+    def validate_items(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one received item is required.")
+        return value
     po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
     supplier_name = serializers.CharField(source="purchase_order.supplier.name", read_only=True)
     received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
@@ -152,11 +198,6 @@ class CreatePurchaseOrderSerializer(serializers.Serializer):
         return value
 
 
-class ReceiptItemInputSerializer(serializers.Serializer):
-    po_item = serializers.UUIDField()
-    quantity_received = serializers.IntegerField(min_value=1)
-    batch_number = serializers.CharField(required=False, allow_blank=True, default="")
-    expiry_date = serializers.DateField(required=False, allow_null=True)
 
 
 class CreateGoodsReceiptSerializer(serializers.Serializer):

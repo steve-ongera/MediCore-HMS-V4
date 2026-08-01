@@ -122,8 +122,31 @@ class PurchaseOrderItem(BaseModel):
 class GoodsReceipt(BaseModel):
     grn_number = models.CharField(max_length=30, unique=True, editable=False)
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="goods_receipts")
+
+    # Hospital staff who physically received the delivery
     received_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="goods_receipts_recorded")
+    receiver_contact_phone = models.CharField(max_length=20, blank=True, help_text="Direct phone of the receiving staff member, in case not on their profile.")
+
+    # The actual person who dropped off the delivery — often a driver/courier,
+    # not necessarily anyone at the Supplier company itself.
+    delivered_by_name = models.CharField(max_length=150, blank=True)
+    delivered_by_phone = models.CharField(max_length=20, blank=True)
+    delivered_by_company = models.CharField(max_length=150, blank=True, help_text="Courier/transport company, if different from the Supplier.")
+
     delivery_note_ref = models.CharField(max_length=100, blank=True)
+
+    # Inspection / QC sign-off — separate person from the receiver where possible
+    inspected_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="goods_receipts_inspected")
+    inspection_passed = models.BooleanField(null=True, blank=True, help_text="Null until inspected.")
+    inspection_notes = models.TextField(blank=True, help_text="Condition on arrival, packaging integrity, expiry dates checked, discrepancies noted.")
+
+    # Where the goods physically ended up — feeds directly into the
+    # stockcontrol chain-of-custody ledger (StoreStock), so a goods receipt
+    # is itself the very first tracked movement of the item.
+    destination_location = models.ForeignKey(
+        "stockcontrol.StoreLocation", null=True, blank=True, on_delete=models.SET_NULL, related_name="goods_receipts"
+    )
+
     notes = models.TextField(blank=True)
     received_at = models.DateTimeField(auto_now_add=True)
 
@@ -139,7 +162,6 @@ class GoodsReceipt(BaseModel):
 
     def __str__(self):
         return f"{self.grn_number} - {self.purchase_order.po_number}"
-
 
 class GoodsReceiptItem(BaseModel):
     goods_receipt = models.ForeignKey(GoodsReceipt, on_delete=models.CASCADE, related_name="items")

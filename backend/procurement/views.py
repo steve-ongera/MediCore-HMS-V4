@@ -145,14 +145,6 @@ class GoodsReceiptViewSet(BaseModelViewSet):
         return GoodsReceiptSerializer
 
     def create(self, request, *args, **kwargs):
-        """
-        Records what physically arrived. For MEDICINE items, this
-        auto-creates a MedicineBatch + STOCK_IN StockTransaction — the exact
-        same mechanism MedicineBatchViewSet.perform_create uses — so
-        received drugs immediately show up in Pharmacy/Inventory stock
-        levels. For ASSET items, a bare Asset record is created in
-        AssetStatus.IN_STORE, ready for the Assets team to assign/deploy.
-        """
         serializer = CreateGoodsReceiptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -166,7 +158,16 @@ class GoodsReceiptViewSet(BaseModelViewSet):
         with transaction.atomic():
             receipt = GoodsReceipt.objects.create(
                 purchase_order=po, received_by=request.user,
-                delivery_note_ref=data.get("delivery_note_ref", ""), notes=data.get("notes", ""),
+                receiver_contact_phone=data.get("receiver_contact_phone", ""),
+                delivered_by_name=data.get("delivered_by_name", ""),
+                delivered_by_phone=data.get("delivered_by_phone", ""),
+                delivered_by_company=data.get("delivered_by_company", ""),
+                delivery_note_ref=data.get("delivery_note_ref", ""),
+                inspected_by_id=data.get("inspected_by"),
+                inspection_passed=data.get("inspection_passed"),
+                inspection_notes=data.get("inspection_notes", ""),
+                destination_location_id=data.get("destination_location"),
+                notes=data.get("notes", ""),
             )
 
             for item_data in data["items"]:
@@ -206,6 +207,14 @@ class GoodsReceiptViewSet(BaseModelViewSet):
                     receipt_item.medicine_batch = batch
                     receipt_item.save(update_fields=["medicine_batch"])
 
+                    # Feed straight into the chain-of-custody ledger — the goods
+                    # receipt IS the first tracked movement, so the destination
+                    # location's StoreStock starts accurate from day one instead
+                    # of only becoming trackable once an internal transfer happens.
+                    if receipt.destination_location:
+                        from stockcontrol.services import adjust_stock
+                        adjust_stock(receipt.destination_location, po_item.medicine, qty)
+
                 elif po_item.item_type == ItemType.ASSET:
                     from assets.models import Asset, AssetCategory
                     default_category, _ = AssetCategory.objects.get_or_create(
@@ -231,7 +240,6 @@ class GoodsReceiptViewSet(BaseModelViewSet):
             po.save(update_fields=["status"])
 
         return Response(GoodsReceiptSerializer(receipt).data, status=status.HTTP_201_CREATED)
-
 
 class SupplierInvoiceViewSet(BaseModelViewSet):
     queryset = SupplierInvoice.objects.select_related("supplier", "purchase_order").all()
