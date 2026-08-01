@@ -39,6 +39,43 @@ def generate_insights_job():
         logger.exception("Scheduled insight generation failed.")
 
 
+# NEW: Password staleness check
+def _check_stale_passwords_job():
+    from datetime import timedelta
+    from django.utils import timezone
+    from api.models import User
+    from notifications.services import notify
+    from notifications.models import (
+        NotificationType,
+        NotificationCategory,
+        NotificationPriority,
+    )
+
+    cutoff = timezone.now() - timedelta(days=30)
+
+    stale_users = User.objects.filter(
+        password_changed_at__lt=cutoff,
+        is_active_staff=True,
+    )
+
+    for user in stale_users:
+        already_notified = user.notifications.filter(
+            notification_type=NotificationType.PASSWORD_STALE,
+            created_at__gte=cutoff,
+        ).exists()
+
+        if not already_notified:
+            notify(
+                user,
+                NotificationType.PASSWORD_STALE,
+                "Your password is over 30 days old",
+                "For security, consider changing your password soon.",
+                link="/profile",
+                priority=NotificationPriority.NORMAL,
+                category=NotificationCategory.SECURITY,
+            )
+
+
 def start():
     global _scheduler
     if _scheduler is not None:
@@ -70,12 +107,21 @@ def start():
         replace_existing=True,
     )
 
+    # NEW: Password staleness check every 24 hours
+    _scheduler.add_job(
+        _check_stale_passwords_job,
+        trigger=IntervalTrigger(hours=24),
+        id="password_staleness_check",
+        replace_existing=True,
+    )
+
     _scheduler.start()
 
     # Run immediately on startup
     _run_bed_charges_job()
     _run_leakage_scan_job()
     generate_insights_job()
+    _check_stale_passwords_job()  # NEW
 
     logger.info(
         "Background scheduler started "

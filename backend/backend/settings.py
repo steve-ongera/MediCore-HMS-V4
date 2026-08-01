@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     "executive",
     "insights",
     "messaging",
+    "notifications",
 ]
 
 MIDDLEWARE = [
