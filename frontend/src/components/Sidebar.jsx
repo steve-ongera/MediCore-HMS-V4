@@ -26,7 +26,8 @@ const NAV_GROUPS = [
       { to: "/billing/bulk-payment", label: "Bulk Payment", icon: "bi-stack" },
       { to: "/billing/walk-in-sale", label: "Walk-in Sale", icon: "bi-bag-check" },
       { to: "/billing/payments", label: "Payments", icon: "bi-receipt" },
-      { to: "/billing/till", label: "Cash Till", icon: "bi-safe" }
+      { to: "/billing/till", label: "Cash Till", icon: "bi-safe" },
+      { to: "/billing/request-refund", label: "Request Refund", icon: "bi-arrow-counterclockwise" },
     ],
   },
   {
@@ -155,6 +156,7 @@ const NAV_GROUPS = [
     links: [
       { to: "/executive", label: "Executive Overview", icon: "bi-speedometer" },
       { to: "/executive/refunds", label: "Refunds", icon: "bi-arrow-counterclockwise" },
+      {to: "/insights", label: "AI Business Insights", icon: "bi-lightbulb-fill" },
     ],
   },
   {

@@ -193,6 +193,8 @@ import LeakageRecords from "./pages/leakage/LeakageRecords.jsx";
 
 import ExecutiveDashboard from "./pages/executive/ExecutiveDashboard.jsx";
 import RefundsManagement from "./pages/executive/RefundsManagement.jsx";
+import BusinessInsights from "./pages/insights/BusinessInsights.jsx";
+import RequestRefund from "./pages/billing/RequestRefund.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -762,6 +764,9 @@ export default function App() {
 
         <Route path="/executive" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ACCOUNTANT]}><ExecutiveDashboard /></ProtectedRoute>} />
         <Route path="/executive/refunds" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ACCOUNTANT]}><RefundsManagement /></ProtectedRoute>} />
+        <Route path="/insights" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><BusinessInsights /></ProtectedRoute>} />
+        <Route path="/billing/request-refund" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER]}><RequestRefund /></ProtectedRoute>} />
+        
 
 
         {/* Profile - any authenticated user */}
