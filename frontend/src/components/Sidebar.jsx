@@ -359,7 +359,7 @@ export default function Sidebar({ onNavigate }) {
         })}
       </div>
 
-      <div className="sidebar__footer">HMIS v1.0 &middot; City General Hospital</div>
+      <div className="sidebar__footer">HMIS v4.0 &middot; City General Hospital</div>
     </aside>
   );
 }
