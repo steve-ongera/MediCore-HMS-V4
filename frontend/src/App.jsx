@@ -789,7 +789,15 @@ export default function App() {
         
         
         <Route path="/medrecords" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><MedRecordsDashboard /></ProtectedRoute>} />
-                        
+        <Route path="/medrecords/files" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><PatientFileTracking /></ProtectedRoute>} />
+        <Route path="/medrecords/birth-register" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><BirthRegisterPage /></ProtectedRoute>} />
+        <Route path="/medrecords/death-register" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><DeathRegisterPage /></ProtectedRoute>} />
+        <Route path="/medrecords/referrals" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.DOCTOR]}><ReferralsPage /></ProtectedRoute>} />
+        <Route path="/medrecords/discharge-summaries" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.DOCTOR]}><DischargeSummaries /></ProtectedRoute>} />
+        <Route path="/medrecords/requests" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><RecordRequestsPage /></ProtectedRoute>} />
+        <Route path="/medrecords/audit-trail" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><RecordAuditTrailPage /></ProtectedRoute>} />
+        <Route path="/medrecords/documents" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><DocumentUpload /></ProtectedRoute>} />
+                                
 
 
         {/* Profile - any authenticated user */}
