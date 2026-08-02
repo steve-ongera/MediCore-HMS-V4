@@ -9,6 +9,13 @@ export function formatCurrency(amount, currency = "KES") {
   }).format(value);
 }
 
+// Formats a plain count/number with thousands separators (e.g. 12450 -> "12,450")
+export function formatNumber(value) {
+  const num = Number(value ?? 0);
+  if (isNaN(num)) return "0";
+  return num.toLocaleString("en-US");
+}
+
 // Reformats a backend-provided display string (e.g. "KES 169750", "1896480.00")
 // by inserting comma separators, without needing a raw number.
 export function formatDisplayValue(value) {
