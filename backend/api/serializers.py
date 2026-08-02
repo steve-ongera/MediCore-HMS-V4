@@ -43,7 +43,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """Self-service password change — requires the user's own current password."""
     old_password = serializers.CharField()
+    new_password = serializers.CharField(validators=[validate_password])
+
+
+class AdminResetPasswordSerializer(serializers.Serializer):
+    """
+    Admin-initiated password reset for another user — deliberately does NOT
+    require the target user's current password. Only ever called from
+    UserViewSet.reset_password, which is locked down to IsSuperAdmin.
+    """
     new_password = serializers.CharField(validators=[validate_password])
 
 
@@ -87,7 +97,7 @@ class PatientSerializer(serializers.ModelSerializer):
             "allergies", "medical_history", "created_by", "created_at",
         ]
         read_only_fields = ["id", "hospital_number", "created_by", "created_at"]
-        
+
     def validate_national_id(self, value):
         # Treat blank/whitespace-only submissions as "no ID provided" (NULL),
         # not as an empty-string value — empty strings collide with each
@@ -270,8 +280,8 @@ class LabOrderSerializer(serializers.ModelSerializer):
             "result_file": file_url,
             "completed_at": result.completed_at,
         }
-        
-        
+
+
 class RadiologyOrderSerializer(serializers.ModelSerializer):
     test_name = serializers.CharField(source="test.name", read_only=True)
     test_price = serializers.DecimalField(source="test.price", max_digits=10, decimal_places=2, read_only=True)
@@ -298,15 +308,15 @@ class ConsultationProcedureSerializer(serializers.ModelSerializer):
 class AddConsultationProcedureSerializer(serializers.Serializer):
     description = serializers.CharField(max_length=255)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0.01)
-    
-    
+
+
 class ConsultationSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="visit.patient.full_name", read_only=True)
     diagnoses = ConsultationDiagnosisSerializer(source="consultationdiagnosis_set", many=True, read_only=True)
     prescriptions = PrescriptionSerializer(many=True, read_only=True)
     lab_orders = LabOrderSerializer(many=True, read_only=True)
     radiology_orders = RadiologyOrderSerializer(many=True, read_only=True)
-    procedures = ConsultationProcedureSerializer(many=True, read_only=True)   # ← ADD THIS LINE
+    procedures = ConsultationProcedureSerializer(many=True, read_only=True)
     vitals = VitalSignsSerializer(source="visit.vitals", read_only=True)
 
     class Meta:
@@ -315,10 +325,11 @@ class ConsultationSerializer(serializers.ModelSerializer):
             "id", "visit", "patient_name", "doctor", "chief_complaint",
             "history_of_present_illness", "physical_examination", "treatment_plan",
             "clinical_notes", "diagnoses", "prescriptions", "lab_orders", "radiology_orders",
-            "procedures",                                                      # ← AND ADD THIS
+            "procedures",
             "vitals", "status", "pause_reason", "pause_notes", "started_at", "completed_at",
         ]
         read_only_fields = ["id", "doctor", "started_at", "completed_at"]
+
 
 class ConsultationPauseSerializer(serializers.Serializer):
     pause_reason = serializers.ChoiceField(choices=["WAITING_LAB", "WAITING_RADIOLOGY", "PATIENT_NOT_READY", "OTHER"])
@@ -434,6 +445,7 @@ class PrepareDispenseSerializer(serializers.Serializer):
     quantity_dispensed = serializers.IntegerField(min_value=1)
     payment_method = serializers.ChoiceField(choices=["CASH", "MPESA", "CARD", "INSURANCE"])
 
+
 # ---------------------------------------------------------------------------
 # Walk-in / OTC Pharmacy Sales (POS)
 # ---------------------------------------------------------------------------
@@ -502,8 +514,8 @@ class AuditLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuditLog
         fields = ["id", "user", "user_name", "action", "model_name", "object_id", "changes", "ip_address", "timestamp"]
-        
-        
+
+
 # api/serializers.py — add near the bottom
 
 class TransactionSerializer(serializers.Serializer):
@@ -520,8 +532,7 @@ class TransactionSerializer(serializers.Serializer):
     method = serializers.CharField()
     served_by = serializers.CharField(allow_null=True)
     occurred_at = serializers.DateTimeField()
-    
-    
+
 
 class BulkPaymentLineSerializer(serializers.ModelSerializer):
     invoice_number = serializers.CharField(source="invoice.invoice_number", read_only=True)
@@ -567,6 +578,3 @@ class CreateBulkPaymentSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
     method = serializers.ChoiceField(choices=["CASH", "MPESA", "CARD", "INSURANCE"])
     reference_number = serializers.CharField(required=False, allow_blank=True, default="")
-    
-    
-

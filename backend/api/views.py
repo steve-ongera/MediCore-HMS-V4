@@ -33,7 +33,8 @@ from api.filters import (
     LabOrderFilter, RadiologyOrderFilter, MedicineFilter, MedicineBatchFilter,
 )
 from api.serializers import (
-    UserSerializer, UserCreateSerializer, ChangePasswordSerializer, DepartmentSerializer,
+    UserSerializer, UserCreateSerializer, ChangePasswordSerializer, AdminResetPasswordSerializer,
+    DepartmentSerializer,
     PatientSerializer, PatientSearchResultSerializer, AllergySerializer, MedicalHistoryNoteSerializer,
     VisitSerializer, InvoiceSerializer, PaymentSerializer, QueueEntrySerializer, VitalSignsSerializer,
     ICD10CodeSerializer, ConsultationSerializer, ConsultationPauseSerializer, ConsultationDiagnosisSerializer,
@@ -203,8 +204,8 @@ class LogoutView(APIView):
             end_session(session, request=request)
 
         return Response({"success": True})
-    
-    
+
+
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -213,6 +214,7 @@ class MeView(APIView):
 
 
 class ChangePasswordView(APIView):
+    """Self-service password change — requires the caller's own current password."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -230,6 +232,13 @@ class ChangePasswordView(APIView):
 # Accounts / Users (Super Admin manages staff)
 # ---------------------------------------------------------------------------
 class UserViewSet(BaseModelViewSet):
+    """
+    Locked to Super Admin only — listing, creating, editing, and deleting
+    staff accounts (and resetting their passwords) is an administrative
+    action, not something every authenticated staff member should be able
+    to do.
+    """
+    permission_classes = [IsSuperAdmin]
     queryset = User.objects.all().order_by("first_name")
     filterset_fields = ["role", "department", "is_active_staff"]
     search_fields = ["username", "first_name", "last_name", "email", "phone"]
@@ -239,6 +248,22 @@ class UserViewSet(BaseModelViewSet):
         if self.action == "create":
             return UserCreateSerializer
         return UserSerializer
+
+    @action(detail=True, methods=["post"], url_path="reset-password")
+    def reset_password(self, request, pk=None):
+        """
+        POST /api/users/<id>/reset-password/  { new_password }
+        Admin-initiated reset — does NOT require the target user's current
+        password (unlike /api/auth/change-password/, which is self-service
+        only). Restricted to Super Admin via this viewset's permission_classes.
+        """
+        user = self.get_object()
+        serializer = AdminResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data["new_password"])
+        user.password_changed_at = timezone.now()
+        user.save(update_fields=["password", "password_changed_at"])
+        return Response({"detail": "Password reset successfully."})
 
 
 # ---------------------------------------------------------------------------
@@ -531,7 +556,7 @@ class ConsultationViewSet(BaseModelViewSet):
         consultation.completed_at = timezone.now()
         consultation.save()
         return Response(ConsultationSerializer(consultation).data)
-    
+
     @action(detail=True, methods=["post"], url_path="add-procedure")
     def add_procedure(self, request, pk=None):
         """Records a procedure performed during this consultation and bills it immediately against the visit."""
@@ -742,7 +767,7 @@ class MedicineBatchViewSet(BaseModelViewSet):
             quantity=batch.quantity_received, reason="New batch received",
             performed_by=self.request.user,
         )
-        
+
     @action(detail=False, methods=["get"], url_path="expiring-soon")
     def expiring_soon(self, request):
         cutoff = date.today() + timedelta(days=30)
@@ -868,6 +893,7 @@ class PharmacyDispenseViewSet(BaseModelViewSet):
         qs = self.get_queryset().filter(status="PENDING_PAYMENT", invoice__status="PAID")
         return Response(PharmacyDispenseSerializer(qs, many=True).data)
 
+
 class OutOfStockError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Out of Stock. Cannot dispense this medicine."
@@ -945,7 +971,7 @@ class OTCSaleViewSet(BaseModelViewSet):
             qr_payload = f"OTC:{sale.sale_number}|AMOUNT:{sale.total_amount}"
             sale.qr_code = generate_qr_code(qr_payload, f"otc_receipt_{sale.sale_number}")
             sale.save(update_fields=["qr_code"])
-            
+
         from etims.services import fiscalize_otc_sale
         try:
             fiscalize_otc_sale(sale, user=request.user)
@@ -1566,7 +1592,7 @@ class ReportsView(APIView):
 
         else:
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 
 class BulkPaymentViewSet(viewsets.GenericViewSet):
     """

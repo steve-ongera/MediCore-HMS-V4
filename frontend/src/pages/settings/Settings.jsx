@@ -5,6 +5,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  resetUserPassword,
   getDepartments,
   createDepartment,
   updateDepartment,
@@ -30,6 +31,10 @@ export default function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Password reset (admin-initiated — does not require the target user's old password)
+  const [resetPassword, setResetPassword] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   // Pagination state — kept separate per tab
   const [userPage, setUserPage] = useState(1);
@@ -64,12 +69,23 @@ export default function Settings() {
     loadDepartments(deptPage);
   }, [deptPage]);
 
+  // Normalizes both DRF-paginated ({results, count}) and plain-array
+  // responses into the same shape, so the table never silently empties
+  // out just because pagination is off for a given viewset.
+  const normalizeListResponse = (data) => {
+    if (Array.isArray(data)) {
+      return { results: data, count: data.length };
+    }
+    return { results: data?.results || [], count: data?.count ?? (data?.results?.length || 0) };
+  };
+
   const loadUsers = async (page = 1) => {
     setLoading(true);
     try {
       const data = await getUsers({ page, page_size: PAGE_SIZE });
-      setUsers(data.results || []);
-      setUserCount(data.count ?? (data.results ? data.results.length : 0));
+      const { results, count } = normalizeListResponse(data);
+      setUsers(results);
+      setUserCount(count);
     } catch (err) {
       toast.error(err.message || "Failed to load users");
     } finally {
@@ -81,8 +97,9 @@ export default function Settings() {
     setLoading(true);
     try {
       const data = await getDepartments({ page, page_size: PAGE_SIZE });
-      setDepartments(data.results || []);
-      setDeptCount(data.count ?? (data.results ? data.results.length : 0));
+      const { results, count } = normalizeListResponse(data);
+      setDepartments(results);
+      setDeptCount(count);
     } catch (err) {
       toast.error(err.message || "Failed to load departments");
     } finally {
@@ -100,8 +117,12 @@ export default function Settings() {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    if (!userForm.username || !userForm.password || !userForm.role) {
+    if (!editingUser && (!userForm.username || !userForm.password || !userForm.role)) {
       toast.error("Username, password, and role are required");
+      return;
+    }
+    if (editingUser && (!userForm.username || !userForm.role)) {
+      toast.error("Username and role are required");
       return;
     }
 
@@ -118,11 +139,30 @@ export default function Settings() {
       setShowUserModal(false);
       setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
       setEditingUser(null);
+      setResetPassword("");
       loadUsers(userPage);
     } catch (err) {
       toast.error(err.message || "Failed to save user");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!editingUser) return;
+    if (!resetPassword || resetPassword.length < 8) {
+      toast.error("Enter a new password (min 8 characters)");
+      return;
+    }
+    setResettingPassword(true);
+    try {
+      await resetUserPassword(editingUser.id, resetPassword);
+      toast.success("Password reset successfully");
+      setResetPassword("");
+    } catch (err) {
+      toast.error(err.message || "Failed to reset password");
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -183,6 +223,7 @@ export default function Settings() {
   };
 
   const openUserModal = (user = null) => {
+    setResetPassword("");
     if (user) {
       setEditingUser(user);
       setUserForm({
@@ -236,7 +277,7 @@ export default function Settings() {
     {
       key: "role",
       label: "Role",
-      render: (row) => ROLE_LABELS[row.role] || row.role,
+      render: (row) => ROLE_LABELS[row.role] || row.role || "—",
     },
     {
       key: "phone",
@@ -440,6 +481,7 @@ export default function Settings() {
         onClose={() => {
           setShowUserModal(false);
           setEditingUser(null);
+          setResetPassword("");
           setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
         }}
         title={editingUser ? "Edit User" : "Add User"}
@@ -559,7 +601,8 @@ export default function Settings() {
             </div>
           </div>
         </div>
-        {!editingUser && (
+
+        {!editingUser ? (
           <div className="field">
             <label className="field-label" htmlFor="user_password">
               Password <span className="required">*</span>
@@ -572,6 +615,33 @@ export default function Settings() {
               value={userForm.password}
               onChange={(e) => setUserForm((prev) => ({ ...prev, password: e.target.value }))}
             />
+          </div>
+        ) : (
+          <div className="field">
+            <label className="field-label" htmlFor="reset_password">
+              Reset Password
+            </label>
+            <div className="d-flex gap-2">
+              <input
+                id="reset_password"
+                type="password"
+                className="input"
+                placeholder="New password (leave blank to skip)"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={handleResetPassword}
+                disabled={resettingPassword || !resetPassword}
+              >
+                {resettingPassword ? <span className="spinner-border spinner-border-sm" /> : "Reset"}
+              </button>
+            </div>
+            <div className="text-xs text-muted mt-1">
+              Sets the password directly — the current password is not required.
+            </div>
           </div>
         )}
       </Modal>

@@ -24,6 +24,10 @@ export const ROLE_LABELS = {
   [ROLES.RADIOLOGIST]: "Radiologist",
   [ROLES.PHARMACIST]: "Pharmacist",
   [ROLES.ACCOUNTANT]: "Accountant",
+  [ROLES.MORTUARY_ATTENDANT]: "Mortuary Attendant",
+  [ROLES.HR_OFFICER]: "Human Resource Officer",
+  [ROLES.PROCUREMENT_OFFICER]: "Procurement Officer",
+  [ROLES.AMBULANCE_DISPATCHER]: "Ambulance Dispatcher",
 };
 
 // Maps each route path to the roles allowed to view it.

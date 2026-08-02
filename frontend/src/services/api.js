@@ -116,6 +116,8 @@ export const getUser = (id) => unwrap(client.get(`/users/${id}/`));
 export const createUser = (payload) => unwrap(client.post("/users/", payload));
 export const updateUser = (id, payload) => unwrap(client.patch(`/users/${id}/`, payload));
 export const deleteUser = (id) => unwrap(client.delete(`/users/${id}/`));
+export const resetUserPassword = (id, newPassword) =>
+  unwrap(client.post(`/users/${id}/reset-password/`, { new_password: newPassword }));
 
 // ===========================================================================
 // DEPARTMENTS
