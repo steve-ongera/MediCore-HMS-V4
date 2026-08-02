@@ -278,6 +278,14 @@ const NAV_GROUPS = [
     roles: [ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER],
     links: [
       { to: "/medrecords", label: "HIM Dashboard", icon: "bi-folder2-open" },
+      { to: "/medrecords/files", label: "File Tracking", icon: "bi-archive" },
+      { to: "/medrecords/documents", label: "Document Upload", icon: "bi-file-earmark-arrow-up" },
+      { to: "/medrecords/birth-register", label: "Birth Register", icon: "bi-file-earmark-person" },
+      { to: "/medrecords/death-register", label: "Death Register", icon: "bi-file-earmark-x" },
+      { to: "/medrecords/referrals", label: "Referrals", icon: "bi-arrow-left-right", roles: [ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.DOCTOR] },
+      { to: "/medrecords/discharge-summaries", label: "Discharge Summaries", icon: "bi-clipboard2-check", roles: [ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.DOCTOR] },
+      { to: "/medrecords/requests", label: "Record Requests", icon: "bi-envelope-paper" },
+      { to: "/medrecords/audit-trail", label: "Audit Trail", icon: "bi-shield-lock" },
     ],
   },
   {
