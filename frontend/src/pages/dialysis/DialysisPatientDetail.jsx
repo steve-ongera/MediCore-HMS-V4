@@ -228,7 +228,7 @@ export default function DialysisPatientDetail() {
                 />
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                   <i className="bi bi-plus-circle me-2"></i> Schedule
                 </button>
               </div>
@@ -378,7 +378,7 @@ export default function DialysisPatientDetail() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-save me-2"></i> Save Access Check
             </button>
           </form>

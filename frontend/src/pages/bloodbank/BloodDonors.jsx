@@ -195,7 +195,7 @@ export default function BloodDonors() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-person-plus me-2"></i> Register Donor
               </button>
             </div>
@@ -255,7 +255,7 @@ export default function BloodDonors() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-droplet me-2"></i> Record Donation
               </button>
             </div>

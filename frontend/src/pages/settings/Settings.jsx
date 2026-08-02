@@ -16,8 +16,10 @@ import Modal from "../../components/Modal";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { ROLES, ROLE_LABELS } from "../../utils/roles";
+import { formatCurrency } from "../../utils/formatters";
 
 const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 350;
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
@@ -32,15 +34,17 @@ export default function Settings() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Password reset (admin-initiated — does not require the target user's old password)
   const [resetPassword, setResetPassword] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
 
-  // Pagination state — kept separate per tab
   const [userPage, setUserPage] = useState(1);
   const [userCount, setUserCount] = useState(0);
   const [deptPage, setDeptPage] = useState(1);
   const [deptCount, setDeptCount] = useState(0);
+
+  const [userSearchInput, setUserSearchInput] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("");
 
   const [userForm, setUserForm] = useState({
     username: "",
@@ -59,19 +63,29 @@ export default function Settings() {
     is_active: true,
   });
 
-  // Reload users whenever userPage changes
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setUserSearch(userSearchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [userSearchInput]);
+
+  useEffect(() => {
+    if (userPage !== 1) {
+      setUserPage(1);
+    } else {
+      loadUsers(1);
+    }
+  }, [userSearch, userRoleFilter]);
+
   useEffect(() => {
     loadUsers(userPage);
   }, [userPage]);
 
-  // Reload departments whenever deptPage changes
   useEffect(() => {
     loadDepartments(deptPage);
   }, [deptPage]);
 
-  // Normalizes both DRF-paginated ({results, count}) and plain-array
-  // responses into the same shape, so the table never silently empties
-  // out just because pagination is off for a given viewset.
   const normalizeListResponse = (data) => {
     if (Array.isArray(data)) {
       return { results: data, count: data.length };
@@ -82,7 +96,10 @@ export default function Settings() {
   const loadUsers = async (page = 1) => {
     setLoading(true);
     try {
-      const data = await getUsers({ page, page_size: PAGE_SIZE });
+      const params = { page, page_size: PAGE_SIZE };
+      if (userSearch) params.search = userSearch;
+      if (userRoleFilter) params.role = userRoleFilter;
+      const data = await getUsers(params);
       const { results, count } = normalizeListResponse(data);
       setUsers(results);
       setUserCount(count);
@@ -113,6 +130,12 @@ export default function Settings() {
     } else {
       loadDepartments(deptPage);
     }
+  };
+
+  const clearUserFilters = () => {
+    setUserSearchInput("");
+    setUserSearch("");
+    setUserRoleFilter("");
   };
 
   const handleCreateUser = async (e) => {
@@ -199,7 +222,6 @@ export default function Settings() {
       if (deleteTarget.type === "user") {
         await deleteUser(deleteTarget.id);
         toast.success("User deleted");
-        // if we deleted the last item on a page > 1, step back a page
         if (users.length === 1 && userPage > 1) {
           setUserPage((p) => p - 1);
         } else {
@@ -258,14 +280,18 @@ export default function Settings() {
     setShowDeptModal(true);
   };
 
+  const getStatusBadge = (isActive) => {
+    return isActive ? "badge-success" : "badge-neutral";
+  };
+
   const userColumns = [
     {
       key: "username",
       label: "Username",
       render: (row) => (
         <div>
-          <div className="fw-semibold">{row.username}</div>
-          <div className="text-xs text-muted">{row.email}</div>
+          <div className="cell-primary">{row.username}</div>
+          <div className="text-2xs text-tertiary">{row.email}</div>
         </div>
       ),
     },
@@ -288,7 +314,8 @@ export default function Settings() {
       key: "is_active",
       label: "Status",
       render: (row) => (
-        <span className={`badge ${row.is_active ? "bg-success" : "bg-secondary"}`}>
+        <span className={`badge ${getStatusBadge(row.is_active)}`}>
+          <span className="badge-dot"></span>
           {row.is_active ? "Active" : "Inactive"}
         </span>
       ),
@@ -297,17 +324,17 @@ export default function Settings() {
       key: "actions",
       label: "",
       render: (row) => (
-        <div className="d-flex gap-1 justify-content-end">
+        <div className="flex gap-1 justify-end">
           <button
             type="button"
-            className="btn btn-sm btn-outline-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={() => openUserModal(row)}
           >
             <i className="bi bi-pencil"></i>
           </button>
           <button
             type="button"
-            className="btn btn-sm btn-outline-danger"
+            className="btn btn-danger btn-sm"
             onClick={() => {
               setDeleteTarget({ id: row.id, type: "user" });
               setShowConfirm(true);
@@ -326,21 +353,22 @@ export default function Settings() {
       label: "Department",
       render: (row) => (
         <div>
-          <div className="fw-semibold">{row.name}</div>
-          <div className="text-xs text-muted">{row.description}</div>
+          <div className="cell-primary">{row.name}</div>
+          <div className="text-2xs text-tertiary">{row.description}</div>
         </div>
       ),
     },
     {
       key: "consultation_fee",
       label: "Consultation Fee",
-      render: (row) => `KES ${row.consultation_fee}`,
+      render: (row) => formatCurrency(row.consultation_fee),
     },
     {
       key: "is_active",
       label: "Status",
       render: (row) => (
-        <span className={`badge ${row.is_active ? "bg-success" : "bg-secondary"}`}>
+        <span className={`badge ${getStatusBadge(row.is_active)}`}>
+          <span className="badge-dot"></span>
           {row.is_active ? "Active" : "Inactive"}
         </span>
       ),
@@ -349,17 +377,17 @@ export default function Settings() {
       key: "actions",
       label: "",
       render: (row) => (
-        <div className="d-flex gap-1 justify-content-end">
+        <div className="flex gap-1 justify-end">
           <button
             type="button"
-            className="btn btn-sm btn-outline-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={() => openDeptModal(row)}
           >
             <i className="bi bi-pencil"></i>
           </button>
           <button
             type="button"
-            className="btn btn-sm btn-outline-danger"
+            className="btn btn-danger btn-sm"
             onClick={() => {
               setDeleteTarget({ id: row.id, type: "department" });
               setShowConfirm(true);
@@ -376,6 +404,7 @@ export default function Settings() {
   const currentCount = activeTab === "users" ? userCount : deptCount;
   const totalPages = Math.max(1, Math.ceil(currentCount / PAGE_SIZE));
   const setCurrentPage = activeTab === "users" ? setUserPage : setDeptPage;
+  const hasActiveUserFilters = Boolean(userSearchInput || userRoleFilter);
 
   if (loading && users.length === 0 && departments.length === 0) return <LoadingSpinner />;
 
@@ -387,15 +416,21 @@ export default function Settings() {
           <h1 className="page-title">Settings</h1>
           <p className="page-subtitle">Manage users, departments, and system configuration</p>
         </div>
+        <div className="page-header__actions">
+          <button className="btn btn-secondary" onClick={reloadCurrentTab}>
+            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="tabs mb-3">
+      <div className="tabs" style={{ marginBottom: "var(--space-3)" }}>
         <button
           type="button"
           className={`tabs__item ${activeTab === "users" ? "is-active" : ""}`}
           onClick={() => setActiveTab("users")}
         >
+          <i className="bi bi-people me-2"></i>
           Users ({userCount})
         </button>
         <button
@@ -403,6 +438,7 @@ export default function Settings() {
           className={`tabs__item ${activeTab === "departments" ? "is-active" : ""}`}
           onClick={() => setActiveTab("departments")}
         >
+          <i className="bi bi-building me-2"></i>
           Departments ({deptCount})
         </button>
       </div>
@@ -415,7 +451,7 @@ export default function Settings() {
           {activeTab === "users" ? (
             <button
               type="button"
-              className="btn btn-sm btn-primary"
+              className="btn btn-primary btn-sm"
               onClick={() => openUserModal()}
             >
               <i className="bi bi-person-plus me-1"></i>
@@ -424,7 +460,7 @@ export default function Settings() {
           ) : (
             <button
               type="button"
-              className="btn btn-sm btn-primary"
+              className="btn btn-primary btn-sm"
               onClick={() => openDeptModal()}
             >
               <i className="bi bi-building-add me-1"></i>
@@ -432,43 +468,104 @@ export default function Settings() {
             </button>
           )}
         </div>
+
+        {/* Search + role filter — users tab only */}
+        {activeTab === "users" && (
+          <div className="card-body" style={{ borderBottom: "1px solid var(--border-color)", padding: "var(--space-3)" }}>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="search-bar" style={{ flex: "1 1 260px", minWidth: "220px" }}>
+                <i className="bi bi-search search-bar__icon"></i>
+                <input
+                  type="text"
+                  className="search-bar__input"
+                  placeholder="Search by name, username, or email..."
+                  value={userSearchInput}
+                  onChange={(e) => setUserSearchInput(e.target.value)}
+                />
+                {userSearchInput && (
+                  <button
+                    type="button"
+                    className="search-bar__clear"
+                    onClick={() => setUserSearchInput("")}
+                    aria-label="Clear search"
+                  >
+                    <i className="bi bi-x"></i>
+                  </button>
+                )}
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <select
+                  className="select"
+                  style={{ width: "180px" }}
+                  value={userRoleFilter}
+                  onChange={(e) => setUserRoleFilter(e.target.value)}
+                  aria-label="Filter by role"
+                >
+                  <option value="">All roles</option>
+                  {Object.entries(ROLE_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {hasActiveUserFilters && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={clearUserFilters}
+                >
+                  <i className="bi bi-x-lg me-1"></i>
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="card-body p-0">
           <DataTable
             columns={activeTab === "users" ? userColumns : deptColumns}
             data={activeTab === "users" ? users : departments}
             loading={loading}
-            emptyMessage={`No ${activeTab} found`}
+            emptyMessage={
+              activeTab === "users" && hasActiveUserFilters
+                ? "No users match your search"
+                : `No ${activeTab} found`
+            }
           />
         </div>
 
         {/* Pagination footer */}
         {currentCount > PAGE_SIZE && (
-          <div className="card-footer d-flex align-items-center justify-content-between">
-            <span className="text-xs text-muted">
-              Showing {(currentPage - 1) * PAGE_SIZE + 1}–
-              {Math.min(currentPage * PAGE_SIZE, currentCount)} of {currentCount}
-            </span>
-            <div className="d-flex align-items-center gap-2">
+          <div className="card-footer">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-tertiary text-sm">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                {Math.min(currentPage * PAGE_SIZE, currentCount)} of {currentCount}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary"
+                className="btn btn-secondary btn-sm"
                 disabled={currentPage <= 1 || loading}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
-                <i className="bi bi-chevron-left"></i>
+                <i className="bi bi-chevron-left me-1"></i>
                 Prev
               </button>
-              <span className="text-xs">
+              <span className="text-2xs text-tertiary">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary"
+                className="btn btn-secondary btn-sm"
                 disabled={currentPage >= totalPages || loading}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               >
                 Next
-                <i className="bi bi-chevron-right"></i>
+                <i className="bi bi-chevron-right ms-1"></i>
               </button>
             </div>
           </div>
@@ -485,8 +582,9 @@ export default function Settings() {
           setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
         }}
         title={editingUser ? "Edit User" : "Add User"}
+        size="lg"
         footer={
-          <>
+          <div className="flex gap-2">
             <button
               type="button"
               className="btn btn-secondary"
@@ -501,9 +599,11 @@ export default function Settings() {
               onClick={handleCreateUser}
               disabled={submitting}
             >
-              {submitting ? <span className="spinner-border spinner-border-sm" /> : editingUser ? "Update" : "Create"}
+              {submitting ? (
+                <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
+              ) : editingUser ? "Update" : "Create"}
             </button>
-          </>
+          </div>
         }
       >
         <div className="field">
@@ -519,36 +619,32 @@ export default function Settings() {
             onChange={(e) => setUserForm((prev) => ({ ...prev, username: e.target.value }))}
           />
         </div>
-        <div className="row">
-          <div className="col-md-6">
-            <div className="field">
-              <label className="field-label" htmlFor="user_first_name">
-                First Name
-              </label>
-              <input
-                id="user_first_name"
-                type="text"
-                className="input"
-                placeholder="First name"
-                value={userForm.first_name}
-                onChange={(e) => setUserForm((prev) => ({ ...prev, first_name: e.target.value }))}
-              />
-            </div>
+        <div className="field-row">
+          <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+            <label className="field-label" htmlFor="user_first_name">
+              First Name
+            </label>
+            <input
+              id="user_first_name"
+              type="text"
+              className="input"
+              placeholder="First name"
+              value={userForm.first_name}
+              onChange={(e) => setUserForm((prev) => ({ ...prev, first_name: e.target.value }))}
+            />
           </div>
-          <div className="col-md-6">
-            <div className="field">
-              <label className="field-label" htmlFor="user_last_name">
-                Last Name
-              </label>
-              <input
-                id="user_last_name"
-                type="text"
-                className="input"
-                placeholder="Last name"
-                value={userForm.last_name}
-                onChange={(e) => setUserForm((prev) => ({ ...prev, last_name: e.target.value }))}
-              />
-            </div>
+          <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+            <label className="field-label" htmlFor="user_last_name">
+              Last Name
+            </label>
+            <input
+              id="user_last_name"
+              type="text"
+              className="input"
+              placeholder="Last name"
+              value={userForm.last_name}
+              onChange={(e) => setUserForm((prev) => ({ ...prev, last_name: e.target.value }))}
+            />
           </div>
         </div>
         <div className="field">
@@ -564,41 +660,37 @@ export default function Settings() {
             onChange={(e) => setUserForm((prev) => ({ ...prev, email: e.target.value }))}
           />
         </div>
-        <div className="row">
-          <div className="col-md-6">
-            <div className="field">
-              <label className="field-label" htmlFor="user_role">
-                Role <span className="required">*</span>
-              </label>
-              <select
-                id="user_role"
-                className="select"
-                value={userForm.role}
-                onChange={(e) => setUserForm((prev) => ({ ...prev, role: e.target.value }))}
-              >
-                <option value="">Select role</option>
-                {Object.entries(ROLE_LABELS).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="field-row">
+          <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+            <label className="field-label" htmlFor="user_role">
+              Role <span className="required">*</span>
+            </label>
+            <select
+              id="user_role"
+              className="select"
+              value={userForm.role}
+              onChange={(e) => setUserForm((prev) => ({ ...prev, role: e.target.value }))}
+            >
+              <option value="">Select role</option>
+              {Object.entries(ROLE_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="col-md-6">
-            <div className="field">
-              <label className="field-label" htmlFor="user_phone">
-                Phone
-              </label>
-              <input
-                id="user_phone"
-                type="tel"
-                className="input"
-                placeholder="Phone number"
-                value={userForm.phone}
-                onChange={(e) => setUserForm((prev) => ({ ...prev, phone: e.target.value }))}
-              />
-            </div>
+          <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+            <label className="field-label" htmlFor="user_phone">
+              Phone
+            </label>
+            <input
+              id="user_phone"
+              type="tel"
+              className="input"
+              placeholder="Phone number"
+              value={userForm.phone}
+              onChange={(e) => setUserForm((prev) => ({ ...prev, phone: e.target.value }))}
+            />
           </div>
         </div>
 
@@ -621,7 +713,7 @@ export default function Settings() {
             <label className="field-label" htmlFor="reset_password">
               Reset Password
             </label>
-            <div className="d-flex gap-2">
+            <div className="flex gap-2">
               <input
                 id="reset_password"
                 type="password"
@@ -629,17 +721,22 @@ export default function Settings() {
                 placeholder="New password (leave blank to skip)"
                 value={resetPassword}
                 onChange={(e) => setResetPassword(e.target.value)}
+                style={{ flex: 1 }}
               />
               <button
                 type="button"
-                className="btn btn-outline-secondary"
+                className="btn btn-secondary"
                 onClick={handleResetPassword}
                 disabled={resettingPassword || !resetPassword}
               >
-                {resettingPassword ? <span className="spinner-border spinner-border-sm" /> : "Reset"}
+                {resettingPassword ? (
+                  <span className="spinner spinner-sm" style={{ display: "inline-block", width: "14px", height: "14px" }}></span>
+                ) : (
+                  "Reset"
+                )}
               </button>
             </div>
-            <div className="text-xs text-muted mt-1">
+            <div className="text-2xs text-tertiary" style={{ marginTop: "var(--space-1)" }}>
               Sets the password directly — the current password is not required.
             </div>
           </div>
@@ -655,8 +752,9 @@ export default function Settings() {
           setDeptForm({ name: "", consultation_fee: "", description: "", is_active: true });
         }}
         title={editingDept ? "Edit Department" : "Add Department"}
+        size="lg"
         footer={
-          <>
+          <div className="flex gap-2">
             <button
               type="button"
               className="btn btn-secondary"
@@ -671,9 +769,11 @@ export default function Settings() {
               onClick={handleCreateDepartment}
               disabled={submitting}
             >
-              {submitting ? <span className="spinner-border spinner-border-sm" /> : editingDept ? "Update" : "Create"}
+              {submitting ? (
+                <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
+              ) : editingDept ? "Update" : "Create"}
             </button>
-          </>
+          </div>
         }
       >
         <div className="field">
@@ -716,15 +816,16 @@ export default function Settings() {
             onChange={(e) => setDeptForm((prev) => ({ ...prev, description: e.target.value }))}
           />
         </div>
-        <div className="checkbox-row">
+        <div className="field" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <input
             id="dept_active"
             type="checkbox"
-            className="checkbox"
+            className="input"
+            style={{ width: "auto", margin: 0 }}
             checked={deptForm.is_active}
             onChange={(e) => setDeptForm((prev) => ({ ...prev, is_active: e.target.checked }))}
           />
-          <label className="checkbox-label" htmlFor="dept_active">
+          <label className="field-label" htmlFor="dept_active" style={{ marginBottom: 0 }}>
             Active
           </label>
         </div>

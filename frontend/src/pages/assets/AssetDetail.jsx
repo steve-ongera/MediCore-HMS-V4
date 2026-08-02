@@ -305,7 +305,7 @@ export default function AssetDetail() {
                   onChange={handleTransferChange("reason")}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-arrow-left-right me-2"></i> Transfer Asset
               </button>
             </form>
@@ -426,7 +426,7 @@ export default function AssetDetail() {
                   onChange={handleMaintenanceChange("description")}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-plus-circle me-2"></i> Log Maintenance
               </button>
             </form>

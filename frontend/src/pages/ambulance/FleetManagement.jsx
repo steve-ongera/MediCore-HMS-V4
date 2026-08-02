@@ -198,7 +198,7 @@ export default function FleetManagement() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-plus-circle me-2"></i> Register Ambulance
               </button>
             </div>
@@ -376,7 +376,7 @@ export default function FleetManagement() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-plus-circle me-2"></i> Log Maintenance
             </button>
           </form>

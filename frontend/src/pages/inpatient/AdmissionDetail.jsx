@@ -674,7 +674,7 @@ export default function AdmissionDetail() {
                       onChange={(e) => setRoundPlan(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-plus-circle me-2"></i> Add Ward Round
                   </button>
                 </form>
@@ -724,7 +724,7 @@ export default function AdmissionDetail() {
                       />
                     </div>
                   </div>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-plus-circle me-2"></i> Add Nursing Note
                   </button>
                 </form>
@@ -795,7 +795,7 @@ export default function AdmissionDetail() {
                       <input type="number" className="input" placeholder="SpO2" value={vitals.oxygen_saturation} onChange={handleVitalsChange("oxygen_saturation")} />
                     </div>
                   </div>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-floppy me-2"></i> Save Vitals
                   </button>
                 </form>
@@ -875,7 +875,7 @@ export default function AdmissionDetail() {
                       <input type="number" className="input" min="1" placeholder="Quantity" value={medOrder.quantity} onChange={handleMedOrderChange("quantity")} required />
                     </div>
                   </div>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-plus-circle me-2"></i> Add Medication Order
                   </button>
                 </form>
@@ -1182,7 +1182,7 @@ export default function AdmissionDetail() {
                     <input type="text" className="input" placeholder="Reason for transfer" value={transferReason} onChange={(e) => setTransferReason(e.target.value)} />
                   </div>
                 </div>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                   <i className="bi bi-arrows-move me-2"></i> Transfer Bed
                 </button>
               </form>

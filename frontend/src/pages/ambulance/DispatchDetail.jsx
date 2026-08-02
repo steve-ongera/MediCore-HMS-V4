@@ -278,7 +278,7 @@ export default function DispatchDetail() {
                   </select>
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-truck me-2"></i> Assign & Dispatch
                   </button>
                 </div>
@@ -314,7 +314,7 @@ export default function DispatchDetail() {
                   </select>
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-person-plus me-2"></i> Add Crew Member
                   </button>
                 </div>

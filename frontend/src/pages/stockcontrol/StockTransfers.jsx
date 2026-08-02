@@ -163,7 +163,7 @@ export default function StockTransfers() {
             </button>
 
             <div className="form-actions" style={{ marginTop: "var(--space-3)" }}>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-send me-2"></i> Submit Transfer Request
               </button>
             </div>

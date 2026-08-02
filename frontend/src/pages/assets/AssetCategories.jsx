@@ -107,7 +107,7 @@ export default function AssetCategories() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-plus-circle me-2"></i> Add Category
               </button>
             </div>

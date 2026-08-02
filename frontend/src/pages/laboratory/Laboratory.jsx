@@ -397,6 +397,7 @@ export default function Laboratory() {
             id="result_file"
             type="file"
             className="input"
+            style={{ padding : "8px" }}
             accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
             onChange={(e) => {
               const file = e.target.files?.[0];

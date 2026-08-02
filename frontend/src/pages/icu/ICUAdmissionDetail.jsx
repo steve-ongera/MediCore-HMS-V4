@@ -374,7 +374,7 @@ export default function ICUAdmissionDetail() {
                 <label className="field-label">Notes</label>
                 <textarea className="textarea" placeholder="Notes" value={vitalsForm.notes} onChange={handleVitalsChange("notes")} />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-floppy me-2"></i> Record Vitals
               </button>
             </form>
@@ -486,7 +486,7 @@ export default function ICUAdmissionDetail() {
                 <textarea className="textarea" placeholder="Notes" value={ventForm.notes} onChange={handleVentChange("notes")} />
               </div>
 
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-floppy me-2"></i> Record Settings
               </button>
             </form>
@@ -572,7 +572,7 @@ export default function ICUAdmissionDetail() {
                   />
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-plus-circle me-2"></i> Order & Bill Procedure
               </button>
             </form>

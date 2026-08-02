@@ -516,7 +516,7 @@ export default function EmergencyVisitDetail() {
                         />
                       </div>
                       <div className="field" style={{ marginBottom: 0 }}>
-                        <button type="submit" className="btn btn-primary">
+                        <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                           <i className="bi bi-plus-circle me-2"></i> Add Charge
                         </button>
                       </div>
@@ -577,7 +577,7 @@ export default function EmergencyVisitDetail() {
                   <input type="number" className="input" placeholder="Pain" value={vitals.pain_score} onChange={handleVitalsChange("pain_score")} />
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-floppy me-2"></i> Save Vitals
               </button>
             </form>
@@ -638,7 +638,7 @@ export default function EmergencyVisitDetail() {
                   required
                 />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-plus-circle me-2"></i> Add Note
               </button>
             </form>
@@ -691,7 +691,7 @@ export default function EmergencyVisitDetail() {
                   />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-plus-circle me-2"></i> Order
                   </button>
                 </div>
@@ -778,7 +778,7 @@ export default function EmergencyVisitDetail() {
                   />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-plus-circle me-2"></i> Order
                   </button>
                 </div>
@@ -886,7 +886,7 @@ export default function EmergencyVisitDetail() {
                   onChange={handleTransferFormChange("admission_diagnosis")}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-arrow-right me-2"></i> Transfer to Admission
               </button>
             </form>

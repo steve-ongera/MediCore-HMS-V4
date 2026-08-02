@@ -343,7 +343,7 @@ export default function ClaimDetail() {
               )}
 
               <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                   <i className="bi bi-check-circle me-2"></i> Record Response
                 </button>
                 <button type="button" className="btn btn-danger" onClick={handleCancel}>

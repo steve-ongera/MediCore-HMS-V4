@@ -315,7 +315,7 @@ export default function EmployeeDetail() {
                   onChange={(e) => setLeaveForm((p) => ({ ...p, reason: e.target.value }))}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-send me-2"></i> Submit Leave Request
               </button>
             </form>
@@ -448,7 +448,7 @@ export default function EmployeeDetail() {
                 onChange={(e) => setReviewForm((p) => ({ ...p, goals_next_period: e.target.value }))}
               />
             </div>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-plus-circle me-2"></i> Save Review
             </button>
           </form>
@@ -554,7 +554,7 @@ export default function EmployeeDetail() {
                 onChange={(e) => setDisciplinaryForm((p) => ({ ...p, action_taken: e.target.value }))}
               />
             </div>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-plus-circle me-2"></i> Log Record
             </button>
           </form>

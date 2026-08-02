@@ -293,7 +293,7 @@ export default function ChildDetail() {
                 />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-floppy me-2"></i> Save Growth Record
             </button>
           </form>

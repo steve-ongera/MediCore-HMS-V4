@@ -351,7 +351,7 @@ export default function EyeVisitDetail() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-save me-2"></i> Save Examination
             </button>
           </form>
@@ -507,7 +507,7 @@ export default function EyeVisitDetail() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-plus-circle me-2"></i> Save Prescription
             </button>
           </form>
@@ -599,7 +599,7 @@ export default function EyeVisitDetail() {
                 />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-plus-circle me-2"></i> Add to Plan
             </button>
           </form>

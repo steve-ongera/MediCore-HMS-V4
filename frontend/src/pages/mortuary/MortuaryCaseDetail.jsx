@@ -324,7 +324,7 @@ export default function MortuaryCaseDetail() {
                     />
                   </div>
                   <div className="field" style={{ marginBottom: 0 }}>
-                    <button type="submit" className="btn btn-primary">
+                    <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                       <i className="bi bi-plus-circle me-2"></i> Add Charge
                     </button>
                   </div>
@@ -361,7 +361,7 @@ export default function MortuaryCaseDetail() {
                   />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                     <i className="bi bi-plus-circle me-2"></i> Order Service
                   </button>
                 </div>

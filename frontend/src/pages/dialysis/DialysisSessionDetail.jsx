@@ -316,7 +316,7 @@ export default function DialysisSessionDetail() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                 <i className="bi bi-play-circle me-2"></i> Start Session
               </button>
             </form>

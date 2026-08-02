@@ -172,7 +172,7 @@ export default function RequestRefund() {
                 />
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                   <i className="bi bi-search me-2"></i> Search
                 </button>
               </div>

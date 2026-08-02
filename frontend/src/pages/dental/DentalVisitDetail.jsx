@@ -251,7 +251,7 @@ export default function DentalVisitDetail() {
                       />
                     </div>
                     <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end", gap: "var(--space-2)" }}>
-                      <button type="submit" className="btn btn-primary">
+                      <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
                         <i className="bi bi-save me-2"></i> Save
                       </button>
                       <button type="button" className="btn btn-secondary" onClick={() => setSelectedTooth("")}>
@@ -312,7 +312,7 @@ export default function DentalVisitDetail() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
               <i className="bi bi-plus-circle me-2"></i> Add to Plan
             </button>
           </form>
