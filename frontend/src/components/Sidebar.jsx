@@ -295,6 +295,7 @@ const NAV_GROUPS = [
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
       { to: "/messages", label: "Messages", icon: "bi bi-chat-left" },
+      { to: "/my-leave", label: "My Leave Requests", icon: "bi-calendar2-week" },
       { to: "/settings", label: "Settings", icon: "bi-gear", roles: [] },
     ],
   },

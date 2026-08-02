@@ -50,6 +50,14 @@ class EmployeeViewSet(BaseModelViewSet):
         employee.date_terminated = request.data.get("date_terminated") or date.today()
         employee.save(update_fields=["employment_status", "date_terminated"])
         return Response(EmployeeSerializer(employee).data)
+    
+    @action(detail=False, methods=["get"], url_path="me")
+    def me(self, request):
+        """Returns the Employee record linked to the current logged-in user, if one exists — lets any staff member find their own HR profile to file leave requests against."""
+        employee = Employee.objects.filter(user=request.user).first()
+        if not employee:
+            return Response(None)
+        return Response(EmployeeSerializer(employee).data)
 
 
 class LeaveTypeViewSet(BaseModelViewSet):

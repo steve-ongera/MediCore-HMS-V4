@@ -199,6 +199,7 @@ import RequestRefund from "./pages/billing/RequestRefund.jsx";
 import Messages from "./pages/messaging/Messages.jsx";
 import ChatThread from "./pages/messaging/ChatThread.jsx";
 import StaffDirectory from "./pages/messaging/StaffDirectory.jsx";
+import MyLeaveRequests from "./pages/hr/MyLeaveRequests.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -774,7 +775,8 @@ export default function App() {
         <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/messages/directory" element={<ProtectedRoute><StaffDirectory /></ProtectedRoute>} />
         <Route path="/messages/:id" element={<ProtectedRoute><ChatThread /></ProtectedRoute>} />
-                
+        <Route path="/my-leave" element={<ProtectedRoute><MyLeaveRequests /></ProtectedRoute>} />
+                        
 
 
         {/* Profile - any authenticated user */}

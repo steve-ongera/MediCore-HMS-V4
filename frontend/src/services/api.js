@@ -476,6 +476,7 @@ export const getEmployee = (id) => unwrap(client.get(`/employees/${id}/`));
 export const createEmployee = (payload) => unwrap(client.post("/employees/", payload));
 export const updateEmployee = (id, payload) => unwrap(client.patch(`/employees/${id}/`, payload));
 export const terminateEmployee = (id, payload) => unwrap(client.post(`/employees/${id}/terminate/`, payload));
+export const getMyEmployeeProfile = () => unwrap(client.get("/employees/me/"));
 
 export const getLeaveTypes = (params) => unwrap(client.get(`/leave-types/${qs(params)}`));
 export const createLeaveType = (payload) => unwrap(client.post("/leave-types/", payload));
