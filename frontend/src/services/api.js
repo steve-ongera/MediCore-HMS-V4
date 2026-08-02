@@ -783,6 +783,41 @@ export const markNotificationRead = (id) => unwrap(client.post(`/notifications/$
 export const markAllNotificationsRead = () => unwrap(client.post("/notifications/mark-all-read/"));
 export const getAllNotifications = (params) => unwrap(client.get(`/notifications/${qs(params)}`));
 
+export const getPatientFiles = (params) => unwrap(client.get(`/patient-files/${qs(params)}`));
+export const createPatientFile = (payload) => unwrap(client.post("/patient-files/", payload));
+export const checkoutPatientFile = (id, payload) => unwrap(client.post(`/patient-files/${id}/checkout/`, payload));
+export const returnPatientFile = (id, payload) => unwrap(client.post(`/patient-files/${id}/return-file/`, payload));
+export const getOverdueFiles = () => unwrap(client.get("/patient-files/overdue/"));
+
+export const getDocumentAttachments = (params) => unwrap(client.get(`/document-attachments/${qs(params)}`));
+export const uploadDocument = (formData) => unwrap(client.post("/document-attachments/", formData, { headers: { "Content-Type": "multipart/form-data" } }));
+
+export const getBirthRegister = (params) => unwrap(client.get(`/birth-register/${qs(params)}`));
+export const createBirthRegistration = (payload) => unwrap(client.post("/birth-register/", payload));
+
+export const getDeathRegister = (params) => unwrap(client.get(`/death-register/${qs(params)}`));
+export const createDeathRegistration = (payload) => unwrap(client.post("/death-register/", payload));
+
+export const getReferrals = (params) => unwrap(client.get(`/referrals/${qs(params)}`));
+export const createReferral = (payload) => unwrap(client.post("/referrals/", payload));
+export const updateReferralStatus = (id, payload) => unwrap(client.post(`/referrals/${id}/update-status/`, payload));
+
+export const getDischargeSummaries = (params) => unwrap(client.get(`/discharge-summaries/${qs(params)}`));
+export const createDischargeSummary = (payload) => unwrap(client.post("/discharge-summaries/", payload));
+export const updateDischargeSummary = (id, payload) => unwrap(client.patch(`/discharge-summaries/${id}/`, payload));
+export const completeDischargeSummary = (id) => unwrap(client.post(`/discharge-summaries/${id}/complete/`));
+export const getIncompleteDischargeSummaries = () => unwrap(client.get("/discharge-summaries/incomplete/"));
+
+export const getRecordRequests = (params) => unwrap(client.get(`/record-requests/${qs(params)}`));
+export const createRecordRequest = (payload) => unwrap(client.post("/record-requests/", payload));
+export const approveRecordRequest = (id) => unwrap(client.post(`/record-requests/${id}/approve/`));
+export const denyRecordRequest = (id, payload) => unwrap(client.post(`/record-requests/${id}/deny/`, payload));
+export const fulfillRecordRequest = (id) => unwrap(client.post(`/record-requests/${id}/fulfill/`));
+
+export const getRecordAuditTrail = (params) => unwrap(client.get(`/record-audit-trail/${qs(params)}`));
+
+export const getMedRecordsStats = () => unwrap(client.get("/medrecords/stats/"));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

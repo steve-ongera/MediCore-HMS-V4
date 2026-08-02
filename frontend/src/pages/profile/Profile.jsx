@@ -134,8 +134,19 @@ export default function Profile() {
                 {user.first_name || ""} {user.last_name || ""}
               </h5>
               <p className="text-muted text-sm">@{user.username}</p>
-              <div className="flex justify-content-center gap-2" style={{ flexWrap: "wrap" }}>
-                <span className="badge badge-primary">{ROLE_LABELS[user.role] || user.role}</span>
+              <div
+                className="flex gap-2"
+                style={{
+                  padding: "5px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <span className="badge badge-primary">
+                  {ROLE_LABELS[user.role] || user.role}
+                </span>
                 <span className={`badge ${user.is_active ? "badge-success" : "badge-neutral"}`}>
                   {user.is_active ? "Active" : "Inactive"}
                 </span>
@@ -170,7 +181,7 @@ export default function Profile() {
               className={`tabs__item ${activeTab === "profile" ? "is-active" : ""}`}
               onClick={() => setActiveTab("profile")}
             >
-              <i className="bi bi-person me-2"></i>
+              <i className="bi bi-person me-2" style={{ marginRight: "4px" }}></i>
               Profile Information
             </button>
             <button
@@ -178,7 +189,7 @@ export default function Profile() {
               className={`tabs__item ${activeTab === "password" ? "is-active" : ""}`}
               onClick={() => setActiveTab("password")}
             >
-              <i className="bi bi-key me-2"></i>
+              <i className="bi bi-key me-2" style={{ marginRight: "4px" }}></i>
               Change Password
             </button>
           </div>

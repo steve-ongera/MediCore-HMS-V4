@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "insights",
     "messaging",
     "notifications",
+    "medrecords",
 ]
 
 MIDDLEWARE = [

@@ -201,6 +201,16 @@ import ChatThread from "./pages/messaging/ChatThread.jsx";
 import StaffDirectory from "./pages/messaging/StaffDirectory.jsx";
 import MyLeaveRequests from "./pages/hr/MyLeaveRequests.jsx";
 
+import MedRecordsDashboard from "./pages/medrecords/MedRecordsDashboard.jsx";
+import PatientFileTracking from "./pages/medrecords/PatientFileTracking.jsx";
+import BirthRegisterPage from "./pages/medrecords/BirthRegisterPage.jsx";
+import DeathRegisterPage from "./pages/medrecords/DeathRegisterPage.jsx";
+import ReferralsPage from "./pages/medrecords/ReferralsPage.jsx";
+import DischargeSummaries from "./pages/medrecords/DischargeSummaries.jsx";
+import RecordRequestsPage from "./pages/medrecords/RecordRequestsPage.jsx";
+import RecordAuditTrailPage from "./pages/medrecords/RecordAuditTrailPage.jsx";
+import DocumentUpload from "./pages/medrecords/DocumentUpload.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -776,6 +786,9 @@ export default function App() {
         <Route path="/messages/directory" element={<ProtectedRoute><StaffDirectory /></ProtectedRoute>} />
         <Route path="/messages/:id" element={<ProtectedRoute><ChatThread /></ProtectedRoute>} />
         <Route path="/my-leave" element={<ProtectedRoute><MyLeaveRequests /></ProtectedRoute>} />
+        
+        
+        <Route path="/medrecords" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><MedRecordsDashboard /></ProtectedRoute>} />
                         
 
 

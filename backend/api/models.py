@@ -57,6 +57,8 @@ class Role(models.TextChoices):
     HR_OFFICER = "HR_OFFICER", "HR Officer"
     PROCUREMENT_OFFICER = "PROCUREMENT_OFFICER", "Procurement Officer"
     AMBULANCE_DISPATCHER = "AMBULANCE_DISPATCHER", "Ambulance Dispatcher"
+    HEALTH_RECORDS_OFFICER = "HEALTH_RECORDS_OFFICER", "Health Records Officer"
+    MEDICAL_RECORDS_OFFICER = "MEDICAL_RECORDS_OFFICER", "Medical Records Officer"
 
 
 class User(AbstractUser):

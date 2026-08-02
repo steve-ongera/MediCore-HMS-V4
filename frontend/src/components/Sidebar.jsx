@@ -274,6 +274,13 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Medical Records (HIM)",
+    roles: [ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER],
+    links: [
+      { to: "/medrecords", label: "HIM Dashboard", icon: "bi-folder2-open" },
+    ],
+  },
+  {
     label: "Administration",
     roles: [],
     links: [
