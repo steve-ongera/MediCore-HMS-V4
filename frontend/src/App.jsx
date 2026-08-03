@@ -210,6 +210,9 @@ import DischargeSummaries from "./pages/medrecords/DischargeSummaries.jsx";
 import RecordRequestsPage from "./pages/medrecords/RecordRequestsPage.jsx";
 import RecordAuditTrailPage from "./pages/medrecords/RecordAuditTrailPage.jsx";
 import DocumentUpload from "./pages/medrecords/DocumentUpload.jsx";
+import HealthRecordsOfficerDashboard from "./pages/dashboard/HealthRecordsOfficerDashboard.jsx";
+import MedicalRecordsOfficerDashboard from "./pages/dashboard/MedicalRecordsOfficerDashboard.jsx";
+import ICDCodingReview from "./pages/medrecords/ICDCodingReview.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -238,6 +241,8 @@ function RoleHomeDashboard() {
     [ROLES.HR_OFFICER]: HRDashboard,
     [ROLES.PROCUREMENT_OFFICER]: ProcurementDashboard,
     [ROLES.AMBULANCE_DISPATCHER]: AmbulanceDashboard,
+    [ROLES.HEALTH_RECORDS_OFFICER]: HealthRecordsOfficerDashboard,
+    [ROLES.MEDICAL_RECORDS_OFFICER]: MedicalRecordsOfficerDashboard,
   };
 
   const role = user?.role;
@@ -797,6 +802,7 @@ export default function App() {
         <Route path="/medrecords/requests" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><RecordRequestsPage /></ProtectedRoute>} />
         <Route path="/medrecords/audit-trail" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><RecordAuditTrailPage /></ProtectedRoute>} />
         <Route path="/medrecords/documents" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><DocumentUpload /></ProtectedRoute>} />
+        <Route path="/medrecords/coding-review" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><ICDCodingReview /></ProtectedRoute>} />
                                 
 
 

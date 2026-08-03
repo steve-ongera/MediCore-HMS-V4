@@ -818,6 +818,12 @@ export const getRecordAuditTrail = (params) => unwrap(client.get(`/record-audit-
 
 export const getMedRecordsStats = () => unwrap(client.get("/medrecords/stats/"));
 
+export const getUnverifiedDiagnoses = () => unwrap(client.get("/icd-coding-review/unverified/"));
+export const getUncodedDiagnoses = () => unwrap(client.get("/icd-coding-review/uncoded/"));
+export const verifyDiagnosisCoding = (id) => unwrap(client.post(`/icd-coding-review/${id}/verify/`));
+export const correctDiagnosisCoding = (id, payload) => unwrap(client.post(`/icd-coding-review/${id}/correct/`, payload));
+export const searchICD10Codes = (search) => unwrap(client.get(`/icd10-codes/${qs({ search })}`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
