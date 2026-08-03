@@ -4,8 +4,6 @@ import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Bootstrap CSS is loaded via CDN in index.html
-// No need to import it here anymore
 
 import "./styles/main.css";
 
