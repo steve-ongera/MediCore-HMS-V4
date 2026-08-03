@@ -53,14 +53,45 @@ class StockTransferRequestViewSet(BaseModelViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        # CreateTransferSerializer only validates that from_location / to_location /
+        # items[].medicine are well-formed UUIDs — not that they correspond to real,
+        # active rows. Without this check, a stale or bad ID falls through to
+        # .objects.create() and raises a raw IntegrityError, which isn't an
+        # APIException, so DRF can't turn it into a clean 400 — it becomes an
+        # unhandled 500 instead. Validate existence up front so bad input always
+        # comes back as a normal validation error.
+        from_location = StoreLocation.objects.filter(pk=data["from_location"], is_active=True).first()
+        if not from_location:
+            raise ValidationError({"from_location": "Location not found or inactive."})
+
+        to_location = StoreLocation.objects.filter(pk=data["to_location"], is_active=True).first()
+        if not to_location:
+            raise ValidationError({"to_location": "Location not found or inactive."})
+
+        if from_location.pk == to_location.pk:
+            raise ValidationError({"to_location": "Source and destination location cannot be the same."})
+
+        # Adjust this import to wherever Medicine actually lives in your project
+        # (e.g. `from pharmacy.models import Medicine`). Left as a local import
+        # here so this file doesn't need a new top-level import if the app name
+        # differs from what's assumed.
+        from api.models import Medicine
+
+        items_data = []
+        for item in data["items"]:
+            medicine = Medicine.objects.filter(pk=item["medicine"]).first()
+            if not medicine:
+                raise ValidationError({"items": f"Medicine {item['medicine']} not found."})
+            items_data.append((medicine, item["quantity_requested"]))
+
         with transaction.atomic():
             transfer = StockTransferRequest.objects.create(
-                from_location_id=data["from_location"], to_location_id=data["to_location"],
+                from_location=from_location, to_location=to_location,
                 notes=data.get("notes", ""), requested_by=request.user,
             )
-            for item in data["items"]:
+            for medicine, quantity_requested in items_data:
                 StockTransferItem.objects.create(
-                    transfer=transfer, medicine_id=item["medicine"], quantity_requested=item["quantity_requested"],
+                    transfer=transfer, medicine=medicine, quantity_requested=quantity_requested,
                 )
 
         return Response(StockTransferRequestSerializer(transfer).data, status=status.HTTP_201_CREATED)
@@ -77,8 +108,18 @@ class StockTransferRequestViewSet(BaseModelViewSet):
         transfer.save(update_fields=["status", "approved_by", "approved_at"])
         return Response(StockTransferRequestSerializer(transfer).data)
 
+    # NOTE: renamed from `dispatch` -> `dispatch_transfer_action`.
+    # `dispatch` is DRF/Django's built-in request-routing method (APIView.dispatch).
+    # Defining a class method with that exact name silently overrides it, so
+    # every request to this viewset — list, create, retrieve, everything —
+    # was being routed into this action instead of the framework's real
+    # dispatch logic, which is what upgrades the raw WSGIRequest into a DRF
+    # Request (adding .query_params, .data, etc). That's what caused the
+    # "'WSGIRequest' object has no attribute 'query_params'" 500s.
+    # url_path stays "dispatch" so the API endpoint URL doesn't change —
+    # only the Python method name changes, so the frontend needs no updates.
     @action(detail=True, methods=["post"], url_path="dispatch")
-    def dispatch(self, request, pk=None):
+    def dispatch_transfer_action(self, request, pk=None):
         """Sender confirms exactly what physically left their location — this is when source stock is deducted."""
         transfer = self.get_object()
         if transfer.status != TransferStatus.APPROVED:
@@ -122,7 +163,6 @@ class StockTransferRequestViewSet(BaseModelViewSet):
     def discrepancies(self, request):
         qs = self.get_queryset().filter(status=TransferStatus.DISCREPANCY)
         return Response(StockTransferRequestSerializer(qs, many=True).data)
-
 
 class StockCountViewSet(BaseModelViewSet):
     queryset = StockCount.objects.select_related("location", "counted_by").prefetch_related("lines").all()
