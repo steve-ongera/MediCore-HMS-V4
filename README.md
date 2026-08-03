@@ -185,7 +185,7 @@ MediCore HMS V4/
         │
         ├── assets/                     # Static images
         │   ├── hero.png
-        │   ├── medicore_logo.png
+        │   ├── logo.png
         │   ├── react.svg
         │   └── vite.svg
         │

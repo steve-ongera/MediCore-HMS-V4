@@ -242,10 +242,6 @@ class ConsultationDiagnosisSerializer(serializers.ModelSerializer):
 class PrescriptionSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     patient_name = serializers.CharField(source="consultation.visit.patient.full_name", read_only=True)
-    
-    icd10_code_display = serializers.SerializerMethodField()
-    doctor_name = serializers.CharField(source="consultation.doctor.get_full_name", read_only=True)
-    patient_name = serializers.CharField(source="consultation.visit.patient.full_name", read_only=True)
 
     class Meta:
         model = Prescription
@@ -254,10 +250,6 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             "duration", "quantity", "instructions", "is_dispensed", "patient_name",
         ]
         read_only_fields = ["id", "is_dispensed"]
-        
-        
-    def get_icd10_code_display(self, obj):
-        return f"{obj.icd10_code.code} - {obj.icd10_code.description}" if obj.icd10_code else None
 
 
 class LabOrderSerializer(serializers.ModelSerializer):
@@ -325,7 +317,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
     lab_orders = LabOrderSerializer(many=True, read_only=True)
     radiology_orders = RadiologyOrderSerializer(many=True, read_only=True)
     procedures = ConsultationProcedureSerializer(many=True, read_only=True)
-    vitals = VitalSignsSerializer(source="visit.vitals", read_only=True)
+    vitals = serializers.SerializerMethodField()
 
     class Meta:
         model = Consultation
@@ -337,6 +329,12 @@ class ConsultationSerializer(serializers.ModelSerializer):
             "vitals", "status", "pause_reason", "pause_notes", "started_at", "completed_at",
         ]
         read_only_fields = ["id", "doctor", "started_at", "completed_at"]
+
+    def get_vitals(self, obj):
+        try:
+            return VitalSignsSerializer(obj.visit.vitals).data
+        except Exception:
+            return None
 
 
 class ConsultationPauseSerializer(serializers.Serializer):

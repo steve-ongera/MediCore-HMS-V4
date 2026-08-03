@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth, ROLES } from "../context/AuthContext";
-import medicoreLogo from "../assets/medicore_logo.png";
+import medicoreLogo from "../assets/logo.png";
 
 // Each link declares which roles can see it. Omit `roles` to show it to
 // everyone (Super Admin always sees everything, per useAuth().hasRole).

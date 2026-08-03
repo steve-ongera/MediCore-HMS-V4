@@ -5,7 +5,7 @@ import html2canvas from "html2canvas";
 import { toast } from "../../context/ToastContext";
 import { getBulkPaymentReceipt } from "../../services/api";
 import { formatCurrency, formatDateTime } from "../../utils/formatters";
-import medicoreLogo from "../../assets/medicore_logo.png";
+import medicoreLogo from "../../assets/logo.png";
 
 // Styles for the off-screen receipt-doc used ONLY for print + PDF output.
 // Not applied to the visible page — the visible page keeps its own card/

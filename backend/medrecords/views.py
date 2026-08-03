@@ -22,10 +22,10 @@ from .serializers import (
     ReferralSerializer, DischargeSummarySerializer, RecordRequestSerializer,
     RecordAuditTrailSerializer, DenyRequestSerializer,
 )
+from .serializers import ConsultationDiagnosisSerializer
 from .services import log_record_access
 
 from api.models import ConsultationDiagnosis, ICD10Code
-from api.serializers import ConsultationDiagnosisSerializer  
 
 
 
@@ -298,10 +298,12 @@ class ICDCodingReviewViewSet(viewsets.ReadOnlyModelViewSet):
     """
     HIM's coding QA queue — reads ConsultationDiagnosis (owned by the
     clinical module), never duplicates it. Verifying or correcting a code
-    happens through the two actions below, which write back to the SAME
-    ConsultationDiagnosis row rather than a separate HIM-owned copy.
+    writes back to the SAME ConsultationDiagnosis row.
     """
-    queryset = ConsultationDiagnosis.objects.select_related("consultation__visit__patient", "icd10_code", "coding_verified_by").all()
+    queryset = ConsultationDiagnosis.objects.select_related(
+        "consultation", "consultation__doctor", "consultation__visit", "consultation__visit__patient",
+        "icd10_code", "coding_verified_by",
+    ).all()
     serializer_class = ConsultationDiagnosisSerializer
     permission_classes = [IsHIMStaff]
     filterset_fields = ["is_coding_verified"]
@@ -313,7 +315,6 @@ class ICDCodingReviewViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="uncoded")
     def uncoded(self, request):
-        """Diagnoses entered with no ICD10 code attached at all — the highest-priority queue item."""
         qs = self.get_queryset().filter(icd10_code__isnull=True)
         return Response(ConsultationDiagnosisSerializer(qs, many=True).data)
 
@@ -322,14 +323,12 @@ class ICDCodingReviewViewSet(viewsets.ReadOnlyModelViewSet):
         diagnosis = self.get_object()
         diagnosis.is_coding_verified = True
         diagnosis.coding_verified_by = request.user
-        from django.utils import timezone
         diagnosis.coding_verified_at = timezone.now()
         diagnosis.save(update_fields=["is_coding_verified", "coding_verified_by", "coding_verified_at"])
         return Response(ConsultationDiagnosisSerializer(diagnosis).data)
 
     @action(detail=True, methods=["post"], url_path="correct")
     def correct(self, request, pk=None):
-        """HIM found the wrong code was used — correct it, with a mandatory explanation, and mark verified in the same step."""
         diagnosis = self.get_object()
         new_code_id = request.data.get("icd10_code")
         notes = request.data.get("coding_correction_notes", "")
@@ -342,7 +341,6 @@ class ICDCodingReviewViewSet(viewsets.ReadOnlyModelViewSet):
         if not code:
             raise ValidationError({"icd10_code": "Code not found."})
 
-        from django.utils import timezone
         diagnosis.icd10_code = code
         diagnosis.coding_correction_notes = notes
         diagnosis.is_coding_verified = True

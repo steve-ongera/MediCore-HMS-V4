@@ -6,7 +6,7 @@ import { getReceipt } from "../services/api";
 import Modal from "./Modal";
 import LoadingSpinner from "./LoadingSpinner";
 import { formatCurrency, formatDateTime } from "../utils/formatters";
-import medicoreLogo from "../assets/medicore_logo.png";
+import medicoreLogo from "../assets/logo.png";
 
 // Standalone print stylesheet
 const PRINT_STYLES = `

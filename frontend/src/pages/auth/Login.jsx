@@ -3,7 +3,7 @@ import { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "../../context/ToastContext";
 import { AuthContext } from "../../context/AuthContext";
-import medicoreLogo from "../../assets/medicore_logo.png";
+import medicoreLogo from "../../assets/login_logo.png";
 
 export default function Login() {
   const [username, setUsername] = useState("");

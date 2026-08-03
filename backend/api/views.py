@@ -494,7 +494,7 @@ class ICD10CodeViewSet(BaseModelViewSet):
 # Consultation
 # ---------------------------------------------------------------------------
 class ConsultationViewSet(BaseModelViewSet):
-    queryset = Consultation.objects.select_related("visit__patient", "doctor").all()
+    queryset = Consultation.objects.select_related("visit__patient", "doctor").order_by("-started_at")
     serializer_class = ConsultationSerializer
     filterset_fields = ["status", "doctor", "visit"]
     search_fields = ["visit__patient__full_name", "visit__visit_number"]

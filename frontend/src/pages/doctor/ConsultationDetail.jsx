@@ -9,7 +9,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { formatDate, formatDateTime } from "../../utils/formatters";
-import medicoreLogo from "../../assets/medicore_logo.png";
+import medicoreLogo from "../../assets/logo.png";
 
 const HOSPITAL_NAME = "City General Hospital";
 const HOSPITAL_ADDRESS = "P.O. Box 00100, Nairobi, Kenya  ·  Tel: +254 700 000 000";

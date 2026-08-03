@@ -3,6 +3,8 @@ from .models import (
     PatientFile, FileMovement, DocumentAttachment, BirthRegister, DeathRegister,
     Referral, DischargeSummary, RecordRequest, RecordAuditTrail,
 )
+from api.models import ConsultationDiagnosis
+
 
 
 class FileMovementSerializer(serializers.ModelSerializer):
@@ -126,3 +128,43 @@ class CheckoutFileSerializer(serializers.Serializer):
 
 class DenyRequestSerializer(serializers.Serializer):
     denial_reason = serializers.CharField()
+    
+    
+
+
+class ConsultationDiagnosisSerializer(serializers.ModelSerializer):
+    icd10_code_display = serializers.SerializerMethodField()
+    doctor_name = serializers.SerializerMethodField()
+    patient_name = serializers.SerializerMethodField()
+    consultation_id = serializers.UUIDField(source="consultation.id", read_only=True)
+
+    class Meta:
+        model = ConsultationDiagnosis
+        fields = [
+            "id", "consultation", "consultation_id", "icd10_code", "icd10_code_display",
+            "notes", "is_coding_verified", "coding_verified_by", "coding_verified_at",
+            "coding_correction_notes", "doctor_name", "patient_name",
+        ]
+        read_only_fields = [
+            "id", "is_coding_verified", "coding_verified_by", "coding_verified_at",
+        ]
+
+    def get_icd10_code_display(self, obj):
+        try:
+            if obj.icd10_code:
+                return f"{obj.icd10_code.code} - {obj.icd10_code.description}"
+        except AttributeError:
+            pass
+        return None
+
+    def get_doctor_name(self, obj):
+        try:
+            return obj.consultation.doctor.get_full_name()
+        except AttributeError:
+            return None
+
+    def get_patient_name(self, obj):
+        try:
+            return obj.consultation.visit.patient.full_name
+        except AttributeError:
+            return None
