@@ -3,35 +3,45 @@ export default function Pagination({ page, count, pageSize = 20, onPageChange })
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
   if (totalPages <= 1) return null;
 
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
-    (p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1
-  );
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, count);
+
+  const goToPage = (p) => onPageChange(Math.min(Math.max(1, p), totalPages));
 
   return (
-    <nav>
-      <ul className="pagination justify-content-end mb-0">
-        <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-          <button className="page-link" onClick={() => onPageChange(page - 1)}>
-            <i className="bi bi-chevron-left"></i>
-          </button>
-        </li>
-        {pages.map((p, idx) => (
-          <li key={p}>
-            {idx > 0 && pages[idx - 1] !== p - 1 && <span className="px-2">…</span>}
-            <button
-              className={`page-link ${p === page ? "active" : ""}`}
-              onClick={() => onPageChange(p)}
-            >
-              {p}
-            </button>
-          </li>
-        ))}
-        <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
-          <button className="page-link" onClick={() => onPageChange(page + 1)}>
-            <i className="bi bi-chevron-right"></i>
-          </button>
-        </li>
-      </ul>
-    </nav>
+    <div
+      className="pagination"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "var(--space-4)",
+        borderTop: "1px solid var(--border-color, #e5e7eb)",
+      }}
+    >
+      <span className="pagination__summary" style={{ fontSize: "0.875rem", color: "var(--text-muted, #6b7280)" }}>
+        Showing {startIdx + 1}–{endIdx} of {count}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <i className="bi bi-chevron-left"></i> Prev
+        </button>
+        <span style={{ fontSize: "0.875rem" }}>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next <i className="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
   );
 }

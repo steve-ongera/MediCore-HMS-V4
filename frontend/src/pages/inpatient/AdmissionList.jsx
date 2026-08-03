@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdmissions } from "../../services/api";
+import Pagination from "../../components/Pagination";
 
 export default function AdmissionList() {
   const [admissions, setAdmissions] = useState([]);
@@ -9,18 +10,24 @@ export default function AdmissionList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
+
   useEffect(() => {
     loadAdmissions();
-  }, [statusFilter]);
+  }, [statusFilter, page]);
 
   const loadAdmissions = async () => {
     setLoading(true);
     setError("");
     try {
-      const params = { search };
+      const params = { search, page, page_size: pageSize };
       if (statusFilter) params.status = statusFilter;
       const data = await getAdmissions(params);
-      setAdmissions(data.results ?? data);
+      const results = data.results ?? data;
+      setAdmissions(results);
+      setTotal(data.count ?? results.length);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -30,6 +37,7 @@ export default function AdmissionList() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setPage(1);
     loadAdmissions();
   };
 
@@ -44,7 +52,7 @@ export default function AdmissionList() {
     return statusMap[status] || "badge-neutral";
   };
 
-  if (loading) {
+  if (loading && admissions.length === 0) {
     return (
       <div className="loading-screen">
         <div className="spinner spinner-lg"></div>
@@ -102,7 +110,7 @@ export default function AdmissionList() {
                   id="status"
                   className="select"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
                 >
                   <option value="">All</option>
                   <option value="ADMITTED">Admitted</option>
@@ -126,7 +134,7 @@ export default function AdmissionList() {
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-tertiary text-sm">
-              {admissions.length} admission{admissions.length !== 1 ? "s" : ""} found
+              {total} admission{total !== 1 ? "s" : ""} found
             </span>
             {statusFilter && (
               <span className="badge badge-primary">
@@ -136,7 +144,7 @@ export default function AdmissionList() {
             )}
           </div>
           <div>
-            <button className="btn btn-secondary btn-sm" onClick={loadAdmissions}>
+            <button className="btn btn-secondary btn-sm" onClick={() => { setPage(1); loadAdmissions(); }}>
               <i className="bi bi-arrow-clockwise me-1"></i> Refresh
             </button>
           </div>
@@ -207,6 +215,7 @@ export default function AdmissionList() {
                 <button className="btn btn-secondary" onClick={() => {
                   setSearch("");
                   setStatusFilter("");
+                  setPage(1);
                 }}>
                   <i className="bi bi-x-circle me-1"></i> Clear filters
                 </button>
@@ -219,15 +228,14 @@ export default function AdmissionList() {
               )}
             </div>
           )}
+
+          {admissions.length > 0 && (
+            <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+          )}
         </div>
 
         {admissions.length > 0 && (
           <div className="card-footer">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-tertiary text-sm">
-                Showing {admissions.length} admission{admissions.length !== 1 ? "s" : ""}
-              </span>
-            </div>
             <div className="flex gap-2">
               <span className="badge badge-primary">
                 <span className="badge-dot"></span> Admitted

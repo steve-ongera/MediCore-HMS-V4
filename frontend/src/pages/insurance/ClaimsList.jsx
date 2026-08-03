@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getInsuranceClaims } from "../../services/api";
+import Pagination from "../../components/Pagination";
 
 export default function ClaimsList() {
   const [claims, setClaims] = useState([]);
@@ -8,15 +9,22 @@ export default function ClaimsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => { load(); }, [statusFilter]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
+
+  useEffect(() => { setPage(1); }, [statusFilter]);
+  useEffect(() => { load(); }, [statusFilter, page]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const params = { page_size: 100 };
+      const params = { page, page_size: pageSize };
       if (statusFilter) params.status = statusFilter;
       const data = await getInsuranceClaims(params);
-      setClaims(data.results ?? data);
+      const results = data.results ?? data;
+      setClaims(results);
+      setTotal(data.count ?? results.length);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -35,7 +43,7 @@ export default function ClaimsList() {
     return statusMap[status] || "badge-neutral";
   };
 
-  if (loading) {
+  if (loading && claims.length === 0) {
     return (
       <div className="loading-screen">
         <div className="spinner spinner-lg"></div>
@@ -98,7 +106,7 @@ export default function ClaimsList() {
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {claims.length} claim{claims.length !== 1 ? "s" : ""}
+              {total} claim{total !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -121,52 +129,51 @@ export default function ClaimsList() {
               )}
             </div>
           ) : (
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Claim #</th>
-                    <th>Patient</th>
-                    <th>Insurer</th>
-                    <th>Status</th>
-                    <th className="cell-numeric">Claimed</th>
-                    <th className="cell-numeric">Approved</th>
-                    <th className="cell-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {claims.map((c) => (
-                    <tr key={c.id}>
-                      <td className="cell-mono">{c.claim_number}</td>
-                      <td className="cell-primary">{c.patient_name}</td>
-                      <td>{c.insurer_name}</td>
-                      <td>
-                        <span className={`badge ${getStatusBadge(c.status)}`}>
-                          <span className="badge-dot"></span>
-                          {c.status.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td className="cell-numeric">KES {c.total_claimed}</td>
-                      <td className="cell-numeric">KES {c.total_approved}</td>
-                      <td className="cell-actions">
-                        <Link to={`/insurance/claims/${c.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
-                        </Link>
-                      </td>
+            <>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Claim #</th>
+                      <th>Patient</th>
+                      <th>Insurer</th>
+                      <th>Status</th>
+                      <th className="cell-numeric">Claimed</th>
+                      <th className="cell-numeric">Approved</th>
+                      <th className="cell-actions"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {claims.map((c) => (
+                      <tr key={c.id}>
+                        <td className="cell-mono">{c.claim_number}</td>
+                        <td className="cell-primary">{c.patient_name}</td>
+                        <td>{c.insurer_name}</td>
+                        <td>
+                          <span className={`badge ${getStatusBadge(c.status)}`}>
+                            <span className="badge-dot"></span>
+                            {c.status.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td className="cell-numeric">KES {c.total_claimed}</td>
+                        <td className="cell-numeric">KES {c.total_approved}</td>
+                        <td className="cell-actions">
+                          <Link to={`/insurance/claims/${c.id}`} className="btn btn-secondary btn-sm">
+                            <i className="bi bi-eye me-1"></i> View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+            </>
           )}
         </div>
         {claims.length > 0 && (
           <div className="card-footer">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-tertiary text-sm">
-                Showing {claims.length} claim{claims.length !== 1 ? "s" : ""}
-              </span>
-            </div>
             <div className="flex gap-2">
               <span className="badge badge-success">
                 <span className="badge-dot"></span>

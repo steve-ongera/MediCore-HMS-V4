@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getFiscalizedReceipts, retryFiscalization } from "../../services/api";
+import Pagination from "../../components/Pagination";
 
 export default function FiscalizedReceipts() {
   const [receipts, setReceipts] = useState([]);
@@ -7,15 +8,22 @@ export default function FiscalizedReceipts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => { load(); }, [statusFilter]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
+
+  useEffect(() => { setPage(1); }, [statusFilter]);
+  useEffect(() => { load(); }, [statusFilter, page]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const params = { page_size: 100 };
+      const params = { page, page_size: pageSize };
       if (statusFilter) params.status = statusFilter;
       const data = await getFiscalizedReceipts(params);
-      setReceipts(data.results ?? data);
+      const results = data.results ?? data;
+      setReceipts(results);
+      setTotal(data.count ?? results.length);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -36,7 +44,7 @@ export default function FiscalizedReceipts() {
     return statusMap[status] || "badge-neutral";
   };
 
-  if (loading) {
+  if (loading && receipts.length === 0) {
     return (
       <div className="loading-screen">
         <div className="spinner spinner-lg"></div>
@@ -92,7 +100,7 @@ export default function FiscalizedReceipts() {
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {receipts.length} receipt{receipts.length !== 1 ? "s" : ""}
+              {total} receipt{total !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -110,69 +118,68 @@ export default function FiscalizedReceipts() {
               </p>
             </div>
           ) : (
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Source</th>
-                    <th>Patient/Customer</th>
-                    <th className="cell-numeric">Amount</th>
-                    <th>Status</th>
-                    <th>KRA Invoice #</th>
-                    <th>Fiscalized At</th>
-                    <th className="cell-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {receipts.map((r) => (
-                    <tr key={r.id}>
-                      <td className="cell-primary">{r.source_description}</td>
-                      <td>{r.patient_name || "—"}</td>
-                      <td className="cell-numeric">KES {r.total_amount}</td>
-                      <td>
-                        <span className={`badge ${getStatusBadge(r.status)}`}>
-                          <span className="badge-dot"></span>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="cell-mono">{r.kra_invoice_number || "—"}</td>
-                      <td>{r.fiscalized_at ? new Date(r.fiscalized_at).toLocaleString() : "—"}</td>
-                      <td className="cell-actions">
-                        <div className="flex gap-1 justify-end">
-                          {r.status === "FAILED" && (
-                            <button 
-                              className="btn btn-warning btn-sm" 
-                              onClick={() => handleRetry(r.id)}
-                            >
-                              <i className="bi bi-arrow-clockwise me-1"></i> Retry
-                            </button>
-                          )}
-                          {r.qr_code_url && (
-                            <a 
-                              href={r.qr_code_url} 
-                              target="_blank" 
-                              rel="noreferrer"
-                              className="btn btn-secondary btn-sm"
-                            >
-                              <i className="bi bi-qr-code me-1"></i> QR
-                            </a>
-                          )}
-                        </div>
-                      </td>
+            <>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Patient/Customer</th>
+                      <th className="cell-numeric">Amount</th>
+                      <th>Status</th>
+                      <th>KRA Invoice #</th>
+                      <th>Fiscalized At</th>
+                      <th className="cell-actions"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {receipts.map((r) => (
+                      <tr key={r.id}>
+                        <td className="cell-primary">{r.source_description}</td>
+                        <td>{r.patient_name || "—"}</td>
+                        <td className="cell-numeric">KES {r.total_amount}</td>
+                        <td>
+                          <span className={`badge ${getStatusBadge(r.status)}`}>
+                            <span className="badge-dot"></span>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td className="cell-mono">{r.kra_invoice_number || "—"}</td>
+                        <td>{r.fiscalized_at ? new Date(r.fiscalized_at).toLocaleString() : "—"}</td>
+                        <td className="cell-actions">
+                          <div className="flex gap-1 justify-end">
+                            {r.status === "FAILED" && (
+                              <button 
+                                className="btn btn-warning btn-sm" 
+                                onClick={() => handleRetry(r.id)}
+                              >
+                                <i className="bi bi-arrow-clockwise me-1"></i> Retry
+                              </button>
+                            )}
+                            {r.qr_code_url && (
+                              <a 
+                                href={r.qr_code_url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="btn btn-secondary btn-sm"
+                              >
+                                <i className="bi bi-qr-code me-1"></i> QR
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+            </>
           )}
         </div>
         {receipts.length > 0 && (
           <div className="card-footer">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-tertiary text-sm">
-                Showing {receipts.length} receipt{receipts.length !== 1 ? "s" : ""}
-              </span>
-            </div>
             <div className="flex gap-2">
               <span className="badge badge-success">
                 <span className="badge-dot"></span>

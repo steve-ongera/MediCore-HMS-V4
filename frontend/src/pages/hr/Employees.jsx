@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getEmployees, getDepartments } from "../../services/api";
+import Pagination from "../../components/Pagination";
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -11,18 +12,25 @@ export default function Employees() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
+
   useEffect(() => { loadDepartments(); }, []);
-  useEffect(() => { load(); }, [statusFilter, deptFilter, search]);
+  useEffect(() => { setPage(1); }, [statusFilter, deptFilter, search]);
+  useEffect(() => { load(); }, [statusFilter, deptFilter, search, page]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const params = { page_size: 100 };
+      const params = { page, page_size: pageSize };
       if (statusFilter) params.employment_status = statusFilter;
       if (deptFilter) params.department = deptFilter;
       if (search) params.search = search;
       const data = await getEmployees(params);
-      setEmployees(data.results ?? data);
+      const results = data.results ?? data;
+      setEmployees(results);
+      setTotal(data.count ?? results.length);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -73,7 +81,7 @@ export default function Employees() {
           <p className="page-subtitle">Manage all employees</p>
         </div>
         <div className="page-header__actions">
-          <button className="btn btn-secondary" onClick={() => { setSearch(""); setDeptFilter(""); setStatusFilter(""); load(); }}>
+          <button className="btn btn-secondary" onClick={() => { setSearch(""); setDeptFilter(""); setStatusFilter(""); setPage(1); load(); }}>
             <i className="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
           <Link to="/hr/employees/register" className="btn btn-primary">
@@ -144,7 +152,7 @@ export default function Employees() {
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {employees.length} employee{employees.length !== 1 ? "s" : ""}
+              {total} employee{total !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -167,61 +175,60 @@ export default function Employees() {
               )}
             </div>
           ) : (
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Employee #</th>
-                    <th>Name</th>
-                    <th>Job Title</th>
-                    <th>Department</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Date Hired</th>
-                    <th>Phone</th>
-                    <th className="cell-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((e) => (
-                    <tr key={e.id}>
-                      <td className="cell-mono">{e.employee_number}</td>
-                      <td className="cell-primary">{e.full_name}</td>
-                      <td>{e.job_title}</td>
-                      <td>{e.department_name || "—"}</td>
-                      <td>
-                        <span className={`badge ${getTypeBadge(e.employment_type)}`}>
-                          <span className="badge-dot"></span>
-                          {e.employment_type.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`badge ${getStatusBadge(e.employment_status)}`}>
-                          <span className="badge-dot"></span>
-                          {e.employment_status.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td>{e.date_hired}</td>
-                      <td>{e.phone || "—"}</td>
-                      <td className="cell-actions">
-                        <Link to={`/hr/employees/${e.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
-                        </Link>
-                      </td>
+            <>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Employee #</th>
+                      <th>Name</th>
+                      <th>Job Title</th>
+                      <th>Department</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Date Hired</th>
+                      <th>Phone</th>
+                      <th className="cell-actions"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {employees.map((e) => (
+                      <tr key={e.id}>
+                        <td className="cell-mono">{e.employee_number}</td>
+                        <td className="cell-primary">{e.full_name}</td>
+                        <td>{e.job_title}</td>
+                        <td>{e.department_name || "—"}</td>
+                        <td>
+                          <span className={`badge ${getTypeBadge(e.employment_type)}`}>
+                            <span className="badge-dot"></span>
+                            {e.employment_type.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`badge ${getStatusBadge(e.employment_status)}`}>
+                            <span className="badge-dot"></span>
+                            {e.employment_status.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td>{e.date_hired}</td>
+                        <td>{e.phone || "—"}</td>
+                        <td className="cell-actions">
+                          <Link to={`/hr/employees/${e.id}`} className="btn btn-secondary btn-sm">
+                            <i className="bi bi-eye me-1"></i> View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+            </>
           )}
         </div>
         {employees.length > 0 && (
           <div className="card-footer">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-tertiary text-sm">
-                Showing {employees.length} employee{employees.length !== 1 ? "s" : ""}
-              </span>
-            </div>
             <div className="flex gap-2">
               <span className="badge badge-success">
                 <span className="badge-dot"></span>

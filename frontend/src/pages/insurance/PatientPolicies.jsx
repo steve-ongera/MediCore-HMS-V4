@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPatients, getInsurers, getInsurancePolicies, createInsurancePolicy, verifyEligibility } from "../../services/api";
+import Pagination from "../../components/Pagination";
 
 export default function PatientPolicies() {
   const [policies, setPolicies] = useState([]);
@@ -8,6 +9,10 @@ export default function PatientPolicies() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [verifyResults, setVerifyResults] = useState({});
+
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
 
   const [patientQuery, setPatientQuery] = useState("");
   const [patientResults, setPatientResults] = useState([]);
@@ -18,13 +23,16 @@ export default function PatientPolicies() {
     relationship: "PRINCIPAL", valid_from: "", valid_to: "",
   });
 
-  useEffect(() => { load(); loadInsurers(); }, []);
+  useEffect(() => { loadInsurers(); }, []);
+  useEffect(() => { load(); }, [page]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const data = await getInsurancePolicies({ page_size: 100 });
-      setPolicies(data.results ?? data);
+      const data = await getInsurancePolicies({ page, page_size: pageSize });
+      const results = data.results ?? data;
+      setPolicies(results);
+      setTotal(data.count ?? results.length);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -55,6 +63,7 @@ export default function PatientPolicies() {
       setPatientQuery("");
       setPatientResults([]);
       setForm({ insurer: "", member_number: "", scheme_name: "", principal_member_name: "", relationship: "PRINCIPAL", valid_from: "", valid_to: "" });
+      setPage(1);
       load();
     } catch (err) { setError(err.message); }
   };
@@ -66,7 +75,7 @@ export default function PatientPolicies() {
     } catch (err) { setError(err.message); }
   };
 
-  if (loading) {
+  if (loading && policies.length === 0) {
     return (
       <div className="loading-screen">
         <div className="spinner spinner-lg"></div>
@@ -293,7 +302,7 @@ export default function PatientPolicies() {
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {policies.length} polic{policies.length !== 1 ? "ies" : "y"}
+              {total} polic{total !== 1 ? "ies" : "y"}
             </span>
           </div>
         </div>
@@ -307,72 +316,69 @@ export default function PatientPolicies() {
               <p className="empty-state__desc">Start by registering a policy for a patient above.</p>
             </div>
           ) : (
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Patient</th>
-                    <th>Insurer</th>
-                    <th>Member #</th>
-                    <th>Validity</th>
-                    <th>Eligibility</th>
-                    <th className="cell-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {policies.map((p) => (
-                    <tr key={p.id}>
-                      <td className="cell-primary">
-                        {p.patient_name}
-                        <div className="text-2xs text-tertiary">{p.hospital_number}</div>
-                      </td>
-                      <td>
-                        {p.insurer_name}
-                        <div className="text-2xs text-tertiary">{p.insurer_type}</div>
-                      </td>
-                      <td className="cell-mono">{p.member_number}</td>
-                      <td>
-                        <span className={`badge ${p.is_currently_valid ? "badge-success" : "badge-danger"}`}>
-                          <span className="badge-dot"></span>
-                          {p.is_currently_valid ? "Valid" : "Invalid/Expired"}
-                        </span>
-                      </td>
-                      <td>
-                        {verifyResults[p.id] ? (
-                          <span className={`badge ${verifyResults[p.id].is_eligible ? "badge-success" : "badge-danger"}`}>
-                            <span className="badge-dot"></span>
-                            {verifyResults[p.id].is_eligible ? "ELIGIBLE" : "NOT ELIGIBLE"}
-                            <span className="text-2xs" style={{ display: "block", fontWeight: "normal" }}>
-                              {verifyResults[p.id].member_status}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-muted text-sm">Not verified</span>
-                        )}
-                      </td>
-                      <td className="cell-actions">
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-sm"
-                          onClick={() => handleVerify(p.id)}
-                        >
-                          <i className="bi bi-check-circle me-1"></i> Verify
-                        </button>
-                      </td>
+            <>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Patient</th>
+                      <th>Insurer</th>
+                      <th>Member #</th>
+                      <th>Validity</th>
+                      <th>Eligibility</th>
+                      <th className="cell-actions"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {policies.map((p) => (
+                      <tr key={p.id}>
+                        <td className="cell-primary">
+                          {p.patient_name}
+                          <div className="text-2xs text-tertiary">{p.hospital_number}</div>
+                        </td>
+                        <td>
+                          {p.insurer_name}
+                          <div className="text-2xs text-tertiary">{p.insurer_type}</div>
+                        </td>
+                        <td className="cell-mono">{p.member_number}</td>
+                        <td>
+                          <span className={`badge ${p.is_currently_valid ? "badge-success" : "badge-danger"}`}>
+                            <span className="badge-dot"></span>
+                            {p.is_currently_valid ? "Valid" : "Invalid/Expired"}
+                          </span>
+                        </td>
+                        <td>
+                          {verifyResults[p.id] ? (
+                            <span className={`badge ${verifyResults[p.id].is_eligible ? "badge-success" : "badge-danger"}`}>
+                              <span className="badge-dot"></span>
+                              {verifyResults[p.id].is_eligible ? "ELIGIBLE" : "NOT ELIGIBLE"}
+                              <span className="text-2xs" style={{ display: "block", fontWeight: "normal" }}>
+                                {verifyResults[p.id].member_status}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-muted text-sm">Not verified</span>
+                          )}
+                        </td>
+                        <td className="cell-actions">
+                          <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => handleVerify(p.id)}
+                          >
+                            <i className="bi bi-check-circle me-1"></i> Verify
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+            </>
           )}
         </div>
-        {policies.length > 0 && (
-          <div className="card-footer">
-            <span className="text-tertiary text-sm">
-              Showing {policies.length} polic{policies.length !== 1 ? "ies" : "y"}
-            </span>
-          </div>
-        )}
       </div>
     </>
   );

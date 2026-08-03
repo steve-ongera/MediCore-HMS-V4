@@ -310,9 +310,7 @@ export default function Payments() {
             loading={loading}
             emptyMessage="No payments found."
           />
-        </div>
 
-        <div className="card-footer">
           <Pagination
             page={page}
             count={total}

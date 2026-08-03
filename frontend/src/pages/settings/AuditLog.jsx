@@ -168,9 +168,7 @@ export default function AuditLog() {
             loading={loading}
             emptyMessage="No audit entries found."
           />
-        </div>
 
-        <div className="card-footer">
           <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>

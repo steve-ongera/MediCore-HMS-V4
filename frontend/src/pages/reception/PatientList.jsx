@@ -182,9 +182,7 @@ export default function PatientList() {
             loading={loading}
             emptyMessage="No patients found. Register a new patient to get started."
           />
-        </div>
 
-        <div className="card-footer">
           <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>

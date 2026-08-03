@@ -221,9 +221,7 @@ export default function Billing() {
             loading={loading}
             emptyMessage="No invoices found."
           />
-        </div>
 
-        <div className="card-footer">
           <Pagination
             page={page}
             count={total}

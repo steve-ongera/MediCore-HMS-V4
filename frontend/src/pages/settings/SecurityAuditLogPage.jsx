@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSecurityAuditLogs } from "../../services/api";
 import { formatDateTime } from "../../utils/formatters";
+import Pagination from "../../components/Pagination";
 
 const EVENT_TYPES = [
   "LOGIN", "LOGOUT", "FAILED_LOGIN", "PASSWORD_CHANGE", "ROLE_CHANGE",
@@ -26,17 +27,24 @@ export default function SecurityAuditLogPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => { load(); }, [eventFilter, search]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 25;
+
+  useEffect(() => { setPage(1); }, [eventFilter, search]);
+  useEffect(() => { load(); }, [eventFilter, search, page]);
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      const params = { page_size: 200 };
+      const params = { page, page_size: pageSize };
       if (eventFilter) params.event_type = eventFilter;
       if (search) params.search = search;
       const data = await getSecurityAuditLogs(params);
-      setLogs(data.results ?? data);
+      const results = data.results ?? data;
+      setLogs(results);
+      setTotal(data.count ?? results.length);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -123,7 +131,7 @@ export default function SecurityAuditLogPage() {
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {logs.length} event{logs.length !== 1 ? "s" : ""}
+              {total} event{total !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -145,46 +153,45 @@ export default function SecurityAuditLogPage() {
               </p>
             </div>
           ) : (
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Event</th>
-                    <th>User</th>
-                    <th>Actor</th>
-                    <th>IP Address</th>
-                    <th>Description</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.map((log) => (
-                    <tr key={log.id}>
-                      <td>
-                        <span className={`badge ${getEventBadge(log.event_type)}`}>
-                          <span className="badge-dot"></span>
-                          {log.event_type.replace(/_/g, " ")}
-                        </span>
-                      </td>
-                      <td>{log.username || "—"}</td>
-                      <td>{log.actor_username || "—"}</td>
-                      <td className="cell-mono">{log.ip_address || "—"}</td>
-                      <td>{log.description}</td>
-                      <td>{formatDateTime(log.occurred_at)}</td>
+            <>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Event</th>
+                      <th>User</th>
+                      <th>Actor</th>
+                      <th>IP Address</th>
+                      <th>Description</th>
+                      <th>Time</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {logs.map((log) => (
+                      <tr key={log.id}>
+                        <td>
+                          <span className={`badge ${getEventBadge(log.event_type)}`}>
+                            <span className="badge-dot"></span>
+                            {log.event_type.replace(/_/g, " ")}
+                          </span>
+                        </td>
+                        <td>{log.username || "—"}</td>
+                        <td>{log.actor_username || "—"}</td>
+                        <td className="cell-mono">{log.ip_address || "—"}</td>
+                        <td>{log.description}</td>
+                        <td>{formatDateTime(log.occurred_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+            </>
           )}
         </div>
         {logs.length > 0 && (
           <div className="card-footer">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-tertiary text-sm">
-                Showing {logs.length} audit event{logs.length !== 1 ? "s" : ""}
-              </span>
-            </div>
             <div className="flex gap-2">
               <span className="badge badge-success">
                 <span className="badge-dot"></span>

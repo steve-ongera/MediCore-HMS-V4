@@ -14,14 +14,32 @@ import StatusBadge from "../../components/StatusBadge";
 import Modal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StatCard from "../../components/StatCard";
+import Pagination from "../../components/Pagination";
 import { formatCurrency, formatDate } from "../../utils/formatters";
+
+const PAGE_SIZE = 20;
 
 export default function Inventory() {
   const [medicines, setMedicines] = useState([]);
-  const [lowStock, setLowStock] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
+  const [medPage, setMedPage] = useState(1);
+  const [medTotal, setMedTotal] = useState(0);
+
   const [batches, setBatches] = useState([]);
+  const [batchPage, setBatchPage] = useState(1);
+  const [batchTotal, setBatchTotal] = useState(0);
+
+  const [suppliers, setSuppliers] = useState([]);
+  const [supPage, setSupPage] = useState(1);
+  const [supTotal, setSupTotal] = useState(0);
+
+  // Lightweight totals for the stat cards, fetched independently of whichever
+  // tab/page is currently on screen. Active Batches is computed from a capped
+  // sample (first 200 batches) since there's no server-side filter for it —
+  // an approximation, but good enough for a dashboard tile.
+  const [counts, setCounts] = useState({ medicines: 0, suppliers: 0, batches: 0, activeBatches: 0, lowStock: 0 });
+
   const [loading, setLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("medicines");
 
   const [showMedicineModal, setShowMedicineModal] = useState(false);
@@ -54,26 +72,72 @@ export default function Inventory() {
   });
 
   useEffect(() => {
-    loadData();
+    (async () => {
+      setLoading(true);
+      try {
+        await Promise.all([loadCounts(), loadMedicines(1), loadBatches(1), loadSuppliers(1)]);
+      } catch (err) {
+        toast.error(err.message || "Failed to load inventory");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
+  // Page-change effects only drive re-fetches for user pagination clicks —
+  // the initial load above is handled explicitly, so these are gated on
+  // `loading` to avoid a duplicate first fetch.
+  useEffect(() => { if (!loading) loadMedicines(medPage); }, [medPage]);
+  useEffect(() => { if (!loading) loadBatches(batchPage); }, [batchPage]);
+  useEffect(() => { if (!loading) loadSuppliers(supPage); }, [supPage]);
+
+  const loadCounts = async () => {
+    const [medCountRes, supCountRes, batchSample, low] = await Promise.all([
+      getMedicines({ page: 1, page_size: 1 }),
+      getSuppliers({ page: 1, page_size: 1 }),
+      getMedicineBatches({ page: 1, page_size: 200 }),
+      getLowStockMedicines(),
+    ]);
+    const batchResults = batchSample.results || [];
+    setCounts({
+      medicines: medCountRes.count ?? 0,
+      suppliers: supCountRes.count ?? 0,
+      batches: batchSample.count ?? batchResults.length,
+      activeBatches: batchResults.filter((b) => b.quantity_remaining > 0).length,
+      lowStock: (low || []).length,
+    });
+  };
+
+  const loadMedicines = async (page = medPage) => {
+    setTableLoading(true);
     try {
-      const [medData, lowData, supData, batchData] = await Promise.all([
-        getMedicines({ page: 1, page_size: 100 }),
-        getLowStockMedicines(),
-        getSuppliers({ page: 1, page_size: 50 }),
-        getMedicineBatches({ page: 1, page_size: 50 }),
-      ]);
-      setMedicines(medData.results || []);
-      setLowStock(lowData || []);
-      setSuppliers(supData.results || []);
-      setBatches(batchData.results || []);
-    } catch (err) {
-      toast.error(err.message || "Failed to load inventory");
+      const data = await getMedicines({ page, page_size: PAGE_SIZE });
+      setMedicines(data.results || []);
+      setMedTotal(data.count ?? (data.results || []).length);
     } finally {
-      setLoading(false);
+      setTableLoading(false);
+    }
+  };
+
+  const loadBatches = async (page = batchPage) => {
+    setTableLoading(true);
+    try {
+      const data = await getMedicineBatches({ page, page_size: PAGE_SIZE });
+      setBatches(data.results || []);
+      setBatchTotal(data.count ?? (data.results || []).length);
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const loadSuppliers = async (page = supPage) => {
+    setTableLoading(true);
+    try {
+      const data = await getSuppliers({ page, page_size: PAGE_SIZE });
+      setSuppliers(data.results || []);
+      setSupTotal(data.count ?? (data.results || []).length);
+    } finally {
+      setTableLoading(false);
     }
   };
 
@@ -94,7 +158,9 @@ export default function Inventory() {
       toast.success("Medicine added successfully");
       setShowMedicineModal(false);
       setMedicineForm({ name: "", generic_name: "", category: "", unit: "tablet", unit_price: "", reorder_level: 20 });
-      loadData();
+      setMedPage(1);
+      await loadMedicines(1);
+      await loadCounts();
     } catch (err) {
       toast.error(err.message || "Failed to add medicine");
     } finally {
@@ -115,7 +181,9 @@ export default function Inventory() {
       toast.success("Supplier added successfully");
       setShowSupplierModal(false);
       setSupplierForm({ name: "", phone: "", email: "", address: "" });
-      loadData();
+      setSupPage(1);
+      await loadSuppliers(1);
+      await loadCounts();
     } catch (err) {
       toast.error(err.message || "Failed to add supplier");
     } finally {
@@ -139,7 +207,9 @@ export default function Inventory() {
       toast.success("Batch added successfully");
       setShowBatchModal(false);
       setBatchForm({ medicine: "", supplier: "", batch_number: "", quantity_received: "", expiry_date: "" });
-      loadData();
+      setBatchPage(1);
+      await loadBatches(1);
+      await loadCounts();
     } catch (err) {
       toast.error(err.message || "Failed to add batch");
     } finally {
@@ -270,6 +340,11 @@ export default function Inventory() {
 
   if (loading) return <LoadingSpinner />;
 
+  const activeData =
+    activeTab === "medicines" ? medicines : activeTab === "batches" ? batches : suppliers;
+  const activeColumns =
+    activeTab === "medicines" ? medicineColumns : activeTab === "batches" ? batchColumns : supplierColumns;
+
   return (
     <>
       <div className="page-header">
@@ -282,7 +357,12 @@ export default function Inventory() {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={loadData}
+            onClick={() => {
+              loadCounts();
+              loadMedicines(medPage);
+              loadBatches(batchPage);
+              loadSuppliers(supPage);
+            }}
           >
             <i className="bi bi-arrow-clockwise me-2"></i>
             Refresh
@@ -294,25 +374,25 @@ export default function Inventory() {
       <div className="stat-grid mb-4">
         <StatCard
           label="Total Medicines"
-          value={medicines.length}
+          value={counts.medicines}
           icon="bi-capsule"
           variant="primary"
         />
         <StatCard
           label="Low Stock Items"
-          value={lowStock.length}
+          value={counts.lowStock}
           icon="bi-exclamation-triangle"
           variant="danger"
         />
         <StatCard
           label="Suppliers"
-          value={suppliers.length}
+          value={counts.suppliers}
           icon="bi-truck"
           variant="info"
         />
         <StatCard
           label="Active Batches"
-          value={batches.filter((b) => b.quantity_remaining > 0).length}
+          value={counts.activeBatches}
           icon="bi-boxes"
           variant="success"
         />
@@ -325,21 +405,21 @@ export default function Inventory() {
           className={`tabs__item ${activeTab === "medicines" ? "is-active" : ""}`}
           onClick={() => setActiveTab("medicines")}
         >
-          Medicines ({medicines.length})
+          Medicines ({counts.medicines})
         </button>
         <button
           type="button"
           className={`tabs__item ${activeTab === "batches" ? "is-active" : ""}`}
           onClick={() => setActiveTab("batches")}
         >
-          Batches ({batches.length})
+          Batches ({counts.batches})
         </button>
         <button
           type="button"
           className={`tabs__item ${activeTab === "suppliers" ? "is-active" : ""}`}
           onClick={() => setActiveTab("suppliers")}
         >
-          Suppliers ({suppliers.length})
+          Suppliers ({counts.suppliers})
         </button>
       </div>
 
@@ -383,23 +463,21 @@ export default function Inventory() {
         </div>
         <div className="card-body p-0">
           <DataTable
-            columns={
-              activeTab === "medicines"
-                ? medicineColumns
-                : activeTab === "batches"
-                ? batchColumns
-                : supplierColumns
-            }
-            data={
-              activeTab === "medicines"
-                ? medicines
-                : activeTab === "batches"
-                ? batches
-                : suppliers
-            }
-            loading={loading}
+            columns={activeColumns}
+            data={activeData}
+            loading={tableLoading}
             emptyMessage={`No ${activeTab} found`}
           />
+
+          {activeTab === "medicines" && (
+            <Pagination page={medPage} count={medTotal} pageSize={PAGE_SIZE} onPageChange={setMedPage} />
+          )}
+          {activeTab === "batches" && (
+            <Pagination page={batchPage} count={batchTotal} pageSize={PAGE_SIZE} onPageChange={setBatchPage} />
+          )}
+          {activeTab === "suppliers" && (
+            <Pagination page={supPage} count={supTotal} pageSize={PAGE_SIZE} onPageChange={setSupPage} />
+          )}
         </div>
       </div>
 
