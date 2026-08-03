@@ -6,10 +6,20 @@ const DEFAULT_DURATION = 4000;
 const EXIT_DURATION = 220; // must match the CSS exit animation duration
 
 const ICONS = {
-  success: "bi-check-circle-fill",
-  danger: "bi-x-circle-fill",
-  warning: "bi-exclamation-triangle-fill",
-  info: "bi-info-circle-fill",
+  success: "bi bi-check-circle",
+  danger: "bi bi-x-circle",
+  warning: "bi bi-exclamation-triangle",
+  info: "bi bi-info-circle",
+};
+
+// Auto-prefix shown in bold before the message, e.g. "Success: Welcome back!"
+// Keeps every existing toast.success("Welcome back!") call site untouched —
+// the label comes from the tone, not from what you pass in.
+const LABELS = {
+  success: "Success",
+  danger: "Error",
+  warning: "Warning",
+  info: "Info",
 };
 
 // ---- module-level store (lives outside React, like react-toastify) ----
@@ -79,28 +89,35 @@ export function ToastProvider({ children }) {
     <>
       {children}
       <div className="toast-stack" role="region" aria-live="polite" aria-label="Notifications">
-        {state.map((t) => (
-          <div key={t.id} className={`toast tone-${t.type} ${t.leaving ? "toast--leaving" : ""}`} role="status">
-            <span className="toast__icon-wrap">
-              <i className={`bi ${ICONS[t.type] || ICONS.info} toast__icon`} aria-hidden="true" />
-            </span>
-            <div className="toast__body">
-              {t.title && <div className="toast__title">{t.title}</div>}
-              {t.description && <div className="toast__desc">{t.description}</div>}
+        {state.map((t) => {
+          // Whatever the caller passed as title/description becomes the
+          // message body; the tone label ("Info", "Success", ...) is
+          // rendered separately in front of it via CSS/markup below.
+          const message = [t.title, t.description].filter(Boolean).join(" ");
+
+          return (
+            <div key={t.id} className={`toast tone-${t.type} ${t.leaving ? "toast--leaving" : ""}`} role="status">
+              <span className="toast__icon-wrap">
+                <i className={`bi ${ICONS[t.type] || ICONS.info} toast__icon`} aria-hidden="true" />
+              </span>
+              <div className="toast__body">
+                <span className="toast__title">{LABELS[t.type] || LABELS.info}</span>
+                {message && <span className="toast__desc">{message}</span>}
+              </div>
+              <button
+                type="button"
+                className="toast__close"
+                aria-label="Dismiss notification"
+                onClick={() => removeToast(t.id)}
+              >
+                <i className="bi bi-x-lg" aria-hidden="true" />
+              </button>
+              {t.duration !== 0 && !t.leaving && (
+                <span className="toast__progress" style={{ animationDuration: `${t.duration}ms` }} />
+              )}
             </div>
-            <button
-              type="button"
-              className="toast__close"
-              aria-label="Dismiss notification"
-              onClick={() => removeToast(t.id)}
-            >
-              <i className="bi bi-x-lg" aria-hidden="true" />
-            </button>
-            {t.duration !== 0 && !t.leaving && (
-              <span className="toast__progress" style={{ animationDuration: `${t.duration}ms` }} />
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );
