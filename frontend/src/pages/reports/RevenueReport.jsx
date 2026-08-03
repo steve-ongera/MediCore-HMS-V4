@@ -5,6 +5,7 @@ import { exportTableToExcel, exportTableToPDF } from "../../utils/reportExport";
 import { formatDisplayValue, formatCurrency } from "../../utils/formatters";
 
 const COLORS = ["#2962FF", "#00C48C", "#FFAB00", "#FF5252", "#7C4DFF", "#00BCD4"];
+const PAGE_SIZE = 10;
 
 // Formats numeric chart values (tooltips, axis ticks) with comma separators
 const formatChartValue = (value) => {
@@ -17,10 +18,16 @@ export default function RevenueReport() {
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState(new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
   const [dateTo, setDateTo] = useState(new Date().toISOString().slice(0, 10));
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     load();
   }, [dateFrom, dateTo]);
+
+  // Reset to page 1 whenever the underlying data changes (new date range, etc.)
+  useEffect(() => {
+    setPage(1);
+  }, [data]);
 
   const load = async () => {
     setLoading(true);
@@ -42,6 +49,14 @@ export default function RevenueReport() {
       </div>
     );
   }
+
+  const totalRows = data.table.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = data.table.slice(startIdx, startIdx + PAGE_SIZE);
+
+  const goToPage = (p) => setPage(Math.min(Math.max(1, p), totalPages));
 
   return (
     <>
@@ -136,8 +151,8 @@ export default function RevenueReport() {
                 </tr>
               </thead>
               <tbody>
-                {data.table.map((row, i) => (
-                  <tr key={i}>
+                {pageRows.map((row, i) => (
+                  <tr key={startIdx + i}>
                     <td className="cell-mono">{row.receipt_number}</td>
                     <td className="cell-mono">{row.invoice__invoice_number}</td>
                     <td className="cell-numeric">{formatCurrency(row.amount)}</td>
@@ -145,9 +160,52 @@ export default function RevenueReport() {
                     <td>{new Date(row.paid_at).toLocaleString()}</td>
                   </tr>
                 ))}
+                {totalRows === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "var(--space-6)" }}>
+                      No payments found for this date range.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+
+          {totalRows > 0 && (
+            <div
+              className="pagination"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "var(--space-4)",
+                borderTop: "1px solid var(--border-color, #e5e7eb)",
+              }}
+            >
+              <span className="pagination__summary" style={{ fontSize: "0.875rem", color: "var(--text-muted, #6b7280)" }}>
+                Showing {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, totalRows)} of {totalRows}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <i className="bi bi-chevron-left"></i> Prev
+                </button>
+                <span style={{ fontSize: "0.875rem" }}>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <i className="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
