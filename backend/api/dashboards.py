@@ -314,6 +314,196 @@ def ambulance_dashboard(user):
     return {"cards": cards, "line": line, "bar": bar, "pie": pie}
 
 
+def health_records_officer_dashboard(user):
+    from medrecords.models import (
+        PatientFile,
+        FileStatus,
+        RecordRequest,
+        RecordRequestStatus,
+        BirthRegister,
+        DeathRegister,
+    )
+    from django.utils import timezone
+
+    today = date.today()
+    days = _last7()
+
+    cards = [
+        {
+            "label": "Files Checked Out",
+            "value": PatientFile.objects.filter(
+                status=FileStatus.CHECKED_OUT
+            ).count(),
+        },
+        {
+            "label": "Overdue Files",
+            "value": PatientFile.objects.filter(
+                status=FileStatus.CHECKED_OUT,
+                expected_return_at__lt=timezone.now(),
+            ).count(),
+        },
+        {
+            "label": "Pending Record Requests",
+            "value": RecordRequest.objects.filter(
+                status=RecordRequestStatus.PENDING
+            ).count(),
+        },
+        {
+            "label": "Births Registered Today",
+            "value": BirthRegister.objects.filter(
+                date_of_birth=today
+            ).count(),
+        },
+        {
+            "label": "Deaths Registered Today",
+            "value": DeathRegister.objects.filter(
+                date_of_death__date=today
+            ).count(),
+        },
+    ]
+
+    line = {
+        "title": "Record Requests — Last 7 Days",
+        "data": [
+            {
+                "name": d.isoformat(),
+                "value": RecordRequest.objects.filter(
+                    requested_at__date=d
+                ).count(),
+            }
+            for d in days
+        ],
+    }
+
+    bar_qs = PatientFile.objects.values("status").annotate(
+        count=Count("id")
+    )
+
+    bar = {
+        "title": "Files by Status",
+        "data": [
+            {"name": r["status"], "value": r["count"]}
+            for r in bar_qs
+        ],
+    }
+
+    pie_qs = RecordRequest.objects.values("purpose").annotate(
+        count=Count("id")
+    )
+
+    pie = {
+        "title": "Record Requests by Purpose",
+        "data": [
+            {"name": r["purpose"], "value": r["count"]}
+            for r in pie_qs
+        ],
+    }
+
+    return {
+        "cards": cards,
+        "line": line,
+        "bar": bar,
+        "pie": pie,
+    }
+
+
+def medical_records_officer_dashboard(user):
+    from medrecords.models import (
+        Referral,
+        ReferralStatus,
+        DischargeSummary,
+        RecordAuditTrail,
+    )
+
+    today = date.today()
+    days = _last7()
+
+    cards = [
+        {
+            "label": "Pending Referrals",
+            "value": Referral.objects.filter(
+                status=ReferralStatus.PENDING
+            ).count(),
+        },
+        {
+            "label": "Incomplete Discharge Summaries",
+            "value": DischargeSummary.objects.filter(
+                is_complete=False
+            ).count(),
+        },
+        {
+            "label": "Diagnoses Coded Today",
+            "value": ConsultationDiagnosis.objects.filter(
+                coded_at__date=today
+            ).count()
+            if hasattr(ConsultationDiagnosis, "coded_at")
+            else 0,
+        },
+        {
+            "label": "Uncoded Diagnoses",
+            "value": ConsultationDiagnosis.objects.filter(
+                icd10_code__isnull=True
+            ).count(),
+        },
+        {
+            "label": "Record Accesses Today",
+            "value": RecordAuditTrail.objects.filter(
+                occurred_at__date=today
+            ).count(),
+        },
+    ]
+
+    line = {
+        "title": "Referrals — Last 7 Days",
+        "data": [
+            {
+                "name": d.isoformat(),
+                "value": Referral.objects.filter(
+                    created_at_display__date=d
+                ).count(),
+            }
+            for d in days
+        ],
+    }
+
+    bar_qs = Referral.objects.values(
+        "direction",
+        "status",
+    ).annotate(count=Count("id"))
+
+    bar = {
+        "title": "Referrals by Direction & Status",
+        "data": [
+            {
+                "name": f"{r['direction']} - {r['status']}",
+                "value": r["count"],
+            }
+            for r in bar_qs
+        ],
+    }
+
+    pie_qs = DischargeSummary.objects.values(
+        "is_complete"
+    ).annotate(count=Count("id"))
+
+    pie = {
+        "title": "Discharge Summary Completion",
+        "data": [
+            {
+                "name": "Complete" if r["is_complete"] else "Incomplete",
+                "value": r["count"],
+            }
+            for r in pie_qs
+        ],
+    }
+
+    return {
+        "cards": cards,
+        "line": line,
+        "bar": bar,
+        "pie": pie,
+    }
+
 DASHBOARD_BUILDERS = {
     Role.RECEPTIONIST: receptionist_dashboard,
     Role.CASHIER: cashier_dashboard,
@@ -327,6 +517,8 @@ DASHBOARD_BUILDERS = {
     Role.HR_OFFICER: hr_dashboard,
     Role.PROCUREMENT_OFFICER: procurement_dashboard,
     Role.AMBULANCE_DISPATCHER: ambulance_dashboard,
+    Role.HEALTH_RECORDS_OFFICER: health_records_officer_dashboard,
+    Role.MEDICAL_RECORDS_OFFICER: medical_records_officer_dashboard,
 }
 
 

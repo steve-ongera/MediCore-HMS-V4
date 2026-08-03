@@ -242,6 +242,10 @@ class ConsultationDiagnosisSerializer(serializers.ModelSerializer):
 class PrescriptionSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     patient_name = serializers.CharField(source="consultation.visit.patient.full_name", read_only=True)
+    
+    icd10_code_display = serializers.SerializerMethodField()
+    doctor_name = serializers.CharField(source="consultation.doctor.get_full_name", read_only=True)
+    patient_name = serializers.CharField(source="consultation.visit.patient.full_name", read_only=True)
 
     class Meta:
         model = Prescription
@@ -250,6 +254,10 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             "duration", "quantity", "instructions", "is_dispensed", "patient_name",
         ]
         read_only_fields = ["id", "is_dispensed"]
+        
+        
+    def get_icd10_code_display(self, obj):
+        return f"{obj.icd10_code.code} - {obj.icd10_code.description}" if obj.icd10_code else None
 
 
 class LabOrderSerializer(serializers.ModelSerializer):

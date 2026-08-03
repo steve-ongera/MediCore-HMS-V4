@@ -59,6 +59,7 @@ class Role(models.TextChoices):
     AMBULANCE_DISPATCHER = "AMBULANCE_DISPATCHER", "Ambulance Dispatcher"
     HEALTH_RECORDS_OFFICER = "HEALTH_RECORDS_OFFICER", "Health Records Officer"
     MEDICAL_RECORDS_OFFICER = "MEDICAL_RECORDS_OFFICER", "Medical Records Officer"
+    BIOMEDICAL_ENGINEER = "BIOMEDICAL_ENGINEER", "Biomedical Engineer"
 
 
 class User(AbstractUser):
@@ -478,6 +479,11 @@ class ConsultationDiagnosis(models.Model):
     icd10_code = models.ForeignKey(ICD10Code, on_delete=models.PROTECT)
     is_primary = models.BooleanField(default=False)
     notes = models.CharField(max_length=255, blank=True)
+    
+    is_coding_verified = models.BooleanField(default=False)
+    coding_verified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="diagnoses_coding_verified")
+    coding_verified_at = models.DateTimeField(null=True, blank=True)
+    coding_correction_notes = models.TextField(blank=True, help_text="If HIM corrected the code, what changed and why.")
 
     class Meta:
         db_table = "consultation_diagnoses"
