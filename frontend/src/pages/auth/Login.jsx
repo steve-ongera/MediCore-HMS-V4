@@ -1,7 +1,7 @@
 // src/pages/auth/Login.jsx
 import { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { AuthContext } from "../../context/AuthContext";
 import medicoreLogo from "../../assets/medicore_logo.png";
 

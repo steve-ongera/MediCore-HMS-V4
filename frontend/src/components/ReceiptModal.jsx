@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "../context/ToastContext";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { getReceipt } from "../services/api";

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { getPatient, updatePatient } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 

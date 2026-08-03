@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { getUsers, createUser, updateUser, deleteUser, getDepartments } from "../../services/api";
 import DataTable from "../../components/DataTable";
 import SearchBar from "../../components/SearchBar";

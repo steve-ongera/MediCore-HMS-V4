@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import {
   ResponsiveContainer,
   LineChart,

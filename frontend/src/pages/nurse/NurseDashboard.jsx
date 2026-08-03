@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { getMyQueue, saveVitals, getQueue, getPatients } from "../../services/api";
 import StatusBadge from "../../components/StatusBadge";
 import Modal from "../../components/Modal";

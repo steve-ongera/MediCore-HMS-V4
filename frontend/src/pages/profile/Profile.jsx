@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { AuthContext } from "../../context/AuthContext";
 import { changePassword, updateUser } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";

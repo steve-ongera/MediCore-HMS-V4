@@ -1,7 +1,7 @@
 //src/pages/doctor/ConsultationList.jsx
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { getConsultations, deleteConsultation } from "../../services/api";
 import DataTable from "../../components/DataTable";
 import SearchBar from "../../components/SearchBar";

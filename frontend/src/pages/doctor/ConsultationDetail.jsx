@@ -1,7 +1,7 @@
 //src/pages/doctor/ConsultationDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getConsultation, saveConsultation, deleteConsultation } from "../../services/api";

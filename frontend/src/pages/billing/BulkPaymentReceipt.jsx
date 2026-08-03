@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { getBulkPaymentReceipt } from "../../services/api";
 import { formatCurrency, formatDateTime } from "../../utils/formatters";
 import medicoreLogo from "../../assets/medicore_logo.png";

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { registerVisit, getPatients, getDepartments } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { formatCurrency } from "../../utils/formatters";

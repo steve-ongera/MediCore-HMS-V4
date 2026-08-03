@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { getInvoices } from "../../services/api";
 import DataTable from "../../components/DataTable";
 import SearchBar from "../../components/SearchBar";

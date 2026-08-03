@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { createPatient, searchPatient } from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
 import LoadingSpinner from "../../components/LoadingSpinner";

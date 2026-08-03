@@ -1,6 +1,6 @@
 // src/pages/billing/WalkInSale.jsx
 import { useEffect, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "../../context/ToastContext";
 import { searchMedicines, createOTCSale } from "../../services/api";
 import { formatDateTime } from "../../utils/formatters";
 
