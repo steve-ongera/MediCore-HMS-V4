@@ -20,20 +20,22 @@ from .serializers import (
     StockCountSerializer, SubmitStockCountSerializer,
 )
 from .services import get_or_create_stock, dispatch_transfer, receive_transfer, approve_stock_count
-
+from api.permissions import ReadOnlyOrSuperAdmin, IsPharmacist
 
 class StoreLocationViewSet(BaseModelViewSet):
     queryset = StoreLocation.objects.filter(is_active=True)
     serializer_class = StoreLocationSerializer
-    permission_classes = [ReadOnlyOrSuperAdmin]
+    permission_classes = [ReadOnlyOrSuperAdmin | IsPharmacist]
     search_fields = ["name"]
 
     @action(detail=True, methods=["get"], url_path="stock")
     def stock(self, request, pk=None):
         location = self.get_object()
-        stock = StoreStock.objects.filter(location=location, quantity_on_hand__gt=0).select_related("medicine")
+        stock = StoreStock.objects.filter(
+            location=location,
+            quantity_on_hand__gt=0
+        ).select_related("medicine")
         return Response(StoreStockSerializer(stock, many=True).data)
-
 
 class StockTransferRequestViewSet(BaseModelViewSet):
     queryset = StockTransferRequest.objects.select_related("from_location", "to_location").prefetch_related("items").all()

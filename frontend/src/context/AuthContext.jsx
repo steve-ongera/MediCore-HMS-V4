@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import * as api from "../services/api";
+import { toast } from "./ToastContext";   
 
 export const AuthContext = createContext(null);
 
@@ -89,6 +90,7 @@ export function AuthProvider({ children }) {
     } finally {
       localStorage.clear();
       setUser(null);
+      toast.success("Logged out successfully");  
     }
   }, []);
 
