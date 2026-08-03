@@ -30,7 +30,10 @@ export const ROLE_LABELS = {
   [ROLES.HR_OFFICER]: "Human Resource Officer",
   [ROLES.PROCUREMENT_OFFICER]: "Procurement Officer",
   [ROLES.AMBULANCE_DISPATCHER]: "Ambulance Dispatcher",
+  [ROLES.HEALTH_RECORDS_OFFICER]: "Health Records Officer",
+  [ROLES.MEDICAL_RECORDS_OFFICER]: "Medical Records Officer",
 };
+
 
 // Maps each route path to the roles allowed to view it.
 // SUPER_ADMIN can always access everything (enforced in ProtectedRoute).
