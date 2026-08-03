@@ -193,9 +193,7 @@ export default function ConsultationList() {
             loading={loading}
             emptyMessage="No consultations found. Try adjusting your search or filters."
           />
-        </div>
 
-        <div className="card-footer">
           <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>

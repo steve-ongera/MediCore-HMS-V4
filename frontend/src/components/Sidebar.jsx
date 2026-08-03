@@ -286,6 +286,7 @@ const NAV_GROUPS = [
       { to: "/medrecords/discharge-summaries", label: "Discharge Summaries", icon: "bi-clipboard2-check", roles: [ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.DOCTOR] },
       { to: "/medrecords/requests", label: "Record Requests", icon: "bi-envelope-paper" },
       { to: "/medrecords/audit-trail", label: "Audit Trail", icon: "bi-shield-lock" },
+      { to: "/medrecords/coding-review", label: "ICD Coding Review", icon: "bi-clipboard2-data" },
     ],
   },
   {
