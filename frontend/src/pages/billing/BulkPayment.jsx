@@ -267,7 +267,7 @@ export default function BulkPayment() {
                             <td>
                               <input
                                 type="checkbox"
-                                className="input"
+                                className="checkbox"
                                 style={{ width: "auto", margin: 0 }}
                                 checked={selectedInvoiceIds.includes(inv.id)}
                                 onChange={() => toggleInvoice(inv.id)}

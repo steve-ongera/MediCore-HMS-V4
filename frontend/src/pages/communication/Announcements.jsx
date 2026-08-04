@@ -28,7 +28,7 @@ export default function Announcements() {
     setLoading(true);
     try {
       const data = await getAnnouncements({ page_size: 100 });
-      setAnnouncements(data.results ?? data);
+      setAnnouncements(data?.results ?? data ?? []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -215,17 +215,16 @@ export default function Announcements() {
             <div className="text-sm text-muted" style={{ marginBottom: "var(--space-2)" }}>
               Leave all unchecked to send to every active staff member.
             </div>
-            <div className="flex flex-wrap gap-2" style={{ marginBottom: "var(--space-3)" }}>
+            <div className="flex flex-wrap gap-3" style={{ marginBottom: "var(--space-3)" }}>
               {ROLES_LIST.map((role) => (
-                <label key={role} className="flex items-center gap-1" style={{ cursor: "pointer", fontSize: "13px" }}>
+                <label key={role} className="checkbox-row" style={{ cursor: "pointer" }}>
                   <input
                     type="checkbox"
-                    className="input"
-                    style={{ width: "auto", margin: 0 }}
+                    className="checkbox"
                     checked={form.target_roles.includes(role)}
                     onChange={() => toggleRole(role)}
                   />
-                  <span>{role}</span>
+                  <span className="checkbox-label">{role}</span>
                 </label>
               ))}
             </div>
@@ -233,26 +232,24 @@ export default function Announcements() {
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
               <i className="bi bi-broadcast me-1"></i> Delivery Channels
             </h6>
-            <div className="flex gap-3" style={{ marginBottom: "var(--space-3)" }}>
-              <label className="flex items-center gap-1" style={{ cursor: "pointer" }}>
+            <div className="flex gap-4" style={{ marginBottom: "var(--space-3)" }}>
+              <label className="checkbox-row" style={{ cursor: "pointer" }}>
                 <input
                   type="checkbox"
-                  className="input"
-                  style={{ width: "auto", margin: 0 }}
+                  className="checkbox"
                   checked={form.send_in_app}
                   onChange={(e) => setForm((p) => ({ ...p, send_in_app: e.target.checked }))}
                 />
-                <span>In-app notification</span>
+                <span className="checkbox-label">In-app notification</span>
               </label>
-              <label className="flex items-center gap-1" style={{ cursor: "pointer" }}>
+              <label className="checkbox-row" style={{ cursor: "pointer" }}>
                 <input
                   type="checkbox"
-                  className="input"
-                  style={{ width: "auto", margin: 0 }}
+                  className="checkbox"
                   checked={form.send_email}
                   onChange={(e) => setForm((p) => ({ ...p, send_email: e.target.checked }))}
                 />
-                <span>Email</span>
+                <span className="checkbox-label">Email</span>
               </label>
             </div>
 
