@@ -769,6 +769,16 @@ table {
   }
 }
 
+.navbar__search .dropdown-menu {
+  width: 100%;
+  left: 0;
+  right: auto;
+}
+
+.navbar__search .dropdown-item {
+  align-items: flex-start;
+}
+
 /* ==========================================================================
    6. SIDEBAR
    ========================================================================== */
