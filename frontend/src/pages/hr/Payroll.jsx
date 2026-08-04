@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPayrollRuns, generatePayrollRun } from "../../services/api";
+import { formatCurrency } from "../../utils/formatters";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -46,11 +47,6 @@ export default function Payroll() {
       "PAID": "badge-success",
     };
     return statusMap[status] || "badge-neutral";
-  };
-
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "KES 0.00";
-    return `KES ${Number(amount).toFixed(2)}`;
   };
 
   if (loading && runs.length === 0) {
