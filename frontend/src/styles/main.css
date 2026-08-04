@@ -4128,3 +4128,115 @@ fieldset legend {
     padding-left: 24px;
   }
 }
+
+/* ============================================
+   ANNOUNCEMENTS STYLES
+   ============================================ */
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.announcement-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--surface-color);
+}
+
+.announcement-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.announcement-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-1);
+}
+
+.announcement-card__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.announcement-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.announcement-card__time {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.announcement-card__meta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.announcement-card__event {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: var(--space-1) var(--space-2);
+  background: var(--primary-soft);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+  display: inline-block;
+}
+
+.announcement-card__body {
+  font-size: 14px;
+  color: var(--text-color);
+  line-height: 1.6;
+  margin-top: var(--space-2);
+  white-space: pre-wrap;
+}
+
+.announcement-card__image {
+  margin-top: var(--space-3);
+}
+
+.announcement-card__image img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .announcement-card {
+    padding: var(--space-3);
+  }
+  
+  .announcement-card__header {
+    flex-direction: column;
+  }
+  
+  .announcement-card__time {
+    white-space: normal;
+  }
+  
+  .announcement-card__title {
+    font-size: 14px;
+  }
+  
+  .announcement-card__body {
+    font-size: 13px;
+  }
+}
