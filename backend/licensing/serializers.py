@@ -1,0 +1,20 @@
+# licensing/serializers.py
+from rest_framework import serializers
+from .models import FacilityLicense
+
+
+class FacilityLicenseSerializer(serializers.ModelSerializer):
+    is_expired = serializers.BooleanField(read_only=True)
+    current_bed_count = serializers.IntegerField(read_only=True)
+    current_user_count = serializers.IntegerField(read_only=True)
+    beds_remaining = serializers.IntegerField(read_only=True)
+    users_remaining = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = FacilityLicense
+        fields = [
+            "id", "package", "license_key", "max_beds", "max_users", "licensed_to",
+            "valid_from", "valid_until", "is_active", "notes", "is_expired",
+            "current_bed_count", "current_user_count", "beds_remaining", "users_remaining",
+            "updated_at_display",
+        ]

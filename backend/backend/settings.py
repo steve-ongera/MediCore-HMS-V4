@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     "biomed",
     "communication",
     "tickets",
+    "licensing"
 ]
 
 MIDDLEWARE = [

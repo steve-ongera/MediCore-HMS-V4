@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from api.views import BaseModelViewSet
 from api.models import Patient
 from api.permissions import ReadOnlyOrSuperAdmin
+from licensing.permissions import WithinBedLimit
 
 from inpatient.models import Admission
 
@@ -25,6 +26,7 @@ from .services import raise_icu_invoice, charge_icu_bed_day
 
 
 class ICUBedViewSet(BaseModelViewSet):
+    permission_classes = [WithinBedLimit]
     queryset = ICUBed.objects.filter(is_active=True)
     serializer_class = ICUBedSerializer
     filterset_fields = ["unit_type", "status"]

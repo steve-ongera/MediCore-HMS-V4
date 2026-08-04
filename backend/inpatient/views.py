@@ -17,6 +17,8 @@ from api.models import (
 from api.permissions import (
     HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor, ReadOnlyOrSuperAdmin,
 )
+from licensing.permissions import WithinBedLimit
+
 from api.serializers import InvoiceSerializer, LabOrderSerializer, RadiologyOrderSerializer
 
 from .services import generate_daily_bed_charges
@@ -63,6 +65,7 @@ class WardViewSet(BaseModelViewSet):
 
 
 class BedViewSet(BaseModelViewSet):
+    permission_classes = [WithinBedLimit]
     queryset = Bed.objects.select_related("ward").all()
     serializer_class = BedSerializer
     filterset_fields = ["ward", "status"]
