@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     "notifications",
     "medrecords",
     "biomed",
+    "communication",
 ]
 
 MIDDLEWARE = [
