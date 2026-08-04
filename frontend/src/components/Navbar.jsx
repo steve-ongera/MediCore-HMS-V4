@@ -92,6 +92,19 @@ export default function Navbar({ onToggleSidebar }) {
           </nav>
         </div>
 
+        {/* --- Page search: type to jump to any page you're permitted to view --- */}
+        <div className="navbar__search">
+          <div className="search-bar">
+            <i className="bi bi-search search-bar__icon" aria-hidden="true" />
+            <input
+              type="text"
+              className="search-bar__input"
+              placeholder="Search pages..."
+              // value, onChange, onFocus/results dropdown, permission filtering — to be implemented
+            />
+          </div>
+        </div>
+
         <div className="navbar__right">
           <ChatDropdown />
 

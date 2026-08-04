@@ -742,6 +742,33 @@ table {
   margin-top: 1px;
 }
 
+.navbar__search {
+  flex: 1;
+  max-width: 420px;
+  margin: 0 var(--space-4);
+}
+
+.navbar__search .search-bar {
+  min-width: 0;
+  width: 100%;
+}
+
+.navbar__search .search-bar__input {
+  background: var(--surface-sunken);
+  border-color: transparent;
+}
+
+.navbar__search .search-bar__input:focus {
+  background: var(--surface);
+  border-color: var(--border-focus);
+}
+
+@media (max-width: 768px) {
+  .navbar__search {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    6. SIDEBAR
    ========================================================================== */
