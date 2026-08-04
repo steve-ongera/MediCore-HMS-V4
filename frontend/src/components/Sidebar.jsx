@@ -320,11 +320,19 @@ const NAV_GROUPS = [
     ],
   },
   {
+  label: "Communication",
+  roles: [ROLES.SUPER_ADMIN, ROLES.HR_OFFICER],
+  links: [
+    { to: "/announcements/manage", label: "Send Announcement", icon: "bi-megaphone-fill" },
+  ],
+},
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
       { to: "/messages", label: "Messages", icon: "bi bi-chat-left" },
       { to: "/my-leave", label: "My Leave Requests", icon: "bi-calendar2-week" },
+      { to: "/announcements", label: "Announcements", icon: "bi-megaphone" },
       { to: "/biomed/service-requests", label: "Report Equipment Issue", icon: "bi-exclamation-triangle" },
       { to: "/settings", label: "Settings", icon: "bi-gear", roles: [] },
     ],
