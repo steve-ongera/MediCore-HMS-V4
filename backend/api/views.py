@@ -23,6 +23,7 @@ from api.models import (
     Supplier, Medicine, MedicineBatch, StockTransaction, StockTransactionType,
     PharmacyDispense, AuditLog, InvoiceSourceType, OTCSale, OTCSaleItem, BulkPayment , BulkPaymentLine
 )
+from api.models import Patient, Visit, ConsultationDiagnosis, ICD10Code
 from api.permissions import (
     HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor,
     IsLabTechnologist, IsRadiologist, IsPharmacist, ReadOnlyOrSuperAdmin, IsSuperAdmin,
@@ -1143,6 +1144,48 @@ class DashboardView(APIView):
             "charts": {"revenue": revenue_chart, "visits": visits_chart, "departments": department_chart},
         })
 
+# ---------------------------------------------------------------------
+# Module-level helpers — moved OUT of ReportsView.get() so they no
+# longer sit between `elif` branches (that was the syntax error: a
+# `def`/assignment statement in the middle of an if/elif chain breaks
+# the chain, so the next `elif` has no matching `if`).
+# ---------------------------------------------------------------------
+
+_AGE_GROUP_ORDER = [
+    "Children (0-12)", "Teenagers (13-19)", "Youth (20-35)",
+    "Adults (36-59)", "Seniors (60+)", "Unknown",
+]
+_GENDER_LABELS = {"MALE": "Male", "FEMALE": "Female", "OTHER": "Other"}
+
+
+def _age_group(age):
+    """Buckets a Patient.age (int or None) into the standard reporting bands."""
+    if age is None:
+        return "Unknown"
+    if age < 13:
+        return "Children (0-12)"
+    if age < 20:
+        return "Teenagers (13-19)"
+    if age < 36:
+        return "Youth (20-35)"
+    if age < 60:
+        return "Adults (36-59)"
+    return "Seniors (60+)"
+
+
+def _last_12_months(end):
+    """Returns [(year, month), ...] for the 12 calendar months ending at `end`, oldest first."""
+    months = []
+    y, m = end.year, end.month
+    for i in range(11, -1, -1):
+        mm = m - i
+        yy = y
+        while mm <= 0:
+            mm += 12
+            yy -= 1
+        months.append((yy, mm))
+    return months
+
 
 class ReportsView(APIView):
     """
@@ -1592,9 +1635,173 @@ class ReportsView(APIView):
             }
             return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
 
+        elif report_type == "yearly_revenue_trend":
+            year = int(request.query_params.get("year") or date.today().year)
+
+            month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+            hospital_by_month = {
+                row["paid_at__month"]: row["total"] or 0
+                for row in Payment.objects.filter(paid_at__year=year)
+                .values("paid_at__month").annotate(total=Sum("amount"))
+            }
+            otc_by_month = {
+                row["sold_at__month"]: row["total"] or 0
+                for row in OTCSale.objects.filter(sold_at__year=year)
+                .values("sold_at__month").annotate(total=Sum("amount_paid"))
+            }
+
+            data = [
+                {
+                    "month": month_labels[m - 1],
+                    "month_number": m,
+                    "hospital_total": str(hospital_by_month.get(m, 0)),
+                    "otc_total": str(otc_by_month.get(m, 0)),
+                    "total": str(hospital_by_month.get(m, 0) + otc_by_month.get(m, 0)),
+                }
+                for m in range(1, 13)
+            ]
+
+            # Years that actually have data, so the frontend dropdown only offers
+            # real options (falls back to the current year if there's no data yet).
+            hospital_years = Payment.objects.values_list("paid_at__year", flat=True).distinct()
+            otc_years = OTCSale.objects.values_list("sold_at__year", flat=True).distinct()
+            available_years = sorted(set(list(hospital_years) + list(otc_years)), reverse=True)
+            if not available_years:
+                available_years = [date.today().year]
+
+            return Response({
+                "type": report_type,
+                "year": year,
+                "available_years": available_years,
+                "data": data,
+            })
+
+        elif report_type == "patient_demographics":
+            # Distinct patients who had a visit inside the selected date range —
+            # same range as the rest of the overview charts on this page.
+            patient_ids = Visit.objects.filter(
+                visit_date__date__gte=date_from, visit_date__date__lte=date_to
+            ).values_list("patient_id", flat=True).distinct()
+            patients_qs = Patient.objects.filter(id__in=patient_ids)
+
+            age_counts = {}
+            gender_counts = {}
+            for p in patients_qs:
+                grp = _age_group(p.age)
+                age_counts[grp] = age_counts.get(grp, 0) + 1
+                gender_counts[p.gender] = gender_counts.get(p.gender, 0) + 1
+
+            age_data = [{"name": g, "value": age_counts[g]} for g in _AGE_GROUP_ORDER if age_counts.get(g)]
+            gender_data = [{"name": _GENDER_LABELS.get(g, g), "value": c} for g, c in gender_counts.items()]
+
+            most_common_age_group = max(age_counts.items(), key=lambda x: x[1])[0] if age_counts else "—"
+
+            data = {
+                "cards": [
+                    {"label": "Patients Seen", "value": patients_qs.count()},
+                    {"label": "Most Common Age Group", "value": most_common_age_group},
+                    {"label": "Male", "value": gender_counts.get("MALE", 0)},
+                    {"label": "Female", "value": gender_counts.get("FEMALE", 0)},
+                ],
+                "charts": {
+                    "age_groups": {"title": "Patients by Age Group", "type": "bar", "data": age_data},
+                    "gender": {"title": "Patients by Gender", "type": "pie", "data": gender_data},
+                },
+            }
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+
+        elif report_type == "disease_top_12m":
+            # Rolling 12-month window ending today — deliberately ignores
+            # date_from/date_to, this chart has no filter of its own.
+            months = _last_12_months(date.today())
+            start = date(months[0][0], months[0][1], 1)
+            end = date.today()
+
+            diagnoses_qs = ConsultationDiagnosis.objects.filter(
+                consultation__started_at__date__gte=start, consultation__started_at__date__lte=end
+            )
+            top = list(
+                diagnoses_qs.values("icd10_code__code", "icd10_code__description")
+                .annotate(count=Count("id")).order_by("-count")[:10]
+            )
+
+            data = {
+                "cards": [
+                    {"label": "Total Diagnoses (12mo)", "value": diagnoses_qs.count()},
+                    {"label": "Top Disease", "value": top[0]["icd10_code__description"] if top else "—"},
+                    {"label": "Distinct Diagnoses", "value": diagnoses_qs.values("icd10_code").distinct().count()},
+                    {"label": "Period", "value": f"{start.isoformat()} to {end.isoformat()}"},
+                ],
+                "charts": {
+                    "top10": {
+                        "title": "Top 10 Diseases — Last 12 Months",
+                        "type": "bar",
+                        "data": [
+                            {
+                                "name": r["icd10_code__description"] or r["icd10_code__code"],
+                                "code": r["icd10_code__code"],
+                                "value": r["count"],
+                            }
+                            for r in top
+                        ],
+                    },
+                },
+            }
+            return Response({"type": report_type, "start": start.isoformat(), "end": end.isoformat(), **data})
+
+        elif report_type == "disease_monthly_detail":
+            icd10_code = request.query_params.get("icd10_code")
+            if not icd10_code:
+                return Response({"detail": "icd10_code query param is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            year = int(request.query_params.get("year") or date.today().year)
+            month = int(request.query_params.get("month") or date.today().month)
+
+            diagnoses_qs = ConsultationDiagnosis.objects.filter(
+                icd10_code__code=icd10_code,
+                consultation__started_at__year=year,
+                consultation__started_at__month=month,
+            ).select_related("consultation__visit__patient", "icd10_code")
+
+            disease_name = (
+                ICD10Code.objects.filter(code=icd10_code).values_list("description", flat=True).first()
+                or icd10_code
+            )
+
+            age_counts = {}
+            gender_counts = {}
+            for dgn in diagnoses_qs:
+                patient = dgn.consultation.visit.patient
+                grp = _age_group(patient.age)
+                age_counts[grp] = age_counts.get(grp, 0) + 1
+                gender_counts[patient.gender] = gender_counts.get(patient.gender, 0) + 1
+
+            most_affected_age_group = max(age_counts.items(), key=lambda x: x[1])[0] if age_counts else "—"
+            age_data = [{"name": g, "value": age_counts[g]} for g in _AGE_GROUP_ORDER if age_counts.get(g)]
+            gender_data = [{"name": _GENDER_LABELS.get(g, g), "value": c} for g, c in gender_counts.items()]
+
+            data = {
+                "disease": disease_name,
+                "icd10_code": icd10_code,
+                "year": year,
+                "month": month,
+                "cards": [
+                    {"label": "Total Cases", "value": diagnoses_qs.count()},
+                    {"label": "Most Affected Age Group", "value": most_affected_age_group},
+                    {"label": "Male Cases", "value": gender_counts.get("MALE", 0)},
+                    {"label": "Female Cases", "value": gender_counts.get("FEMALE", 0)},
+                ],
+                "charts": {
+                    "age_groups": {"title": f"{disease_name} — Cases by Age Group", "type": "bar", "data": age_data},
+                    "gender": {"title": f"{disease_name} — Cases by Gender", "type": "pie", "data": gender_data},
+                },
+            }
+            return Response({"type": report_type, **data})
+
         else:
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class BulkPaymentViewSet(viewsets.GenericViewSet):
     """
