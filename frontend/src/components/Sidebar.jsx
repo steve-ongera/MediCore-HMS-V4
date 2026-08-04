@@ -317,6 +317,7 @@ const NAV_GROUPS = [
       { to: "/assets/categories", label: "Asset Categories", icon: "bi-tags" },
       { to: "/theatre/setup", label: "Theatres & Procedures", icon: "bi-gear-wide-connected" },
       { to: "/finance/accounts", label: "Chart of Accounts", icon: "bi-list-columns" },
+      { to: "/settings/license", label: "License Status", icon: "bi-award" },
     ],
   },
   {
