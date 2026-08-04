@@ -1,3 +1,4 @@
+#licensing/models.py
 from django.db import models
 from api.models import BaseModel
 
@@ -12,22 +13,20 @@ class LicensePackage(models.TextChoices):
 
 class FacilityLicense(BaseModel):
     """
-    Single-row config (one per HMIS deployment/facility) defining what this
-    installation is licensed for. Read by permission checks at bed/user
-    creation time — never trust a frontend-only limit for a licensing
-    boundary since the API can always be hit directly.
+    Single-row config for this HMIS deployment's license. Read by
+    permission checks at bed/user creation time.
     """
     package = models.CharField(max_length=20, choices=LicensePackage.choices, default=LicensePackage.STARTER)
-    license_key = models.CharField(max_length=100, blank=True, help_text="Reference/identifier for this license agreement.")
+    license_key = models.CharField(max_length=100, blank=True)
 
     max_beds = models.PositiveIntegerField(default=20, help_text="Total across inpatient + ICU/HDU beds combined.")
     max_users = models.PositiveIntegerField(default=10, help_text="Total active staff accounts across all roles.")
 
-    licensed_to = models.CharField(max_length=200, blank=True, help_text="Facility/organization name on the license.")
+    licensed_to = models.CharField(max_length=200, blank=True)
     valid_from = models.DateField(null=True, blank=True)
     valid_until = models.DateField(null=True, blank=True)
 
-    is_active = models.BooleanField(default=True, help_text="Deactivating this suspends new bed/user creation without deleting existing data.")
+    is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
 
     updated_at_display = models.DateTimeField(auto_now=True)
@@ -36,8 +35,6 @@ class FacilityLicense(BaseModel):
         db_table = "facility_license"
 
     def save(self, *args, **kwargs):
-        # Enforce single-row: this table should only ever have one config
-        # for the whole deployment.
         if not self.pk and FacilityLicense.objects.exists():
             raise ValueError("A facility license already exists — update it instead of creating a new one.")
         super().save(*args, **kwargs)
@@ -48,23 +45,64 @@ class FacilityLicense(BaseModel):
         return bool(self.valid_until and date.today() > self.valid_until)
 
     @property
-    def current_bed_count(self):
-        from inpatient.models import Bed
-        count = Bed.objects.count()
-        try:
-            from icu.models import ICUBed
-            count += ICUBed.objects.count()
-        except Exception:
-            pass
-        return count
-
-    @property
     def current_user_count(self):
+        """
+        User (api.models.User) extends AbstractUser directly — it is NOT a
+        BaseModel subclass, so it has no is_deleted field and isn't backed
+        by SoftDeleteManager. Deactivated staff are represented via
+        is_active_staff=False (and/or Django's built-in is_active), not
+        soft-delete. Filtering on is_deleted here raised FieldError on
+        every request, which was the cause of the 500s on
+        /api/facility-license/. Counts every currently active staff
+        account regardless of role.
+        """
         from api.models import User
         return User.objects.filter(is_active_staff=True).count()
 
     @property
+    def current_bed_count(self):
+        """
+        NOT YET CONFIRMED against your real inpatient/models.py — I have
+        never been able to see that file's contents in this conversation.
+        This tries the most likely model/field combination
+        (inpatient.Bed with a status field) and falls back to None if the
+        model doesn't exist or the field names don't match, rather than
+        silently returning a wrong number.
+
+        Once you paste the real inpatient/models.py content as plain text
+        in the chat, replace this whole property with the verified version —
+        do not trust this number for enforcement until then.
+        """
+        try:
+            from inpatient.models import Bed
+        except (ImportError, ModuleNotFoundError):
+            return None  # model doesn't exist under this name/location
+
+        try:
+            # Most common pattern: one row per physical bed, all rows count
+            # regardless of occupied/available status (a bed under
+            # maintenance is still a licensed bed, just temporarily unusable).
+            count = Bed.objects.count()
+        except Exception:
+            return None
+
+        # If ICU beds are tracked as a separate pool, add them too — same
+        # defensive try/except, since I haven't seen icu/models.py confirmed
+        # either.
+        try:
+            from icu.models import ICUBed
+            count += ICUBed.objects.count()
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception:
+            pass
+
+        return count
+
+    @property
     def beds_remaining(self):
+        if self.current_bed_count is None:
+            return None
         return max(self.max_beds - self.current_bed_count, 0)
 
     @property
@@ -76,5 +114,4 @@ class FacilityLicense(BaseModel):
 
 
 def get_active_license():
-    """Convenience accessor — the whole app has exactly one license row."""
     return FacilityLicense.objects.filter(is_active=True).first()
