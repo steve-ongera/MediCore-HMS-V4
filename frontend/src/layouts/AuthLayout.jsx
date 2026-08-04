@@ -6,7 +6,7 @@ export default function AuthLayout() {
     <div
       className="auth-layout-simple"
       style={{
-        backgroundImage: "url(/login_background.png)",
+        backgroundImage: "url(/background_image.png)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

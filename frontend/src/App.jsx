@@ -213,6 +213,17 @@ import DocumentUpload from "./pages/medrecords/DocumentUpload.jsx";
 import HealthRecordsOfficerDashboard from "./pages/dashboard/HealthRecordsOfficerDashboard.jsx";
 import MedicalRecordsOfficerDashboard from "./pages/dashboard/MedicalRecordsOfficerDashboard.jsx";
 import ICDCodingReview from "./pages/medrecords/ICDCodingReview.jsx";
+import BiomedicalEngineerDashboard from "./pages/dashboard/BiomedicalEngineerDashboard.jsx";
+
+import EquipmentRegister from "./pages/biomed/EquipmentRegister.jsx";
+import EquipmentForm from "./pages/biomed/EquipmentForm.jsx";
+import EquipmentDetail from "./pages/biomed/EquipmentDetail.jsx";
+import ServiceRequests from "./pages/biomed/ServiceRequests.jsx";
+import Maintenance from "./pages/biomed/Maintenance.jsx";
+import CalibrationSchedule from "./pages/biomed/CalibrationSchedule.jsx";
+import SparePartsInventory from "./pages/biomed/SparePartsInventory.jsx";
+import ServiceContracts from "./pages/biomed/ServiceContracts.jsx";
+import DowntimeReport from "./pages/biomed/DowntimeReport.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -243,6 +254,7 @@ function RoleHomeDashboard() {
     [ROLES.AMBULANCE_DISPATCHER]: AmbulanceDashboard,
     [ROLES.HEALTH_RECORDS_OFFICER]: HealthRecordsOfficerDashboard,
     [ROLES.MEDICAL_RECORDS_OFFICER]: MedicalRecordsOfficerDashboard,
+    [ROLES.BIOMEDICAL_ENGINEER]: BiomedicalEngineerDashboard,
   };
 
   const role = user?.role;
@@ -803,7 +815,17 @@ export default function App() {
         <Route path="/medrecords/audit-trail" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><RecordAuditTrailPage /></ProtectedRoute>} />
         <Route path="/medrecords/documents" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><DocumentUpload /></ProtectedRoute>} />
         <Route path="/medrecords/coding-review" element={<ProtectedRoute allowedRoles={[ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER]}><ICDCodingReview /></ProtectedRoute>} />
-                                
+
+
+        <Route path="/biomed/equipment" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><EquipmentRegister /></ProtectedRoute>} />
+        <Route path="/biomed/equipment/register" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><EquipmentForm /></ProtectedRoute>} />
+        <Route path="/biomed/equipment/:id" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><EquipmentDetail /></ProtectedRoute>} />
+        <Route path="/biomed/service-requests" element={<ProtectedRoute><ServiceRequests /></ProtectedRoute>} />
+        <Route path="/biomed/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><Maintenance /></ProtectedRoute>} />
+        <Route path="/biomed/calibration" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><CalibrationSchedule /></ProtectedRoute>} />
+        <Route path="/biomed/spare-parts" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><SparePartsInventory /></ProtectedRoute>} />
+        <Route path="/biomed/contracts" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><ServiceContracts /></ProtectedRoute>} />
+        <Route path="/biomed/downtime-report" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><DowntimeReport /></ProtectedRoute>} />
 
 
         {/* Profile - any authenticated user */}

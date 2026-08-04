@@ -503,6 +503,38 @@ def medical_records_officer_dashboard(user):
         "bar": bar,
         "pie": pie,
     }
+    
+    
+
+def biomedical_engineer_dashboard(user):
+    from biomed.models import Equipment, EquipmentStatus, ServiceRequest, ServiceRequestStatus, Calibration, CalibrationStatus, SparePart
+    from datetime import date, timedelta
+
+    today = date.today()
+    days = _last7()
+    cutoff = today + timedelta(days=14)
+
+    equipment_qs = Equipment.objects.filter(is_active=True)
+    maintenance_due = len([e for e in equipment_qs if e.next_preventive_maintenance_due and e.next_preventive_maintenance_due <= cutoff])
+    calibration_due = len([e for e in equipment_qs if e.next_calibration_due and e.next_calibration_due <= cutoff])
+    low_stock_parts = len([p for p in SparePart.objects.all() if p.is_low_stock])
+
+    cards = [
+        {"label": "Total Equipment", "value": equipment_qs.count()},
+        {"label": "Open Service Requests", "value": ServiceRequest.objects.exclude(status__in=[ServiceRequestStatus.RESOLVED, ServiceRequestStatus.CANCELLED]).count()},
+        {"label": "Out of Service", "value": equipment_qs.filter(status=EquipmentStatus.OUT_OF_SERVICE).count()},
+        {"label": "Maintenance Due (14 days)", "value": maintenance_due},
+        {"label": "Calibration Due (14 days)", "value": calibration_due},
+        {"label": "Low Stock Spare Parts", "value": low_stock_parts},
+    ]
+    line = {"title": "Service Requests — Last 7 Days", "data": [
+        {"name": d.isoformat(), "value": ServiceRequest.objects.filter(reported_at__date=d).count()} for d in days
+    ]}
+    bar_qs = equipment_qs.values("status").annotate(count=__import__("django.db.models", fromlist=["Count"]).Count("id"))
+    bar = {"title": "Equipment by Status", "data": [{"name": r["status"], "value": r["count"]} for r in bar_qs]}
+    pie_qs = ServiceRequest.objects.values("priority").annotate(count=__import__("django.db.models", fromlist=["Count"]).Count("id"))
+    pie = {"title": "Service Requests by Priority", "data": [{"name": r["priority"], "value": r["count"]} for r in pie_qs]}
+    return {"cards": cards, "line": line, "bar": bar, "pie": pie}
 
 DASHBOARD_BUILDERS = {
     Role.RECEPTIONIST: receptionist_dashboard,
@@ -519,6 +551,7 @@ DASHBOARD_BUILDERS = {
     Role.AMBULANCE_DISPATCHER: ambulance_dashboard,
     Role.HEALTH_RECORDS_OFFICER: health_records_officer_dashboard,
     Role.MEDICAL_RECORDS_OFFICER: medical_records_officer_dashboard,
+    Role.BIOMEDICAL_ENGINEER: biomedical_engineer_dashboard,
 }
 
 

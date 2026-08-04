@@ -824,6 +824,41 @@ export const verifyDiagnosisCoding = (id) => unwrap(client.post(`/icd-coding-rev
 export const correctDiagnosisCoding = (id, payload) => unwrap(client.post(`/icd-coding-review/${id}/correct/`, payload));
 export const searchICD10Codes = (search) => unwrap(client.get(`/icd10-codes/${qs({ search })}`));
 
+
+// ===========================================================================
+// BIOMEDICAL ENGINEERING
+// ===========================================================================
+export const getEquipment = (params) => unwrap(client.get(`/equipment/${qs(params)}`));
+export const getEquipmentDetail = (id) => unwrap(client.get(`/equipment/${id}/`));
+export const createEquipment = (payload) => unwrap(client.post("/equipment/", payload));
+export const updateEquipment = (id, payload) => unwrap(client.patch(`/equipment/${id}/`, payload));
+export const getMaintenanceDueEquipment = () => unwrap(client.get("/equipment/maintenance-due/"));
+export const getCalibrationDueEquipment = () => unwrap(client.get("/equipment/calibration-due/"));
+
+export const getServiceRequests = (params) => unwrap(client.get(`/service-requests/${qs(params)}`));
+export const getOpenServiceRequests = () => unwrap(client.get("/service-requests/open/"));
+export const createServiceRequest = (payload) => unwrap(client.post("/service-requests/", payload));
+export const assignServiceRequest = (id) => unwrap(client.post(`/service-requests/${id}/assign/`));
+export const resolveServiceRequest = (id, payload) => unwrap(client.post(`/service-requests/${id}/resolve/`, payload));
+
+export const getMaintenanceRecords = (params) => unwrap(client.get(`/maintenance-records/${qs(params)}`));
+export const createMaintenanceRecord = (payload) => unwrap(client.post("/maintenance-records/", payload));
+export const completeMaintenanceRecord = (id, payload) => unwrap(client.post(`/maintenance-records/${id}/complete/`, payload));
+
+export const getCalibrations = (params) => unwrap(client.get(`/calibrations/${qs(params)}`));
+export const createCalibration = (payload) => unwrap(client.post("/calibrations/", payload));
+export const completeCalibration = (id, payload) => unwrap(client.post(`/calibrations/${id}/complete/`, payload));
+
+export const getSpareParts = (params) => unwrap(client.get(`/spare-parts/${qs(params)}`));
+export const createSparePart = (payload) => unwrap(client.post("/spare-parts/", payload));
+export const updateSparePart = (id, payload) => unwrap(client.patch(`/spare-parts/${id}/`, payload));
+export const getLowStockSpareParts = () => unwrap(client.get("/spare-parts/low-stock/"));
+
+export const getServiceContracts = (params) => unwrap(client.get(`/service-contracts/${qs(params)}`));
+export const createServiceContract = (payload) => unwrap(client.post("/service-contracts/", payload));
+export const getExpiringSoonContracts = () => unwrap(client.get("/service-contracts/expiring-soon/"));
+
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

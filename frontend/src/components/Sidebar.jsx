@@ -290,6 +290,19 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Biomedical Engineering",
+    roles: [ROLES.BIOMEDICAL_ENGINEER],
+    links: [
+      { to: "/biomed/equipment", label: "Equipment Register", icon: "bi-cpu" },
+      { to: "/biomed/service-requests", label: "Service Requests", icon: "bi-tools" },
+      { to: "/biomed/maintenance", label: "Maintenance", icon: "bi-wrench-adjustable" },
+      { to: "/biomed/calibration", label: "Calibration Schedule", icon: "bi-speedometer2" },
+      { to: "/biomed/spare-parts", label: "Spare Parts", icon: "bi-box-seam" },
+      { to: "/biomed/contracts", label: "Service Contracts", icon: "bi-file-earmark-text" },
+      { to: "/biomed/downtime-report", label: "Downtime Report", icon: "bi-bar-chart-line" },
+    ],
+  },
+  {
     label: "Administration",
     roles: [],
     links: [
@@ -312,6 +325,7 @@ const NAV_GROUPS = [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
       { to: "/messages", label: "Messages", icon: "bi bi-chat-left" },
       { to: "/my-leave", label: "My Leave Requests", icon: "bi-calendar2-week" },
+      { to: "/biomed/service-requests", label: "Report Equipment Issue", icon: "bi-exclamation-triangle" },
       { to: "/settings", label: "Settings", icon: "bi-gear", roles: [] },
     ],
   },
