@@ -225,6 +225,9 @@ import SparePartsInventory from "./pages/biomed/SparePartsInventory.jsx";
 import ServiceContracts from "./pages/biomed/ServiceContracts.jsx";
 import DowntimeReport from "./pages/biomed/DowntimeReport.jsx";
 
+import Announcements from "./pages/communication/Announcements.jsx";
+import MyAnnouncements from "./pages/communication/MyAnnouncements.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -826,6 +829,9 @@ export default function App() {
         <Route path="/biomed/spare-parts" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><SparePartsInventory /></ProtectedRoute>} />
         <Route path="/biomed/contracts" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><ServiceContracts /></ProtectedRoute>} />
         <Route path="/biomed/downtime-report" element={<ProtectedRoute allowedRoles={[ROLES.BIOMEDICAL_ENGINEER]}><DowntimeReport /></ProtectedRoute>} />
+
+        <Route path="/announcements/manage" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HR_OFFICER]}><Announcements /></ProtectedRoute>} />
+        <Route path="/announcements" element={<ProtectedRoute><MyAnnouncements /></ProtectedRoute>} />
 
 
         {/* Profile - any authenticated user */}
