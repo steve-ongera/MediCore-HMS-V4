@@ -4301,3 +4301,37 @@ fieldset legend {
   color: var(--text-color);
   line-height: 1.5;
 }
+
+/* 8-4 Grid Layout */
+.grid-8-4 {
+  display: grid;
+  grid-template-columns: 8fr 4fr;
+  gap: var(--space-4);
+}
+
+.grid-8-4__main {
+  min-width: 0;
+}
+
+.grid-4-8__sidebar {
+  min-width: 0;
+}
+
+/* 2-Column Grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1024px) {
+  .grid-8-4 {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}

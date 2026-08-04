@@ -1,5 +1,36 @@
 import { useEffect, useState } from "react";
 import { getFinancialSummary } from "../../services/api";
+import { formatCurrency, formatNumber } from "../../utils/formatters";
+
+const PAGE_SIZE = 10;
+
+function PaginationFooter({ totalRows, currentPage, totalPages, startIdx, onPageChange }) {
+  if (totalRows === 0) return null;
+  return (
+    <div className="card-footer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <span className="text-tertiary text-sm">
+        Showing {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, totalRows)} of {formatNumber(totalRows)}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <i className="bi bi-chevron-left me-1"></i> Prev
+        </button>
+        <span className="text-2xs text-tertiary">Page {currentPage} of {totalPages}</span>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next <i className="bi bi-chevron-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function FinancialSummary() {
   const [summary, setSummary] = useState(null);
@@ -7,8 +38,11 @@ export default function FinancialSummary() {
   const [dateTo, setDateTo] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [accountsPage, setAccountsPage] = useState(1);
 
   useEffect(() => { load(); }, [dateFrom, dateTo]);
+
+  useEffect(() => { setAccountsPage(1); }, [summary]);
 
   const load = async () => {
     setLoading(true);
@@ -17,11 +51,6 @@ export default function FinancialSummary() {
       const data = await getFinancialSummary({ date_from: dateFrom, date_to: dateTo });
       setSummary(data);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
-  };
-
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "KES 0.00";
-    return `KES ${Number(amount).toFixed(2)}`;
   };
 
   if (loading && !summary) {
@@ -33,6 +62,14 @@ export default function FinancialSummary() {
     );
   }
 
+  const accounts = summary?.accounts || [];
+  const totalRows = accounts.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const currentPage = Math.min(accountsPage, totalPages);
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageAccounts = accounts.slice(startIdx, startIdx + PAGE_SIZE);
+  const goToAccountsPage = (p) => setAccountsPage(Math.min(Math.max(1, p), totalPages));
+
   return (
     <>
       <div className="page-header">
@@ -42,6 +79,8 @@ export default function FinancialSummary() {
           <p className="page-subtitle">Overview of financial performance</p>
         </div>
         <div className="page-header__actions">
+          <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ width: "160px" }} />
+          <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ width: "160px" }} />
           <button className="btn btn-secondary" onClick={load}>
             <i className="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
@@ -57,37 +96,6 @@ export default function FinancialSummary() {
           </div>
         </div>
       )}
-
-      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
-        <div className="card-header">
-          <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-calendar me-1"></i>
-            <h5 className="card-title" style={{ marginBottom: 0 }}>Date Range</h5>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>From</label>
-              <input
-                type="date"
-                className="input"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                style={{ width: "160px" }}
-              />
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>To</label>
-              <input
-                type="date"
-                className="input"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                style={{ width: "160px" }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {summary && (
         <>
@@ -153,7 +161,7 @@ export default function FinancialSummary() {
               </div>
               <div>
                 <span className="text-tertiary text-sm">
-                  {summary.accounts.length} account{summary.accounts.length !== 1 ? "s" : ""}
+                  {formatNumber(accounts.length)} account{accounts.length !== 1 ? "s" : ""}
                 </span>
               </div>
             </div>
@@ -169,7 +177,7 @@ export default function FinancialSummary() {
                     </tr>
                   </thead>
                   <tbody>
-                    {summary.accounts.map((a) => (
+                    {pageAccounts.map((a) => (
                       <tr key={a.code}>
                         <td className="cell-mono">{a.code}</td>
                         <td className="cell-primary">{a.name}</td>
@@ -186,13 +194,16 @@ export default function FinancialSummary() {
                 </table>
               </div>
             </div>
-            {summary.accounts.length > 0 && (
+            <PaginationFooter
+              totalRows={totalRows}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIdx={startIdx}
+              onPageChange={goToAccountsPage}
+            />
+            {totalRows > 0 && (
               <div className="card-footer">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-tertiary text-sm">
-                    Showing {summary.accounts.length} account{summary.accounts.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
+                <span className="text-tertiary text-sm">Legend</span>
                 <div className="flex gap-2">
                   <span className="badge badge-success">
                     <span className="badge-dot"></span>

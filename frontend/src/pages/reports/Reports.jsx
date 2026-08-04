@@ -21,9 +21,10 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getReports } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { formatCurrency, formatDate } from "../../utils/formatters";
+import { formatCurrency, formatDate, formatNumber } from "../../utils/formatters";
 
 const COLORS = ["#4f46e5", "#16a34a", "#0891b2", "#d97706", "#dc2626", "#64748b"];
+const PAGE_SIZE = 10;
 
 const OVERVIEW_TYPES = [
   "daily_revenue",
@@ -86,7 +87,7 @@ function NamedValueTooltip({ active, payload, valueFormatter }) {
     <div className="chart-tooltip">
       <div className="chart-tooltip__label">{item.payload.name}</div>
       <div className="chart-tooltip__value">
-        {valueFormatter ? valueFormatter(item.value) : item.value}
+        {valueFormatter ? valueFormatter(item.value) : formatNumber(item.value)}
       </div>
     </div>
   );
@@ -106,6 +107,34 @@ function YearlyTrendTooltip({ active, payload, label }) {
   );
 }
 
+function PaginationFooter({ totalRows, currentPage, totalPages, startIdx, onPageChange }) {
+  if (totalRows === 0) return null;
+  return (
+    <div className="card-footer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <span className="text-tertiary text-sm">
+        Showing {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, totalRows)} of {formatNumber(totalRows)}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <i className="bi bi-chevron-left me-1"></i> Prev
+        </button>
+        <span className="text-2xs text-tertiary">Page {currentPage} of {totalPages}</span>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next <i className="bi bi-chevron-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState(null);
@@ -113,31 +142,24 @@ export default function Reports() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
+  const [detailPage, setDetailPage] = useState(1);
+
   const [overview, setOverview] = useState({});
   const [overviewLoading, setOverviewLoading] = useState(true);
 
-  // 12-month trend — deliberately has its own filter (year) and does NOT
-  // depend on dateFrom/dateTo above.
   const [trendYear, setTrendYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState([new Date().getFullYear()]);
   const [yearlyTrend, setYearlyTrend] = useState([]);
   const [yearlyTrendLoading, setYearlyTrendLoading] = useState(true);
 
-  // Patient demographics (age group + gender) — follows the same date
-  // range filter as the overview charts above.
   const [demographics, setDemographics] = useState({ cards: [], ageData: [], genderData: [] });
   const [demographicsLoading, setDemographicsLoading] = useState(true);
 
-  // Top diseases reported in the last 12 months — rolling window, no
-  // filter of its own; clicking a bar drives the drill-down section below.
   const [topDiseases, setTopDiseases] = useState([]);
   const [diseasePeriod, setDiseasePeriod] = useState({ start: "", end: "" });
   const [topDiseasesLoading, setTopDiseasesLoading] = useState(true);
 
-  // Disease drill-down: pick a disease (from the chart above, or defaults
-  // to the top one once loaded) plus a specific month/year — its own
-  // filter section, independent of everything else on the page.
-  const [selectedDisease, setSelectedDisease] = useState(null); // { code, name }
+  const [selectedDisease, setSelectedDisease] = useState(null);
   const [drillMonth, setDrillMonth] = useState(new Date().getMonth() + 1);
   const [drillYear, setDrillYear] = useState(new Date().getFullYear());
   const [drillResult, setDrillResult] = useState(null);
@@ -162,9 +184,6 @@ export default function Reports() {
     setDateTo(today.toISOString().split("T")[0]);
   }, []);
 
-  // -------------------------------------------------------------------
-  // Detail report (dropdown-driven table + export)
-  // -------------------------------------------------------------------
   const loadReport = useCallback(async () => {
     if (!dateFrom || !dateTo) return;
     setLoading(true);
@@ -182,9 +201,10 @@ export default function Reports() {
     loadReport();
   }, [loadReport]);
 
-  // -------------------------------------------------------------------
-  // Overview charts (several report types fetched together)
-  // -------------------------------------------------------------------
+  useEffect(() => {
+    setDetailPage(1);
+  }, [reportData]);
+
   const loadOverview = useCallback(async () => {
     if (!dateFrom || !dateTo) return;
     setOverviewLoading(true);
@@ -208,10 +228,6 @@ export default function Reports() {
     loadOverview();
   }, [loadOverview]);
 
-  // -------------------------------------------------------------------
-  // 12-month revenue trend (its own year filter, independent of the
-  // date-range filter and the detail-report dropdown above)
-  // -------------------------------------------------------------------
   const loadYearlyTrend = useCallback(async () => {
     setYearlyTrendLoading(true);
     try {
@@ -238,10 +254,6 @@ export default function Reports() {
     loadYearlyTrend();
   }, [loadYearlyTrend]);
 
-  // -------------------------------------------------------------------
-  // Patient demographics: age group + gender, for patients seen within
-  // the same dateFrom/dateTo range used by the overview charts above.
-  // -------------------------------------------------------------------
   const loadDemographics = useCallback(async () => {
     if (!dateFrom || !dateTo) return;
     setDemographicsLoading(true);
@@ -263,9 +275,6 @@ export default function Reports() {
     loadDemographics();
   }, [loadDemographics]);
 
-  // -------------------------------------------------------------------
-  // Top diseases — rolling last 12 months, no filter of its own.
-  // -------------------------------------------------------------------
   const loadTopDiseases = useCallback(async () => {
     setTopDiseasesLoading(true);
     try {
@@ -273,8 +282,6 @@ export default function Reports() {
       const chartData = result?.charts?.top10?.data || [];
       setTopDiseases(chartData);
       setDiseasePeriod({ start: result?.start, end: result?.end });
-      // Default the drill-down to the #1 disease the first time this loads,
-      // so the section below isn't empty before the user clicks anything.
       setSelectedDisease((prev) => prev || (chartData[0] ? { code: chartData[0].code, name: chartData[0].name } : null));
     } catch (err) {
       toast.error(err.message || "Failed to load 12-month disease trend");
@@ -287,10 +294,6 @@ export default function Reports() {
     loadTopDiseases();
   }, [loadTopDiseases]);
 
-  // -------------------------------------------------------------------
-  // Disease drill-down: one disease + one month/year -> case count and
-  // which age group it hit hardest. Own filter section entirely.
-  // -------------------------------------------------------------------
   const loadDiseaseDrilldown = useCallback(async () => {
     if (!selectedDisease?.code) return;
     setDrillLoading(true);
@@ -312,11 +315,6 @@ export default function Reports() {
     loadDiseaseDrilldown();
   }, [loadDiseaseDrilldown]);
 
-  // FIX: backend's daily_revenue rows use `date`, not `paid_at__date`
-  // (that key belonged to the old .values("paid_at__date") queryset shape
-  // before daily_revenue was merged with OTC sales into {date, hospital_total,
-  // otc_total, total}). Mapping the wrong key meant every point's x-value
-  // was undefined, so the line chart rendered blank even though data existed.
   const revenueTrend = useMemo(
     () =>
       (overview.daily_revenue || []).map((d) => ({
@@ -366,9 +364,6 @@ export default function Reports() {
     { name: "Total Visits", value: patientStats.total_visits_in_range || 0 },
   ];
 
-  // -------------------------------------------------------------------
-  // Export helpers (operate on the currently selected detail report)
-  // -------------------------------------------------------------------
   const getExportRows = () => {
     if (!reportData?.data) return [];
     const raw = Array.isArray(reportData.data) ? reportData.data : [reportData.data];
@@ -426,42 +421,38 @@ export default function Reports() {
     doc.save(`${reportType}_${dateFrom}_to_${dateTo}.pdf`);
   };
 
-  // -------------------------------------------------------------------
-  // Detail table renderer (unchanged logic from before)
-  // -------------------------------------------------------------------
+  const goToDetailPage = (p, totalPages) => setDetailPage(Math.min(Math.max(1, p), totalPages));
+
   const renderReportContent = () => {
     if (!reportData || !reportData.data) {
-      return <div className="text-center text-muted py-4">No data available for this report</div>;
+      return <div className="text-center text-tertiary py-4">No data available for this report</div>;
     }
 
     const { data } = reportData;
 
     if (reportType === "patient_statistics") {
       return (
-        <div className="row">
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body text-center">
-                <div className="text-muted text-sm">Total Patients</div>
-                <div className="fs-2 fw-bold">{data.total_patients || 0}</div>
-              </div>
+        <div className="stat-grid">
+          <div className="stat-card">
+            <div className="stat-card__top">
+              <span className="stat-card__label">Total Patients</span>
+              <div className="stat-card__icon tone-primary"><i className="bi bi-people"></i></div>
             </div>
+            <div className="stat-card__value">{formatNumber(data.total_patients || 0)}</div>
           </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body text-center">
-                <div className="text-muted text-sm">New Patients (Range)</div>
-                <div className="fs-2 fw-bold text-primary">{data.new_patients_in_range || 0}</div>
-              </div>
+          <div className="stat-card">
+            <div className="stat-card__top">
+              <span className="stat-card__label">New Patients</span>
+              <div className="stat-card__icon tone-success"><i className="bi bi-person-plus"></i></div>
             </div>
+            <div className="stat-card__value">{formatNumber(data.new_patients_in_range || 0)}</div>
           </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body text-center">
-                <div className="text-muted text-sm">Total Visits (Range)</div>
-                <div className="fs-2 fw-bold text-success">{data.total_visits_in_range || 0}</div>
-              </div>
+          <div className="stat-card">
+            <div className="stat-card__top">
+              <span className="stat-card__label">Total Visits</span>
+              <div className="stat-card__icon tone-info"><i className="bi bi-clipboard2-pulse"></i></div>
             </div>
+            <div className="stat-card__value">{formatNumber(data.total_visits_in_range || 0)}</div>
           </div>
         </div>
       );
@@ -469,26 +460,30 @@ export default function Reports() {
 
     if (Array.isArray(data)) {
       if (data.length === 0) {
-        return <div className="text-center text-muted py-4">No records found</div>;
+        return <div className="text-center text-tertiary py-4">No records found</div>;
       }
 
-      // FIX: daily_revenue rows are shaped {date, hospital_total, otc_total,
-      // total} — was checking `paid_at__date`, which no longer exists on
-      // this response, so it always fell through to the generic table below.
+      const totalRows = data.length;
+      const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+      const currentPage = Math.min(detailPage, totalPages);
+      const startIdx = (currentPage - 1) * PAGE_SIZE;
+      const pageRows = data.slice(startIdx, startIdx + PAGE_SIZE);
+      const handlePageChange = (p) => goToDetailPage(p, totalPages);
+
       if (data[0]?.date) {
         return (
-          <div className="table-wrap">
+          <>
             <div className="table-scroll">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th className="text-right">Revenue</th>
+                    <th className="cell-numeric">Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((item, index) => (
-                    <tr key={index}>
+                  {pageRows.map((item, index) => (
+                    <tr key={startIdx + index}>
                       <td>{formatDate(item.date)}</td>
                       <td className="cell-numeric">{formatCurrency(item.total || 0)}</td>
                     </tr>
@@ -496,31 +491,38 @@ export default function Reports() {
                 </tbody>
               </table>
             </div>
-          </div>
+            <PaginationFooter
+              totalRows={totalRows}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIdx={startIdx}
+              onPageChange={handlePageChange}
+            />
+          </>
         );
       }
 
       if (data[0]?.visit__doctor__first_name || data[0]?.visit__department__name) {
         const nameKey = Object.keys(data[0]).find((k) => k.includes("name") || k.includes("first_name"));
         return (
-          <div className="table-wrap">
+          <>
             <div className="table-scroll">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th className="text-right">Revenue</th>
+                    <th className="cell-numeric">Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((item, index) => {
+                  {pageRows.map((item, index) => {
                     const name =
                       item[nameKey] ||
                       item.visit__doctor__first_name ||
                       item.visit__department__name ||
                       "Unknown";
                     return (
-                      <tr key={index}>
+                      <tr key={startIdx + index}>
                         <td>{name}</td>
                         <td className="cell-numeric">{formatCurrency(item.total || 0)}</td>
                       </tr>
@@ -529,49 +531,63 @@ export default function Reports() {
                 </tbody>
               </table>
             </div>
-          </div>
+            <PaginationFooter
+              totalRows={totalRows}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIdx={startIdx}
+              onPageChange={handlePageChange}
+            />
+          </>
         );
       }
 
       if (data[0]?.prescription__medicine__name) {
         return (
-          <div className="table-wrap">
+          <>
             <div className="table-scroll">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>Medicine</th>
-                    <th className="text-right">Quantity Sold</th>
+                    <th className="cell-numeric">Quantity Sold</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((item, index) => (
-                    <tr key={index}>
+                  {pageRows.map((item, index) => (
+                    <tr key={startIdx + index}>
                       <td>{item.prescription__medicine__name || "Unknown"}</td>
-                      <td className="cell-numeric">{item.total_qty || 0}</td>
+                      <td className="cell-numeric">{formatNumber(item.total_qty || 0)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
+            <PaginationFooter
+              totalRows={totalRows}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIdx={startIdx}
+              onPageChange={handlePageChange}
+            />
+          </>
         );
       }
 
       return (
-        <div className="table-wrap">
+        <>
           <div className="table-scroll">
             <table className="data-table">
               <thead>
                 <tr>
                   {Object.keys(data[0]).map((key) => (
-                    <th key={key}>{key.replace(/_/g, " ").toUpperCase()}</th>
+                    <th key={key}>{humanizeKey(key)}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {data.map((item, index) => (
-                  <tr key={index}>
+                {pageRows.map((item, index) => (
+                  <tr key={startIdx + index}>
                     {Object.values(item).map((val, i) => (
                       <td key={i}>
                         {typeof val === "number" && !isNaN(val) && !String(val).includes("date")
@@ -584,11 +600,18 @@ export default function Reports() {
               </tbody>
             </table>
           </div>
-        </div>
+          <PaginationFooter
+            totalRows={totalRows}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            startIdx={startIdx}
+            onPageChange={handlePageChange}
+          />
+        </>
       );
     }
 
-    return <div className="text-center text-muted py-4">Data format not supported</div>;
+    return <div className="text-center text-tertiary py-4">Data format not supported</div>;
   };
 
   if (loading && !reportData) return <LoadingSpinner />;
@@ -602,479 +625,435 @@ export default function Reports() {
           <p className="page-subtitle">Generate, visualize, and export financial and operational reports</p>
         </div>
         <div className="page-header__actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => {
-              loadReport();
-              loadOverview();
-              loadDemographics();
-              loadTopDiseases();
-            }}
-          >
-            <i className="bi bi-arrow-clockwise me-2"></i>
-            Refresh
+          <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ width: "160px" }} />
+          <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ width: "160px" }} />
+          <button className="btn btn-secondary" onClick={() => { loadReport(); loadOverview(); loadDemographics(); loadTopDiseases(); }}>
+            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
         </div>
       </div>
 
-      {/* Date Range (drives both overview and detail) */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <div className="row g-3">
-            <div className="col-md-3">
-              <div className="field">
-                <label className="field-label" htmlFor="date_from">From Date</label>
-                <input
-                  id="date_from"
-                  type="date"
-                  className="input"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                />
+      {/* Overview Charts - 8x4 Grid */}
+      <div className="grid-8-4" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="grid-8-4__main">
+          {/* Revenue Trend - full width, now that Department Revenue lives in the sidebar */}
+          <div className="card" style={{ marginBottom: "var(--space-4)" }}>
+            <div className="card-header">
+              <h5 className="card-title">Revenue Trend</h5>
+              <span className="text-2xs text-tertiary">Daily revenue in selected range</span>
+            </div>
+            <div className="card-body" style={{ height: "260px" }}>
+              {overviewLoading ? (
+                <div className="text-center text-tertiary py-5">Loading…</div>
+              ) : revenueTrend.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={revenueTrend} margin={{ top: 5, right: 15, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { day: "numeric" })} fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} fontSize={11} tickLine={false} axisLine={false} width={35} />
+                    <Tooltip content={<RevenueTooltip />} />
+                    <Line type="monotone" dataKey="total" stroke="#4f46e5" strokeWidth={2.5} dot={{ r: 3, fill: "#4f46e5" }} activeDot={{ r: 5 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center text-tertiary py-4">No revenue data available</div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid-2" style={{ marginBottom: "var(--space-4)" }}>
+            {/* Top Doctors */}
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Top Doctors by Revenue</h5>
+                <span className="text-2xs text-tertiary">Consultation revenue generated</span>
+              </div>
+              <div className="card-body" style={{ height: "220px" }}>
+                {overviewLoading ? (
+                  <div className="text-center text-tertiary py-5">Loading…</div>
+                ) : doctorRevenue.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={doctorRevenue} layout="vertical" margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                      <XAxis type="number" tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} fontSize={11} tickLine={false} axisLine={false} />
+                      <YAxis type="category" dataKey="name" fontSize={11} tickLine={false} axisLine={false} width={80} />
+                      <Tooltip content={<NamedValueTooltip valueFormatter={formatCurrency} />} cursor={{ fill: "rgba(79, 70, 229, 0.06)" }} />
+                      <Bar dataKey="total" fill="#4f46e5" radius={[0, 4, 4, 0]} maxBarSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center text-tertiary py-4">No doctor revenue data available</div>
+                )}
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="field">
-                <label className="field-label" htmlFor="date_to">To Date</label>
-                <input
-                  id="date_to"
-                  type="date"
-                  className="input"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                />
+
+            {/* Top Medicines */}
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title">Top Medicines Dispensed</h5>
+                <span className="text-2xs text-tertiary">By quantity sold</span>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Overview Charts */}
-      <div className="dashboard-grid mb-4">
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Revenue Trend</h5>
-            <span className="text-muted small">Daily revenue in selected range</span>
-          </div>
-          <div style={{ height: 240 }}>
-            {overviewLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : revenueTrend.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { day: "numeric" })} fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} fontSize={12} tickLine={false} axisLine={false} width={40} />
-                  <Tooltip content={<RevenueTooltip />} />
-                  <Line type="monotone" dataKey="total" stroke="#4f46e5" strokeWidth={2.5} dot={{ r: 3, fill: "#4f46e5" }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No revenue data available</div>
-            )}
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Revenue by Department</h5>
-            <span className="text-muted small">Share of consultation revenue</span>
-          </div>
-          <div style={{ height: 240 }}>
-            {overviewLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : departmentBreakdown.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={departmentBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
-                    {departmentBreakdown.map((_, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<NamedValueTooltip valueFormatter={formatCurrency} />} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No department data available</div>
-            )}
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Top Doctors by Revenue</h5>
-            <span className="text-muted small">Consultation revenue generated</span>
-          </div>
-          <div style={{ height: 240 }}>
-            {overviewLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : doctorRevenue.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={doctorRevenue} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-                  <XAxis type="number" tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis type="category" dataKey="name" fontSize={12} tickLine={false} axisLine={false} width={90} />
-                  <Tooltip content={<NamedValueTooltip valueFormatter={formatCurrency} />} cursor={{ fill: "rgba(79, 70, 229, 0.06)" }} />
-                  <Bar dataKey="total" fill="#4f46e5" radius={[0, 4, 4, 0]} maxBarSize={20} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No doctor revenue data available</div>
-            )}
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Top Medicines Dispensed</h5>
-            <span className="text-muted small">By quantity sold</span>
-          </div>
-          <div style={{ height: 240 }}>
-            {overviewLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : medicineSales.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={medicineSales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={50} />
-                  <YAxis allowDecimals={false} fontSize={12} tickLine={false} axisLine={false} width={30} />
-                  <Tooltip content={<NamedValueTooltip />} cursor={{ fill: "rgba(22, 163, 74, 0.08)" }} />
-                  <Bar dataKey="qty" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={36} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No medicine sales data available</div>
-            )}
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Patient Activity</h5>
-            <span className="text-muted small">Totals for the selected range</span>
-          </div>
-          <div style={{ height: 240 }}>
-            {overviewLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={patientBarData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis allowDecimals={false} fontSize={12} tickLine={false} axisLine={false} width={30} />
-                  <Tooltip content={<NamedValueTooltip />} cursor={{ fill: "rgba(8, 145, 178, 0.08)" }} />
-                  <Bar dataKey="value" fill="#0891b2" radius={[4, 4, 0, 0]} maxBarSize={50} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 12-Month Revenue Trend — own year filter, unrelated to the date range above */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-            <div>
-              <h5 className="card-title mb-1">Last 12 Months</h5>
-              <span className="text-muted small">Monthly revenue for the selected year — not affected by the date range above</span>
-            </div>
-            <div className="field mb-0" style={{ minWidth: 140 }}>
-              <label className="field-label" htmlFor="trend_year">Year</label>
-              <select
-                id="trend_year"
-                className="select"
-                value={trendYear}
-                onChange={(e) => setTrendYear(Number(e.target.value))}
-              >
-                {availableYears.map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div style={{ height: 300 }}>
-            {yearlyTrendLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : yearlyTrend.some((m) => m.total > 0) ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={yearlyTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="month" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} fontSize={12} tickLine={false} axisLine={false} width={40} />
-                  <Tooltip content={<YearlyTrendTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="hospital" name="Hospital" stackId="revenue" fill="#4f46e5" maxBarSize={40} />
-                  <Bar dataKey="otc" name="OTC Pharmacy" stackId="revenue" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  <Line type="monotone" dataKey="total" name="Total" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No revenue data available for {trendYear}</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Patient Demographics — age group & gender, same date range as the overview charts */}
-      <div className="dashboard-grid mb-4">
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Patients by Age Group</h5>
-            <span className="text-muted small">Children, teenagers, youth, adults & seniors seen in the selected range</span>
-          </div>
-          <div style={{ height: 260 }}>
-            {demographicsLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : demographics.ageData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={demographics.ageData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
-                  <YAxis allowDecimals={false} fontSize={12} tickLine={false} axisLine={false} width={30} />
-                  <Tooltip content={<NamedValueTooltip />} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={50}>
-                    {demographics.ageData.map((entry, index) => (
-                      <Cell key={index} fill={AGE_GROUP_COLORS[entry.name] || COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No patient data available</div>
-            )}
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-card__header">
-            <h5 className="card-title">Patients by Gender</h5>
-            <span className="text-muted small">Same period as the age group chart</span>
-          </div>
-          <div style={{ height: 260 }}>
-            {demographicsLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : demographics.genderData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={demographics.genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
-                    {demographics.genderData.map((_, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<NamedValueTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No gender data available</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Top Diseases — rolling last 12 months, own window, click a bar to drill in below */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <div className="mb-3">
-            <h5 className="card-title mb-1">Most Reported Diseases — Last 12 Months</h5>
-            <span className="text-muted small">
-              {diseasePeriod.start && diseasePeriod.end
-                ? `${diseasePeriod.start} to ${diseasePeriod.end} — click a bar to see monthly detail below`
-                : "Click a bar to see monthly detail below"}
-            </span>
-          </div>
-          <div style={{ height: 300 }}>
-            {topDiseasesLoading ? (
-              <div className="text-center text-muted py-5">Loading…</div>
-            ) : topDiseases.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topDiseases} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} angle={-25} textAnchor="end" height={70} />
-                  <YAxis allowDecimals={false} fontSize={12} tickLine={false} axisLine={false} width={30} />
-                  <Tooltip content={<NamedValueTooltip />} cursor={{ fill: "rgba(220, 38, 38, 0.06)" }} />
-                  <Bar
-                    dataKey="value"
-                    fill="#dc2626"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={44}
-                    cursor="pointer"
-                    onClick={(entry) => setSelectedDisease({ code: entry.code, name: entry.name })}
-                  >
-                    {topDiseases.map((entry, index) => (
-                      <Cell
-                        key={index}
-                        fill={selectedDisease?.code === entry.code ? "#4f46e5" : "#dc2626"}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center text-muted py-4">No diagnoses recorded in the last 12 months</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Disease Drill-down — pick a disease + a specific month/year, own filter section */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-3">
-            <div>
-              <h5 className="card-title mb-1">Disease Detail — Specific Month</h5>
-              <span className="text-muted small">
-                {selectedDisease
-                  ? `Showing: ${selectedDisease.name}`
-                  : "Click a disease in the chart above to get started"}
-              </span>
-            </div>
-            <div className="d-flex gap-3">
-              <div className="field mb-0" style={{ minWidth: 160 }}>
-                <label className="field-label" htmlFor="drill_month">Month</label>
-                <select
-                  id="drill_month"
-                  className="select"
-                  value={drillMonth}
-                  onChange={(e) => setDrillMonth(Number(e.target.value))}
-                >
-                  {MONTH_NAMES.map((name, i) => (
-                    <option key={name} value={i + 1}>{name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="field mb-0" style={{ minWidth: 120 }}>
-                <label className="field-label" htmlFor="drill_year">Year</label>
-                <select
-                  id="drill_year"
-                  className="select"
-                  value={drillYear}
-                  onChange={(e) => setDrillYear(Number(e.target.value))}
-                >
-                  {availableYears.map((y) => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+              <div className="card-body" style={{ height: "220px" }}>
+                {overviewLoading ? (
+                  <div className="text-center text-tertiary py-5">Loading…</div>
+                ) : medicineSales.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={medicineSales} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={50} />
+                      <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} width={30} />
+                      <Tooltip content={<NamedValueTooltip />} cursor={{ fill: "rgba(22, 163, 74, 0.08)" }} />
+                      <Bar dataKey="qty" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center text-tertiary py-4">No medicine sales data available</div>
+                )}
               </div>
             </div>
           </div>
 
-          {!selectedDisease ? (
-            <div className="text-center text-muted py-4">No disease selected yet</div>
-          ) : drillLoading ? (
-            <div className="text-center text-muted py-5">Loading…</div>
+          {/* Patient Activity - Full width */}
+          <div className="card">
+            <div className="card-header">
+              <h5 className="card-title">Patient Activity</h5>
+              <span className="text-2xs text-tertiary">Totals for the selected range</span>
+            </div>
+            <div className="card-body" style={{ height: "200px" }}>
+              {overviewLoading ? (
+                <div className="text-center text-tertiary py-5">Loading…</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={patientBarData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} width={30} />
+                    <Tooltip content={<NamedValueTooltip />} cursor={{ fill: "rgba(8, 145, 178, 0.08)" }} />
+                    <Bar dataKey="value" fill="#0891b2" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - 4 columns: Statistics + Department Revenue */}
+        <div className="grid-4-8__sidebar">
+          <div className="card" style={{ marginBottom: "var(--space-4)" }}>
+            <div className="card-header">
+              <h5 className="card-title"><i className="bi bi-graph-up me-2"></i>Statistics</h5>
+            </div>
+            <div className="card-body">
+              <div className="info-item" style={{ marginBottom: "var(--space-3)" }}>
+                <div className="info-item__label">Total Revenue</div>
+                <div className="info-item__value" style={{ fontSize: "20px", fontWeight: 700 }}>
+                  {formatCurrency(revenueTrend.reduce((sum, d) => sum + d.total, 0))}
+                </div>
+              </div>
+              <div className="info-item" style={{ marginBottom: "var(--space-3)" }}>
+                <div className="info-item__label">Total Patients</div>
+                <div className="info-item__value" style={{ fontSize: "20px", fontWeight: 700 }}>
+                  {formatNumber(patientStats.total_patients || 0)}
+                </div>
+              </div>
+              <div className="info-item" style={{ marginBottom: "var(--space-3)" }}>
+                <div className="info-item__label">Top Department</div>
+                <div className="info-item__value">
+                  {departmentBreakdown.length > 0 ? (
+                    <span>{departmentBreakdown.sort((a, b) => b.value - a.value)[0]?.name || "—"}</span>
+                  ) : "—"}
+                </div>
+              </div>
+              <div className="info-item" style={{ marginBottom: "var(--space-3)" }}>
+                <div className="info-item__label">Top Doctor</div>
+                <div className="info-item__value">
+                  {doctorRevenue.length > 0 ? (
+                    <span>{doctorRevenue[0]?.name || "—"}</span>
+                  ) : "—"}
+                </div>
+              </div>
+              <div className="info-item" style={{ marginBottom: "var(--space-3)" }}>
+                <div className="info-item__label">Top Medicine</div>
+                <div className="info-item__value">
+                  {medicineSales.length > 0 ? (
+                    <span>{medicineSales[0]?.name || "—"} ({formatNumber(medicineSales[0]?.qty || 0)} units)</span>
+                  ) : "—"}
+                </div>
+              </div>
+              <div className="info-item">
+                <div className="info-item__label">Period</div>
+                <div className="info-item__value text-2xs text-tertiary">
+                  {formatDate(dateFrom)} — {formatDate(dateTo)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Department Revenue - moved here to fill the empty space under Statistics */}
+          <div className="card">
+            <div className="card-header">
+              <h5 className="card-title">Revenue by Department</h5>
+              <span className="text-2xs text-tertiary">Share of consultation revenue</span>
+            </div>
+            <div className="card-body" style={{ height: "260px" }}>
+              {overviewLoading ? (
+                <div className="text-center text-tertiary py-5">Loading…</div>
+              ) : departmentBreakdown.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={departmentBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                      {departmentBreakdown.map((_, index) => (
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<NamedValueTooltip valueFormatter={formatCurrency} />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center text-tertiary py-4">No department data available</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 12-Month Revenue Trend */}
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-calendar-month me-2"></i>Last 12 Months</h5>
+            <span className="text-2xs text-tertiary">Monthly revenue for the selected year — not affected by the date range above</span>
+          </div>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label className="field-label" style={{ marginBottom: 0, fontSize: "12px" }}>Year</label>
+            <select className="select" value={trendYear} onChange={(e) => setTrendYear(Number(e.target.value))} style={{ width: "100px" }}>
+              {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="card-body" style={{ height: "280px" }}>
+          {yearlyTrendLoading ? (
+            <div className="text-center text-tertiary py-5">Loading…</div>
+          ) : yearlyTrend.some((m) => m.total > 0) ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={yearlyTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)} fontSize={11} tickLine={false} axisLine={false} width={35} />
+                <Tooltip content={<YearlyTrendTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="hospital" name="Hospital" stackId="revenue" fill="#4f46e5" maxBarSize={40} />
+                <Bar dataKey="otc" name="OTC Pharmacy" stackId="revenue" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Line type="monotone" dataKey="total" name="Total" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
           ) : (
-            <>
-              <div className="row g-3 mb-4">
-                {(drillResult?.cards || []).map((card) => (
-                  <div className="col-md-3" key={card.label}>
-                    <div className="card">
-                      <div className="card-body text-center">
-                        <div className="text-muted text-sm">{card.label}</div>
-                        <div className="fs-2 fw-bold">{card.value}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="dashboard-grid">
-                <div className="chart-card">
-                  <div className="chart-card__header">
-                    <h5 className="card-title">Cases by Age Group</h5>
-                    <span className="text-muted small">
-                      {MONTH_NAMES[drillMonth - 1]} {drillYear}
-                    </span>
-                  </div>
-                  <div style={{ height: 240 }}>
-                    {drillResult?.charts?.age_groups?.data?.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={drillResult.charts.age_groups.data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                          <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
-                          <YAxis allowDecimals={false} fontSize={12} tickLine={false} axisLine={false} width={30} />
-                          <Tooltip content={<NamedValueTooltip />} />
-                          <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={50}>
-                            {drillResult.charts.age_groups.data.map((entry, index) => (
-                              <Cell key={index} fill={AGE_GROUP_COLORS[entry.name] || COLORS[index % COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="text-center text-muted py-4">No cases recorded for this month</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="chart-card">
-                  <div className="chart-card__header">
-                    <h5 className="card-title">Cases by Gender</h5>
-                    <span className="text-muted small">
-                      {MONTH_NAMES[drillMonth - 1]} {drillYear}
-                    </span>
-                  </div>
-                  <div style={{ height: 240 }}>
-                    {drillResult?.charts?.gender?.data?.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={drillResult.charts.gender.data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
-                            {drillResult.charts.gender.data.map((_, index) => (
-                              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip content={<NamedValueTooltip />} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="text-center text-muted py-4">No cases recorded for this month</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
+            <div className="text-center text-tertiary py-4">No revenue data available for {trendYear}</div>
           )}
         </div>
       </div>
 
-      {/* Detail Report + Export */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <div className="row g-3 align-items-end">
-            <div className="col-md-4">
-              <div className="field">
-                <label className="field-label" htmlFor="report_type">Detail Report</label>
-                <select id="report_type" className="select" value={reportType} onChange={(e) => setReportType(e.target.value)}>
-                  {reportTypes.map((rt) => (
-                    <option key={rt.value} value={rt.value}>{rt.label}</option>
-                  ))}
-                </select>
-              </div>
+      {/* Patient Demographics - 8x4 Grid */}
+      <div className="grid-8-4" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="grid-8-4__main">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="card-title"><i className="bi bi-people me-2"></i>Patients by Age Group</h5>
+              <span className="text-2xs text-tertiary">Children, teenagers, youth, adults & seniors seen in the selected range</span>
             </div>
-            <div className="col-md-8 d-flex gap-2 justify-content-md-end">
-              <button type="button" className="btn btn-secondary" onClick={handleExportExcel}>
-                <i className="bi bi-file-earmark-excel me-2"></i>
-                Export Excel
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={handleExportPDF}>
-                <i className="bi bi-file-earmark-pdf me-2"></i>
-                Export PDF
-              </button>
+            <div className="card-body" style={{ height: "240px" }}>
+              {demographicsLoading ? (
+                <div className="text-center text-tertiary py-5">Loading…</div>
+              ) : demographics.ageData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={demographics.ageData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
+                    <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} width={30} />
+                    <Tooltip content={<NamedValueTooltip />} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                      {demographics.ageData.map((entry, index) => (
+                        <Cell key={index} fill={AGE_GROUP_COLORS[entry.name] || COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center text-tertiary py-4">No patient data available</div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="grid-4-8__sidebar">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="card-title"><i className="bi bi-gender-ambiguous me-2"></i>Patients by Gender</h5>
+            </div>
+            <div className="card-body" style={{ height: "240px" }}>
+              {demographicsLoading ? (
+                <div className="text-center text-tertiary py-5">Loading…</div>
+              ) : demographics.genderData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={demographics.genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                      {demographics.genderData.map((_, index) => (
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<NamedValueTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center text-tertiary py-4">No gender data available</div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {reportData && (
-        <div className="mb-3">
-          <span className="text-muted text-sm">{reportData.type?.replace(/_/g, " ").toUpperCase()}</span>
-          <span className="text-muted text-sm ms-3">{reportData.date_from} — {reportData.date_to}</span>
+      {/* Most Reported Diseases - Full width card with table */}
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <h5 className="card-title"><i className="bi bi-heart-pulse me-2"></i>Most Reported Diseases — Last 12 Months</h5>
+          <span className="text-2xs text-tertiary">
+            {diseasePeriod.start && diseasePeriod.end
+              ? `${diseasePeriod.start} to ${diseasePeriod.end} — click a row to see monthly detail`
+              : "Click a disease to see monthly detail below"}
+          </span>
+        </div>
+        <div className="card-body" style={{ height: "260px" }}>
+          {topDiseasesLoading ? (
+            <div className="text-center text-tertiary py-5">Loading…</div>
+          ) : topDiseases.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topDiseases} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} interval={0} angle={-25} textAnchor="end" height={60} />
+                <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} width={30} />
+                <Tooltip content={<NamedValueTooltip />} cursor={{ fill: "rgba(220, 38, 38, 0.06)" }} />
+                <Bar
+                  dataKey="value"
+                  fill="#dc2626"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={44}
+                  cursor="pointer"
+                  onClick={(entry) => setSelectedDisease({ code: entry.code, name: entry.name })}
+                >
+                  {topDiseases.map((entry, index) => (
+                    <Cell key={index} fill={selectedDisease?.code === entry.code ? "#4f46e5" : "#dc2626"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center text-tertiary py-4">No diagnoses recorded in the last 12 months</div>
+          )}
+        </div>
+      </div>
+
+      {/* Disease Detail - 8x4 Grid */}
+      {selectedDisease && (
+        <div className="grid-8-4" style={{ marginBottom: "var(--space-6)" }}>
+          <div className="grid-8-4__main">
+            <div className="card">
+              <div className="card-header">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-clipboard-data me-2"></i>Disease Detail</h5>
+                  <span className="text-2xs text-tertiary">{selectedDisease.name} — {MONTH_NAMES[drillMonth - 1]} {drillYear}</span>
+                </div>
+                <div className="flex gap-2">
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <select className="select" value={drillMonth} onChange={(e) => setDrillMonth(Number(e.target.value))} style={{ width: "120px" }}>
+                      {MONTH_NAMES.map((name, i) => <option key={name} value={i + 1}>{name}</option>)}
+                    </select>
+                  </div>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <select className="select" value={drillYear} onChange={(e) => setDrillYear(Number(e.target.value))} style={{ width: "90px" }}>
+                      {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="card-body" style={{ height: "240px" }}>
+                {drillLoading ? (
+                  <div className="text-center text-tertiary py-5">Loading…</div>
+                ) : drillResult?.charts?.age_groups?.data?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={drillResult.charts.age_groups.data} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
+                      <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} width={30} />
+                      <Tooltip content={<NamedValueTooltip />} />
+                      <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                        {drillResult.charts.age_groups.data.map((entry, index) => (
+                          <Cell key={index} fill={AGE_GROUP_COLORS[entry.name] || COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center text-tertiary py-4">No cases recorded for this month</div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="grid-4-8__sidebar">
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title"><i className="bi bi-gender-ambiguous me-2"></i>Cases by Gender</h5>
+              </div>
+              <div className="card-body" style={{ height: "240px" }}>
+                {drillLoading ? (
+                  <div className="text-center text-tertiary py-5">Loading…</div>
+                ) : drillResult?.charts?.gender?.data?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={drillResult.charts.gender.data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                        {drillResult.charts.gender.data.map((_, index) => (
+                          <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<NamedValueTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center text-tertiary py-4">No cases recorded for this month</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="card">
-        <div className="card-body">{loading ? <LoadingSpinner /> : renderReportContent()}</div>
+      {/* Detail Report + Export */}
+      <div className="card" style={{ marginBottom: "var(--space-4)" }}>
+        <div className="card-header">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-table me-2"></i>Detail Report</h5>
+            <div className="field" style={{ marginBottom: 0, flex: 1, minWidth: "200px" }}>
+              <select className="select" value={reportType} onChange={(e) => setReportType(e.target.value)}>
+                {reportTypes.map((rt) => <option key={rt.value} value={rt.value}>{rt.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button className="btn btn-secondary btn-sm" onClick={handleExportExcel}>
+              <i className="bi bi-file-earmark-excel me-1"></i> Excel
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={handleExportPDF}>
+              <i className="bi bi-file-earmark-pdf me-1"></i> PDF
+            </button>
+          </div>
+        </div>
+        <div className="card-body p-0">
+          {reportData && (
+            <div className="card-body" style={{ padding: "var(--space-2) var(--space-4)", borderBottom: "1px solid var(--border-color)" }}>
+              <span className="text-2xs text-tertiary">{reportData.type?.replace(/_/g, " ").toUpperCase()}</span>
+              <span className="text-2xs text-tertiary ms-3">{reportData.date_from} — {reportData.date_to}</span>
+            </div>
+          )}
+          {loading ? <LoadingSpinner /> : renderReportContent()}
+        </div>
       </div>
     </>
   );
