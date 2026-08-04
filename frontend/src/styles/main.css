@@ -717,23 +717,29 @@ table {
 
 @media (min-width: 640px) {
   .navbar__user-meta {
-    display: block;
+    display: flex;
+    flex-direction: column;
   }
 }
+
 
 .navbar__user-name {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--text-primary);
   line-height: 1.2;
+  display: block;
 }
+
 
 .navbar__user-role {
   font-size: var(--fs-2xs);
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-left: 3px;
+  display: block;
+  margin-left: 0;
+  margin-top: 1px;
 }
 
 /* ==========================================================================
