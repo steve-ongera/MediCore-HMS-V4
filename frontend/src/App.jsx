@@ -838,6 +838,11 @@ export default function App() {
         <Route path="/announcements/manage" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HR_OFFICER]}><Announcements /></ProtectedRoute>} />
         <Route path="/announcements" element={<ProtectedRoute><MyAnnouncements /></ProtectedRoute>} />
 
+        <Route path="/tickets/raise" element={<ProtectedRoute><RaiseTicket /></ProtectedRoute>} />
+        <Route path="/tickets/mine" element={<ProtectedRoute><MyTickets /></ProtectedRoute>} />
+        <Route path="/tickets/queue" element={<ProtectedRoute allowedRoles={[ROLES.IT_SUPPORT_OFFICER]}><ITSupportQueue /></ProtectedRoute>} />
+        <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
+
 
         {/* Profile - any authenticated user */}
         <Route
