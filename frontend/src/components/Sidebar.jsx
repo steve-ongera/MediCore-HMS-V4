@@ -10,7 +10,7 @@ import medicoreLogo from "../assets/logo.png";
 const NAV_GROUPS = [
   {
     label: "Overview",
-    links: [{ to: "/", label: "Dashboard", icon: "bi-speedometer2" }],
+    links: [{ to: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" }],
   },
   {
     label: "Front Desk",
@@ -320,12 +320,12 @@ const NAV_GROUPS = [
     ],
   },
   {
-  label: "Communication",
-  roles: [ROLES.SUPER_ADMIN, ROLES.HR_OFFICER],
-  links: [
-    { to: "/announcements/manage", label: "Send Announcement", icon: "bi-megaphone-fill" },
-  ],
-},
+    label: "Communication",
+    roles: [ROLES.SUPER_ADMIN, ROLES.HR_OFFICER],
+    links: [
+      { to: "/announcements/manage", label: "Send Announcement", icon: "bi-megaphone-fill" },
+    ],
+  },
   {
     label: "Account",
     links: [
@@ -382,7 +382,7 @@ export default function Sidebar({ onNavigate }) {
                   <NavLink
                     key={link.to}
                     to={link.to}
-                    end={link.to === "/"}
+                    end
                     className={({ isActive }) => `sidebar__link${isActive ? " is-active" : ""}`}
                     onClick={onNavigate}
                   >
