@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getWards, getBeds, createBed, updateBed } from "../../services/api";
+import Pagination from "../../components/Pagination";
 
 export default function BedManagement() {
   const [wards, setWards] = useState([]);
@@ -7,6 +8,10 @@ export default function BedManagement() {
   const [selectedWard, setSelectedWard] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
 
   const [newBedNumber, setNewBedNumber] = useState("");
   const [newBedRate, setNewBedRate] = useState("");
@@ -18,7 +23,7 @@ export default function BedManagement() {
 
   useEffect(() => {
     loadBeds();
-  }, [selectedWard]);
+  }, [selectedWard, page]);
 
   const loadWards = async () => {
     try {
@@ -33,9 +38,11 @@ export default function BedManagement() {
     setLoading(true);
     setError("");
     try {
-      const params = selectedWard ? { ward: selectedWard } : {};
+      const params = { page, page_size: pageSize };
+      if (selectedWard) params.ward = selectedWard;
       const data = await getBeds(params);
-      setBeds(data.results ?? data);
+      setBeds(data.results ?? data ?? []);
+      setTotal(data.count ?? (Array.isArray(data) ? data.length : 0));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -56,6 +63,7 @@ export default function BedManagement() {
       });
       setNewBedNumber("");
       setNewBedRate("");
+      setPage(1);
       loadBeds();
     } catch (err) {
       setError(err.message);
@@ -73,6 +81,11 @@ export default function BedManagement() {
     }
   };
 
+  const handleWardFilterChange = (wardId) => {
+    setSelectedWard(wardId);
+    setPage(1);
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       "AVAILABLE": "badge-success",
@@ -83,7 +96,7 @@ export default function BedManagement() {
     return statusMap[status] || "badge-neutral";
   };
 
-  if (loading) {
+  if (loading && beds.length === 0) {
     return (
       <div className="loading-screen">
         <div className="spinner spinner-lg"></div>
@@ -191,24 +204,26 @@ export default function BedManagement() {
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {beds.length} bed{beds.length !== 1 ? "s" : ""} found
+              {total} bed{total !== 1 ? "s" : ""} found
             </span>
           </div>
         </div>
-        <div className="card-body">
-          <div className="field" style={{ marginBottom: "var(--space-4)" }}>
-            <label className="field-label">Filter by ward</label>
-            <select
-              className="select"
-              value={selectedWard}
-              onChange={(e) => setSelectedWard(e.target.value)}
-              style={{ maxWidth: "300px" }}
-            >
-              <option value="">All Wards</option>
-              {wards.map((w) => (
-                <option key={w.id} value={w.id}>{w.name}</option>
-              ))}
-            </select>
+        <div className="card-body p-0">
+          <div style={{ padding: "0 var(--space-5)", paddingTop: "var(--space-5)" }}>
+            <div className="field" style={{ marginBottom: "var(--space-4)" }}>
+              <label className="field-label">Filter by ward</label>
+              <select
+                className="select"
+                value={selectedWard}
+                onChange={(e) => handleWardFilterChange(e.target.value)}
+                style={{ maxWidth: "300px" }}
+              >
+                <option value="">All Wards</option>
+                {wards.map((w) => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="table-scroll">
@@ -274,6 +289,8 @@ export default function BedManagement() {
               </p>
             </div>
           )}
+
+          <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>
     </>
