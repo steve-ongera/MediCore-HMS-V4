@@ -228,6 +228,11 @@ import DowntimeReport from "./pages/biomed/DowntimeReport.jsx";
 import Announcements from "./pages/communication/Announcements.jsx";
 import MyAnnouncements from "./pages/communication/MyAnnouncements.jsx";
 
+import RaiseTicket from "./pages/tickets/RaiseTicket.jsx";
+import MyTickets from "./pages/tickets/MyTickets.jsx";
+import ITSupportQueue from "./pages/tickets/ITSupportQueue.jsx";
+import TicketDetail from "./pages/tickets/TicketDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
