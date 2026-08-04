@@ -68,6 +68,13 @@ export default function ExecutiveDashboard() {
           <p className="page-subtitle">High-level overview of organizational performance</p>
         </div>
         <div className="page-header__actions">
+          <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ width: "160px" }} />
+          <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ width: "160px" }} />
+          <div className="flex gap-2">
+            <button className="btn btn-secondary btn-sm" onClick={() => quickRange(0)}>Today</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => quickRange(7)}>7 Days</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => quickRange(30)}>30 Days</button>
+          </div>
           <button className="btn btn-secondary" onClick={load}>
             <i className="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
@@ -83,42 +90,6 @@ export default function ExecutiveDashboard() {
           </div>
         </div>
       )}
-
-      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
-        <div className="card-header">
-          <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-calendar me-1"></i>
-            <h5 className="card-title" style={{ marginBottom: 0 }}>Date Range</h5>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>From</label>
-              <input
-                type="date"
-                className="input"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                style={{ width: "160px" }}
-              />
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>To</label>
-              <input
-                type="date"
-                className="input"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                style={{ width: "160px" }}
-              />
-            </div>
-            <div className="flex gap-2">
-              <button className="btn btn-secondary btn-sm" onClick={() => quickRange(0)}>Today</button>
-              <button className="btn btn-secondary btn-sm" onClick={() => quickRange(7)}>7 Days</button>
-              <button className="btn btn-secondary btn-sm" onClick={() => quickRange(30)}>30 Days</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Stats Cards */}
       <div className="stat-grid" style={{ marginBottom: "var(--space-6)" }}>
