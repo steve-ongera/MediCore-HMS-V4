@@ -233,6 +233,8 @@ import MyTickets from "./pages/tickets/MyTickets.jsx";
 import ITSupportQueue from "./pages/tickets/ITSupportQueue.jsx";
 import TicketDetail from "./pages/tickets/TicketDetail.jsx";
 
+import LicenseStatus from "./pages/settings/LicenseStatus.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -842,6 +844,8 @@ export default function App() {
         <Route path="/tickets/mine" element={<ProtectedRoute><MyTickets /></ProtectedRoute>} />
         <Route path="/tickets/queue" element={<ProtectedRoute allowedRoles={[ROLES.IT_SUPPORT_OFFICER]}><ITSupportQueue /></ProtectedRoute>} />
         <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
+
+        <Route path="/settings/license" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><LicenseStatus /></ProtectedRoute>} />
 
 
         {/* Profile - any authenticated user */}
