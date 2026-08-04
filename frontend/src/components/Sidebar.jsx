@@ -320,6 +320,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "IT Support",
+    links: [
+      { to: "/tickets/raise", label: "Raise a Ticket", icon: "bi-headset" },
+      { to: "/tickets/mine", label: "My Tickets", icon: "bi-list-task" },
+      { to: "/tickets/queue", label: "Support Queue", icon: "bi-inbox-fill", roles: ["IT_SUPPORT_OFFICER"] },
+    ],
+  },
+  {
     label: "Communication",
     roles: [ROLES.SUPER_ADMIN, ROLES.HR_OFFICER],
     links: [
