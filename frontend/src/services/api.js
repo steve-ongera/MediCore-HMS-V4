@@ -868,6 +868,18 @@ export const getMyAnnouncements = () => unwrap(client.get("/my-announcements/"))
 export const getMyAnnouncementDetail = (id) => unwrap(client.get(`/my-announcements/${id}/`));
 export const markAnnouncementRead = (id) => unwrap(client.post(`/my-announcements/${id}/mark-read/`));
 
+export const getTickets = (params) => unwrap(client.get(`/tickets/${qs(params)}`));
+export const getOpenTickets = () => unwrap(client.get("/tickets/open/"));
+export const getMyTickets = () => unwrap(client.get("/tickets/my-tickets/"));
+export const getTicketDetail = (id) => unwrap(client.get(`/tickets/${id}/`));
+export const createTicket = (payload) => unwrap(client.post("/tickets/", payload));
+export const commentOnTicket = (id, text) => unwrap(client.post(`/tickets/${id}/comment/`, { text }));
+export const assignTicket = (id) => unwrap(client.post(`/tickets/${id}/assign/`));
+export const startTicketProgress = (id) => unwrap(client.post(`/tickets/${id}/start-progress/`));
+export const resolveTicket = (id, payload) => unwrap(client.post(`/tickets/${id}/resolve/`, payload));
+export const closeTicket = (id, payload) => unwrap(client.post(`/tickets/${id}/close/`, payload));
+export const reopenTicket = (id) => unwrap(client.post(`/tickets/${id}/reopen/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
