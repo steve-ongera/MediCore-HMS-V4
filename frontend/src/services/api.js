@@ -859,6 +859,15 @@ export const createServiceContract = (payload) => unwrap(client.post("/service-c
 export const getExpiringSoonContracts = () => unwrap(client.get("/service-contracts/expiring-soon/"));
 
 
+export const getAnnouncements = (params) => unwrap(client.get(`/announcements/${qs(params)}`));
+export const getAnnouncementDetail = (id) => unwrap(client.get(`/announcements/${id}/`));
+export const createAnnouncement = (formData) => unwrap(client.post("/announcements/", formData, { headers: { "Content-Type": "multipart/form-data" } }));
+export const sendAnnouncement = (id) => unwrap(client.post(`/announcements/${id}/send/`));
+
+export const getMyAnnouncements = () => unwrap(client.get("/my-announcements/"));
+export const getMyAnnouncementDetail = (id) => unwrap(client.get(`/my-announcements/${id}/`));
+export const markAnnouncementRead = (id) => unwrap(client.post(`/my-announcements/${id}/mark-read/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
