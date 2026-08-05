@@ -30,6 +30,17 @@ def _run_icu_bed_charges_job():
         logger.exception("Scheduled ICU bed charge generation failed.")
 
 
+def _run_emergency_bay_charges_job():
+    from emergency.services import generate_pending_bay_charges
+    try:
+        created = generate_pending_bay_charges()
+        if created:
+            logger.info("Auto-generated %d ED bay charge(s).", len(created))
+    except Exception:
+        logger.exception("Scheduled ED bay charge generation failed.")
+
+
+
 def _run_leakage_scan_job():
     from leakage.services import run_leakage_scan
     try:
@@ -91,11 +102,10 @@ def _check_stale_passwords_job():
 def start():
     global _scheduler
     if _scheduler is not None:
-        return  # already running in this process
+        return
 
     _scheduler = BackgroundScheduler(daemon=True)
 
-    # Daily inpatient bed charges
     _scheduler.add_job(
         _run_bed_charges_job,
         trigger=IntervalTrigger(hours=24),
@@ -103,7 +113,6 @@ def start():
         replace_existing=True,
     )
 
-    # NEW: Daily ICU/HDU bed charges
     _scheduler.add_job(
         _run_icu_bed_charges_job,
         trigger=IntervalTrigger(hours=24),
@@ -111,7 +120,14 @@ def start():
         replace_existing=True,
     )
 
-    # Hourly revenue leakage scan
+    # NEW: ED bay-time top-up, hourly — ED stays are measured in hours, not days
+    _scheduler.add_job(
+        _run_emergency_bay_charges_job,
+        trigger=IntervalTrigger(hours=1),
+        id="generate_pending_emergency_bay_charges",
+        replace_existing=True,
+    )
+
     _scheduler.add_job(
         _run_leakage_scan_job,
         trigger=IntervalTrigger(hours=1),
@@ -119,7 +135,6 @@ def start():
         replace_existing=True,
     )
 
-    # Business insights generation every 6 hours
     _scheduler.add_job(
         lambda: generate_insights_job(),
         trigger=IntervalTrigger(hours=6),
@@ -127,7 +142,6 @@ def start():
         replace_existing=True,
     )
 
-    # NEW: Password staleness check every 24 hours
     _scheduler.add_job(
         _check_stale_passwords_job,
         trigger=IntervalTrigger(hours=24),
@@ -139,12 +153,13 @@ def start():
 
     # Run immediately on startup
     _run_bed_charges_job()
-    _run_icu_bed_charges_job()  # NEW
+    _run_icu_bed_charges_job()
+    _run_emergency_bay_charges_job()  # NEW
     _run_leakage_scan_job()
     generate_insights_job()
     _check_stale_passwords_job()
 
     logger.info(
         "Background scheduler started "
-        "(bed charges: 24h, ICU bed charges: 24h, leakage scan: 1h, business insights: 6h)."
+        "(bed charges: 24h, ICU bed charges: 24h, ED bay charges: 1h, leakage scan: 1h, business insights: 6h)."
     )

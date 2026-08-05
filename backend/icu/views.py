@@ -160,7 +160,11 @@ class ICUAdmissionViewSet(BaseModelViewSet):
         icu_admission = self.get_object()
         charge_icu_bed_day(icu_admission)  # top up to today
 
-        invoices = Invoice.objects.filter(patient=icu_admission.patient, description__icontains=icu_admission.icu_admission_number)
+        if icu_admission.visit:
+            invoices = Invoice.objects.filter(visit=icu_admission.visit)
+        else:
+            invoices = Invoice.objects.none()
+
         grand_total = sum((i.amount for i in invoices), start=0)
         amount_paid = sum((i.amount_paid for i in invoices), start=0)
 

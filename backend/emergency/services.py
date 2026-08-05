@@ -1,9 +1,34 @@
+#emergency/services.py
 from api.models import Department, ConsultationType, VisitStatus, Visit, Invoice, InvoiceSourceType
 
 # Emergency Registration fee varies from Hospitals to Hospitals 300-1000
 
 REGISTRATION_FEE = 1000
 
+def generate_pending_bay_charges():
+    """
+    Tops up bay-time charges for every ED encounter still in progress.
+    Without this, a long-staying ED patient accrues zero invoices until
+    someone dispositions them or opens their billing tab — this is what
+    makes bay-time billing continuous instead of relying on a person to
+    trigger it. Hourly cadence matches ED's unit of billing (hours, not
+    days like inpatient/ICU).
+    """
+    from .models import EmergencyVisit, EmergencyStatus
+
+    created = []
+    active_visits = (
+        EmergencyVisit.objects.filter(status=EmergencyStatus.IN_ED, bay__isnull=False)
+        .select_related("bay", "patient", "visit")
+    )
+
+    for ed_visit in active_visits:
+        if not ed_visit.visit:
+            continue  # no Visit yet — nothing to attach an invoice to; billing tab/disposition will backfill this
+        charge = charge_bay_time(ed_visit)
+        if charge:
+            created.append(str(charge.id))
+    return created
 
 def ensure_emergency_visit(patient, doctor=None, registered_by=None):
     ed_dept, _ = Department.objects.get_or_create(
