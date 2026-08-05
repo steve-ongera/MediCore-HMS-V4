@@ -471,7 +471,7 @@ export default function App() {
         <Route
           path="/suppliers"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.ACCOUNTANT]}>
+            <ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.PROCUREMENT_OFFICER]}>
               <Suppliers />
             </ProtectedRoute>
           }
@@ -728,14 +728,22 @@ export default function App() {
         <Route path="/hr/payroll" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><Payroll /></ProtectedRoute>} />
         <Route path="/hr/payroll/:id" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><PayrollRunDetail /></ProtectedRoute>} />
 
-        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
+        {/* Ambulance — dispatch board & case detail are Dispatcher-only
+            operational data (vehicle status, driver assignments, all active
+            dispatches hospital-wide). Clinical staff can still REQUEST a
+            dispatch for a patient without seeing the full board. */}
+        <Route path="/ambulance" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><AmbulanceDispatchBoard /></ProtectedRoute>} />
         <Route path="/ambulance/request" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><RequestDispatch /></ProtectedRoute>} />
-        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR]}><DispatchDetail /></ProtectedRoute>} />
+        <Route path="/ambulance/:id" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><DispatchDetail /></ProtectedRoute>} />
         <Route path="/ambulance/fleet" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><FleetManagement /></ProtectedRoute>} />
 
-        <Route path="/mortuary" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryRegister /></ProtectedRoute>} />
+        {/* Mortuary — full register & case detail (next-of-kin info, storage,
+            release status for every case) are Mortuary Attendant-only.
+            Clinical staff can still ADMIT a deceased patient without
+            browsing the full mortuary register. */}
+        <Route path="/mortuary" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><MortuaryRegister /></ProtectedRoute>} />
         <Route path="/mortuary/admit" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><AdmitDeceased /></ProtectedRoute>} />
-        <Route path="/mortuary/:id" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST]}><MortuaryCaseDetail /></ProtectedRoute>} />
+        <Route path="/mortuary/:id" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><MortuaryCaseDetail /></ProtectedRoute>} />
 
         <Route path="/theatre" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><TheatreBoard /></ProtectedRoute>} />
         <Route path="/theatre/book" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><BookSurgery /></ProtectedRoute>} />
@@ -779,8 +787,8 @@ export default function App() {
         <Route path="/laboratory/catalog" element={<ProtectedRoute allowedRoles={[ROLES.LAB_TECHNOLOGIST]}><LabTestCatalogManagement /></ProtectedRoute>} />
         <Route path="/radiology/reports" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST]}><RadiologistReport /></ProtectedRoute>} />
         <Route path="/radiology/catalog" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST]}><RadiologyTestCatalogManagement /></ProtectedRoute>} />
-        <Route path="/pharmacy/reports" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><PharmacistReport /></ProtectedRoute>} />
-        <Route path="/pharmacy/alerts" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><ExpiryAlerts /></ProtectedRoute>} />
+        <Route path="/pharmacy/reports" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST , ROLES.PROCUREMENT_OFFICER]}><PharmacistReport /></ProtectedRoute>} />
+        <Route path="/pharmacy/alerts" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST ,  ROLES.PROCUREMENT_OFFICER]}><ExpiryAlerts /></ProtectedRoute>} />
         <Route path="/mortuary/reports" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><MortuaryReport /></ProtectedRoute>} />
         <Route path="/mortuary/releases" element={<ProtectedRoute allowedRoles={[ROLES.MORTUARY_ATTENDANT]}><BodyReleaseHistory /></ProtectedRoute>} />
         <Route path="/ambulance/reports" element={<ProtectedRoute allowedRoles={[ROLES.AMBULANCE_DISPATCHER]}><AmbulanceReport /></ProtectedRoute>} />
@@ -795,9 +803,13 @@ export default function App() {
         <Route path="/billing/till" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER]}><CashTillDashboard /></ProtectedRoute>} />
         <Route path="/finance/variance-approvals" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><VarianceApprovals /></ProtectedRoute>} />
 
+        {/* Stock Control — internal transfer records span all store
+            locations; scoped to Pharmacy (and Super Admin), not Nursing.
+            If wards need to request supplies, that should be a separate,
+            narrowly-scoped "ward stock request" flow, not this page. */}
         <Route path="/stockcontrol/locations" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.SUPER_ADMIN]}><StoreLocations /></ProtectedRoute>} />
-        <Route path="/stockcontrol/transfers" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.NURSE, ROLES.SUPER_ADMIN]}><StockTransfers /></ProtectedRoute>} />
-        <Route path="/stockcontrol/transfers/:id" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.NURSE, ROLES.SUPER_ADMIN]}><StockTransferDetail /></ProtectedRoute>} />
+        <Route path="/stockcontrol/transfers" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.SUPER_ADMIN]}><StockTransfers /></ProtectedRoute>} />
+        <Route path="/stockcontrol/transfers/:id" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.SUPER_ADMIN]}><StockTransferDetail /></ProtectedRoute>} />
         <Route path="/stockcontrol/counts" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><StockCounts /></ProtectedRoute>} />
         <Route path="/stockcontrol/discrepancies" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST, ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><DiscrepancyReport /></ProtectedRoute>} />
 

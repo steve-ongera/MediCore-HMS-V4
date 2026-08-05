@@ -1334,7 +1334,13 @@ table {
 }
 
 .checkbox {
-  border-radius: var(--radius-xs);
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: var(--radius-xs); /* or 2px if you want sharper corners */
+  cursor: pointer;
+  accent-color: var(--primary); /* Optional: matches your theme */
 }
 
 .radio {

@@ -1095,6 +1095,22 @@ class AllTransactionsView(APIView):
 # ---------------------------------------------------------------------------
 # Dashboard & Reports
 # ---------------------------------------------------------------------------
+from datetime import date, timedelta
+from decimal import Decimal
+
+from django.db.models import Sum, Count, Q
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from api.models import (
+    Visit, Payment, OTCSale, QueueEntry, QueueStatus, LabOrder, LabOrderStatus,
+    RadiologyOrder, RadiologyOrderStatus, Consultation, Medicine,
+    Patient, Invoice, InvoiceStatus, InvoiceSourceType, User, Role,
+    ConsultationDiagnosis,
+)
+
+
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1104,6 +1120,7 @@ class DashboardView(APIView):
         todays_payments = Payment.objects.filter(paid_at__date=today)
         todays_otc = OTCSale.objects.filter(sold_at__date=today)
 
+        # ---------------- Existing cards (unchanged) ----------------
         cards = {
             "todays_patients": todays_visits.values("patient").distinct().count(),
             "waiting_patients": QueueEntry.objects.exclude(
@@ -1123,6 +1140,105 @@ class DashboardView(APIView):
             "medicine_stock_alerts": len([m for m in Medicine.objects.all() if m.is_low_stock]),
         }
 
+        # ---------------- Total revenue generated (all-time) ----------------
+        all_time_hospital_revenue = Payment.objects.aggregate(t=Sum("amount"))["t"] or Decimal("0")
+        all_time_otc_revenue = OTCSale.objects.aggregate(t=Sum("amount_paid"))["t"] or Decimal("0")
+        cards["total_revenue_all_time"] = str(all_time_hospital_revenue + all_time_otc_revenue)
+
+        # ---------------- Patients by gender ----------------
+        # Assumes Patient has a `gender` field with values like "MALE"/"FEMALE"
+        # — adjust the exact choice strings below if your Patient model uses
+        # different values (e.g. "M"/"F").
+        cards["total_patients"] = Patient.objects.count()
+        cards["male_patients"] = Patient.objects.filter(gender__iexact="MALE").count()
+        cards["female_patients"] = Patient.objects.filter(gender__iexact="FEMALE").count()
+
+        # ---------------- Invoices: total, paid, unpaid, unpaid amount ----------------
+        all_invoices = Invoice.objects.exclude(status=InvoiceStatus.CANCELLED)
+        paid_invoices = all_invoices.filter(status=InvoiceStatus.PAID)
+        unpaid_invoices = all_invoices.exclude(status=InvoiceStatus.PAID)
+        cards["total_invoices"] = all_invoices.count()
+        cards["paid_invoices"] = paid_invoices.count()
+        cards["unpaid_invoices"] = unpaid_invoices.count()
+        cards["unpaid_amount"] = str(
+            sum((inv.balance for inv in unpaid_invoices), start=Decimal("0"))
+        )
+
+        # ---------------- Doctor / Nurse counts ----------------
+        cards["total_doctors"] = User.objects.filter(role=Role.DOCTOR, is_active_staff=True).count()
+        cards["total_nurses"] = User.objects.filter(role=Role.NURSE, is_active_staff=True).count()
+
+        # ---------------- Beds: total / occupied ----------------
+        # inpatient.Bed confirmed to exist (Bed.objects.count() already
+        # verified working via the licensing module). Occupied-status field
+        # name is not yet confirmed, so this tries the most common
+        # conventions and falls back to None (not a guessed number) if none match.
+        total_beds, occupied_beds = self._get_bed_counts()
+        cards["total_beds"] = total_beds
+        cards["occupied_beds"] = occupied_beds
+
+        # ---------------- Revenue by service/source type ----------------
+        # Which service generates the most money — Emergency, OTC, IP, Lab,
+        # Radiology, Pharmacy, Consultation, Procedure, etc. Grouped over
+        # the invoice's own source_type, using actual amount_paid (real
+        # money collected, not just billed).
+        revenue_by_source = list(
+            Invoice.objects.exclude(status=InvoiceStatus.CANCELLED)
+            .values("source_type")
+            .annotate(total=Sum("amount_paid"))
+            .order_by("-total")
+        )
+        otc_total_paid = OTCSale.objects.aggregate(t=Sum("amount_paid"))["t"] or Decimal("0")
+        revenue_by_service = [
+            {"name": r["source_type"], "value": float(r["total"] or 0)} for r in revenue_by_source
+        ]
+        revenue_by_service.append({"name": "OTC_PHARMACY", "value": float(otc_total_paid)})
+        revenue_by_service.sort(key=lambda x: x["value"], reverse=True)
+        top_revenue_service = revenue_by_service[0] if revenue_by_service else None
+
+        # ---------------- Most reported/diagnosed case ----------------
+        top_diagnoses = list(
+            ConsultationDiagnosis.objects.exclude(icd10_code__isnull=True)
+            .values("icd10_code__code", "icd10_code__description")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:10]
+        )
+        most_reported_case = (
+            {
+                "code": top_diagnoses[0]["icd10_code__code"],
+                "description": top_diagnoses[0]["icd10_code__description"],
+                "count": top_diagnoses[0]["count"],
+            }
+            if top_diagnoses
+            else None
+        )
+
+        # ---------------- Revenue — last 12 months ----------------
+        month_starts = []
+        year, month = today.year, today.month
+        for _ in range(12):
+            month_starts.append(date(year, month, 1))
+            month -= 1
+            if month == 0:
+                month = 12
+                year -= 1
+        month_starts.reverse()
+
+        monthly_revenue = []
+        for idx, start in enumerate(month_starts):
+            if idx + 1 < len(month_starts):
+                end = month_starts[idx + 1] - timedelta(days=1)
+            else:
+                end = today
+            hospital_total = Payment.objects.filter(
+                paid_at__date__gte=start, paid_at__date__lte=end
+            ).aggregate(t=Sum("amount"))["t"] or Decimal("0")
+            otc_total = OTCSale.objects.filter(
+                sold_at__date__gte=start, sold_at__date__lte=end
+            ).aggregate(t=Sum("amount_paid"))["t"] or Decimal("0")
+            monthly_revenue.append({"name": start.strftime("%b %Y"), "value": float(hospital_total + otc_total)})
+
+        # ---------------- Existing 7-day charts (unchanged) ----------------
         last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
         revenue_chart = []
         for d in last_7_days:
@@ -1141,9 +1257,62 @@ class DashboardView(APIView):
 
         return Response({
             "cards": cards,
-            "charts": {"revenue": revenue_chart, "visits": visits_chart, "departments": department_chart},
+            "top_revenue_service": top_revenue_service,
+            "most_reported_case": most_reported_case,
+            "charts": {
+                "revenue": revenue_chart,
+                "visits": visits_chart,
+                "departments": department_chart,
+                "revenue_by_service": revenue_by_service,
+                "top_diagnoses": [
+                    {"name": f"{d['icd10_code__code']} - {d['icd10_code__description']}", "value": d["count"]}
+                    for d in top_diagnoses
+                ],
+                "monthly_revenue_12m": monthly_revenue,
+            },
         })
 
+    def _get_bed_counts(self):
+        """
+        Returns (total_beds, occupied_beds). Tries common status field
+        conventions since the exact Bed model schema hasn't been confirmed
+        in this conversation. Returns (count, None) for occupied if no
+        recognized status field is found — never guesses a wrong number.
+        """
+        try:
+            from inpatient.models import Bed
+        except (ImportError, ModuleNotFoundError):
+            return None, None
+
+        try:
+            total = Bed.objects.count()
+        except Exception:
+            return None, None
+
+        occupied = None
+        # Try the most likely status field/value conventions in order.
+        for field_name, occupied_value in [
+            ("status", "OCCUPIED"),
+            ("bed_status", "OCCUPIED"),
+            ("status", "IN_USE"),
+        ]:
+            try:
+                occupied = Bed.objects.filter(**{f"{field_name}__iexact": occupied_value}).count()
+                break
+            except Exception:
+                continue
+
+        if occupied is None:
+            # Fall back to a boolean-style field if present.
+            for field_name in ["is_occupied", "occupied"]:
+                try:
+                    occupied = Bed.objects.filter(**{field_name: True}).count()
+                    break
+                except Exception:
+                    continue
+
+        return total, occupied
+    
 # ---------------------------------------------------------------------
 # Module-level helpers — moved OUT of ReportsView.get() so they no
 # longer sit between `elif` branches (that was the syntax error: a

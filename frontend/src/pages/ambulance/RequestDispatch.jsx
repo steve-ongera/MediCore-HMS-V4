@@ -109,7 +109,7 @@ export default function RequestDispatch() {
             <label className="field-label" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer" }}>
               <input
                 type="checkbox"
-                className="input"
+                className="checkbox"
                 style={{ width: "auto", margin: 0 }}
                 checked={unregisteredMode}
                 onChange={(e) => { setUnregisteredMode(e.target.checked); setSelectedPatient(null); }}

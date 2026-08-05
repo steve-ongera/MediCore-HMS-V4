@@ -23,7 +23,7 @@ const NAV_GROUPS = [
   },
   {
     label: "Billing",
-    roles: [ROLES.CASHIER, ROLES.ACCOUNTANT],
+    roles: [ROLES.CASHIER],
     links: [
       { to: "/billing", label: "Billing", icon: "bi-cash-stack" },
       { to: "/billing/bulk-payment", label: "Bulk Payment", icon: "bi-stack" },
@@ -48,12 +48,12 @@ const NAV_GROUPS = [
   },
   {
     label: "Inpatient",
-    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
+    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR , ROLES.SUPER_ADMIN ],
     links: [
       { to: "/inpatient", label: "Ward Board", icon: "bi-hospital" },
-      { to: "/inpatient/admissions", label: "Admissions", icon: "bi-clipboard2-pulse" },
+      { to: "/inpatient/admissions", label: "Admissions", icon: "bi-clipboard2-pulse" , roles: [ROLES.NURSE, ROLES.DOCTOR] },
       { to: "/inpatient/admit", label: "Admit Patient", icon: "bi-person-plus-fill", roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR] },
-      { to: "/inpatient/beds", label: "Bed Management", icon: "bi-grid-3x3-gap", roles: [ROLES.NURSE] },
+      { to: "/inpatient/beds", label: "Bed Management", icon: "bi-grid-3x3-gap", roles: [ROLES.SUPER_ADMIN] },
     ],
   },
   {
@@ -88,13 +88,13 @@ const NAV_GROUPS = [
   },
   {
     label: "Pharmacy",
-    roles: [ROLES.PHARMACIST],
+    roles: [ROLES.PHARMACIST  ],
     links: [
       { to: "/pharmacy", label: "Pharmacy", icon: "bi-capsule" },
-      { to: "/inventory", label: "Inventory", icon: "bi-box-seam", roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT] },
-      { to: "/suppliers", label: "Suppliers", icon: "bi-truck", roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT] },
-      { to: "/pharmacy/reports", label: "My Reports", icon: "bi-graph-up" },
-      { to: "/pharmacy/alerts", label: "Expiry & Stock Alerts", icon: "bi-exclamation-triangle" },
+      { to: "/inventory", label: "Inventory", icon: "bi-box-seam", roles: [ROLES.PHARMACIST] },
+      { to: "/suppliers", label: "Suppliers", icon: "bi-truck", roles: [ROLES.PHARMACIST , ROLES.PROCUREMENT_OFFICER] },
+      { to: "/pharmacy/reports", label: "My Reports", icon: "bi-graph-up" , roles: [ROLES.PHARMACIST , ROLES.PROCUREMENT_OFFICER] },
+      { to: "/pharmacy/alerts", label: "Expiry & Stock Alerts", icon: "bi-exclamation-triangle", roles: [ROLES.PHARMACIST , ROLES.PROCUREMENT_OFFICER] },
       { to: "/pharmacy/admission-orders", label: "Admission Medicine Orders", icon: "bi-hospital" },
       { to: "/pharmacy/emergency-orders", label: "Emergency Medicine Orders", icon: "bi-heart-pulse-fill" },
     ],
@@ -104,7 +104,10 @@ const NAV_GROUPS = [
     roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT],
     links: [
       { to: "/stockcontrol/locations", label: "Store Locations", icon: "bi-geo-alt", roles: [ROLES.PHARMACIST] },
-      { to: "/stockcontrol/transfers", label: "Internal Transfers", icon: "bi-arrow-left-right", roles: [ROLES.PHARMACIST, ROLES.NURSE] },
+      // Internal transfers span every store location hospital-wide —
+      // Pharmacy-only now. Nurses previously saw this; removed per access
+      // review (see App.jsx comment on /stockcontrol/transfers).
+      { to: "/stockcontrol/transfers", label: "Internal Transfers", icon: "bi-arrow-left-right", roles: [ROLES.PHARMACIST] },
       { to: "/stockcontrol/counts", label: "Stock Counts", icon: "bi-clipboard2-check" },
       { to: "/stockcontrol/discrepancies", label: "Discrepancy Report", icon: "bi-exclamation-triangle-fill" },
     ],
@@ -138,10 +141,10 @@ const NAV_GROUPS = [
   },
   {
     label: "Insurance / SHA",
-    roles: [ROLES.RECEPTIONIST, ROLES.CASHIER, ROLES.ACCOUNTANT],
+    roles: [ ROLES.CASHIER],
     links: [
       { to: "/insurance/policies", label: "Patient Policies", icon: "bi-shield-check" },
-      { to: "/insurance/claims", label: "Claims", icon: "bi-file-earmark-medical", roles: [ROLES.CASHIER, ROLES.ACCOUNTANT] },
+      { to: "/insurance/claims", label: "Claims", icon: "bi-file-earmark-medical", roles: [ROLES.CASHIER] },
       { to: "/insurance/claims/new", label: "File Claim", icon: "bi-file-earmark-plus" },
     ],
   },
@@ -163,7 +166,7 @@ const NAV_GROUPS = [
   },
   {
     label: "Asset Management",
-    roles: [ROLES.ACCOUNTANT],
+    roles: [ROLES.SUPER_ADMIN],
     links: [
       { to: "/assets", label: "Asset Register", icon: "bi-box-seam-fill" },
       { to: "/assets/register", label: "Register Asset", icon: "bi-plus-square" },
@@ -174,10 +177,10 @@ const NAV_GROUPS = [
     label: "Procurement",
     roles: [ROLES.PROCUREMENT_OFFICER],
     links: [
-      { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
-      { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
-      { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
-      { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt", roles: [ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT] },
+      { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check", roles: [ROLES.PROCUREMENT_OFFICER] },
+      { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4", roles: [ROLES.PROCUREMENT_OFFICER] },
+      { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down", roles: [ROLES.PROCUREMENT_OFFICER] },
+      { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt", roles: [ROLES.PROCUREMENT_OFFICER] },
     ],
   },
   {
@@ -193,9 +196,12 @@ const NAV_GROUPS = [
   },
   {
     label: "Ambulance",
-    roles: [ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR],
+    roles: [ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST],
     links: [
-      { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill" },
+      // Full fleet & dispatch board is operational data (vehicle status,
+      // driver assignments, every active dispatch hospital-wide) —
+      // Dispatcher-only now. Clinical staff still request dispatches below.
+      { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill", roles: [ROLES.AMBULANCE_DISPATCHER] },
       { to: "/ambulance/request", label: "Request Dispatch", icon: "bi-telephone-plus-fill" },
       { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [ROLES.AMBULANCE_DISPATCHER] },
       { to: "/ambulance/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.AMBULANCE_DISPATCHER] },
@@ -204,9 +210,12 @@ const NAV_GROUPS = [
   },
   {
     label: "Mortuary",
-    roles: [ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.DOCTOR, ROLES.RECEPTIONIST],
+    roles: [ROLES.MORTUARY_ATTENDANT],
     links: [
-      { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill" },
+      // Full register (next-of-kin details, storage, release status for
+      // every case) is Mortuary Attendant-only now. Clinical staff still
+      // admit deceased patients below.
+      { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill", roles: [ROLES.MORTUARY_ATTENDANT] },
       { to: "/mortuary/admit", label: "Admit Deceased", icon: "bi-file-earmark-plus" },
       { to: "/mortuary/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.MORTUARY_ATTENDANT] },
       { to: "/mortuary/releases", label: "Release History", icon: "bi-box-arrow-right", roles: [ROLES.MORTUARY_ATTENDANT] },

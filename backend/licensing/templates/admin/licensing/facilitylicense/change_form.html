@@ -1,0 +1,35 @@
+{% extends "admin/change_form.html" %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script type="text/javascript">
+(function() {
+    document.addEventListener("DOMContentLoaded", function() {
+        var form = document.getElementById("facilitylicense_form") || document.querySelector("#content form");
+        if (!form) return;
+
+        form.addEventListener("submit", function(e) {
+            // Only intercept once — avoid an infinite prompt loop once
+            // we re-trigger submit() after filling the hidden fields.
+            if (form.dataset.mediCoreConfirmed === "true") return;
+
+            e.preventDefault();
+
+            var email = window.prompt("MediCore confirmation required.\nEnter MediCore email:");
+            if (email === null) return; // user cancelled
+
+            var password = window.prompt("Enter MediCore password:");
+            if (password === null) return; // user cancelled
+
+            var emailField = form.querySelector('[name="confirm_email"]');
+            var passwordField = form.querySelector('[name="confirm_password"]');
+            if (emailField) emailField.value = email;
+            if (passwordField) passwordField.value = password;
+
+            form.dataset.mediCoreConfirmed = "true";
+            form.submit();
+        });
+    });
+})();
+</script>
+{% endblock %}
