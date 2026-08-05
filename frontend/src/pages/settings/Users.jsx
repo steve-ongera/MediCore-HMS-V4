@@ -22,6 +22,7 @@ const ROLE_OPTIONS = [
   { value: "HR_OFFICER", label: "HR Officer"},
   { value: "PROCUREMENT_OFFICER", label: "Procurement Officer"},
   { value: "AMBULANCE_DISPATCHER", label: "Ambulance Dispatcher"},
+  { value: "IT_SUPPORT_OFFICER", label: "IT Support Officer"},
   
 ];
 

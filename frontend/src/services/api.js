@@ -883,6 +883,8 @@ export const reopenTicket = (id) => unwrap(client.post(`/tickets/${id}/reopen/`)
 export const getFacilityLicense = () => unwrap(client.get("/facility-license/"));
 export const updateFacilityLicense = (payload) => unwrap(client.patch("/facility-license/", payload));
 
+export const toggleUserActive = (id) => unwrap(client.post(`/users/${id}/toggle-active/`));
+export const getITSupportDashboard = () => unwrap(client.get("/it-support/dashboard/"));
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

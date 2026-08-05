@@ -108,6 +108,7 @@ urlpatterns = [
     path("dashboards/me/", MyDashboardView.as_view(), name="my-dashboard"),
     path("reports/", views.ReportsView.as_view(), name="reports"),
     path("transactions/", views.AllTransactionsView.as_view(), name="transactions"),
+    path("it-support/dashboard/", views.ITSupportDashboardView.as_view()),
 
     # =========================================================================
     # API Endpoints

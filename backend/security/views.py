@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
-from api.permissions import IsSuperAdmin
+from api.permissions import IsSuperAdmin , IsITSupportOrSuperAdmin
 
 from .models import LoginAttempt, UserSession, SecurityAuditLog, AccountLockout
 from .serializers import LoginAttemptSerializer, UserSessionSerializer, SecurityAuditLogSerializer, AccountLockoutSerializer
@@ -14,7 +14,7 @@ from .models import AuditEventType
 class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LoginAttempt.objects.all()
     serializer_class = LoginAttemptSerializer
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     filterset_fields = ["status", "user"]
     search_fields = ["username_attempted", "ip_address"]
 
@@ -22,7 +22,7 @@ class LoginAttemptViewSet(viewsets.ReadOnlyModelViewSet):
 class UserSessionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = UserSession.objects.select_related("user").all()
     serializer_class = UserSessionSerializer
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     filterset_fields = ["user", "is_active"]
     search_fields = ["user__username", "ip_address"]
 
@@ -40,7 +40,7 @@ class SecurityAuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = SecurityAuditLog.objects.select_related("user", "actor").all()
     serializer_class = SecurityAuditLogSerializer
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     filterset_fields = ["event_type", "user"]
     search_fields = ["description", "user__username"]
 
@@ -48,7 +48,7 @@ class SecurityAuditLogViewSet(viewsets.ReadOnlyModelViewSet):
 class AccountLockoutViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AccountLockout.objects.select_related("user").all()
     serializer_class = AccountLockoutSerializer
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     filterset_fields = ["is_locked"]
 
     @action(detail=True, methods=["post"], url_path="unlock")

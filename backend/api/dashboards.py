@@ -1,3 +1,4 @@
+#api/dashbaords.py
 from datetime import date, timedelta
 
 from django.db.models import Count, Sum
@@ -536,6 +537,70 @@ def biomedical_engineer_dashboard(user):
     pie = {"title": "Service Requests by Priority", "data": [{"name": r["priority"], "value": r["count"]} for r in pie_qs]}
     return {"cards": cards, "line": line, "bar": bar, "pie": pie}
 
+def it_support_officer_dashboard(user):
+    from datetime import date, timedelta
+    from django.db.models import Count
+
+    today = date.today()
+    days = _last7()
+
+    cards = []
+    line = {"title": "Tickets Raised — Last 7 Days", "data": []}
+    bar = {"title": "Open Tickets by Category", "data": []}
+    pie = {"title": "Open Tickets by Priority", "data": []}
+
+    # --- Tickets ---
+    try:
+        from tickets.models import Ticket, TicketStatus
+        open_tickets = Ticket.objects.exclude(status=TicketStatus.CLOSED)
+
+        cards.append({"label": "Open Tickets", "value": open_tickets.count()})
+        cards.append({"label": "Critical Tickets", "value": open_tickets.filter(priority="CRITICAL").count()})
+
+        line["data"] = [
+            {"name": d.isoformat(), "value": Ticket.objects.filter(raised_at__date=d).count()}
+            for d in days
+        ]
+        bar["data"] = [
+            {"name": r["category"], "value": r["count"]}
+            for r in open_tickets.values("category").annotate(count=Count("id"))
+        ]
+        pie["data"] = [
+            {"name": r["priority"], "value": r["count"]}
+            for r in open_tickets.values("priority").annotate(count=Count("id"))
+        ]
+    except Exception as exc:
+        import logging
+        logging.getLogger("dashboards").exception(f"IT dashboard: tickets section failed: {exc}")
+
+    # --- Security / accounts ---
+    try:
+        from security.models import AccountLockout, LoginAttempt, LoginAttemptStatus
+        cards.append({"label": "Locked Accounts", "value": AccountLockout.objects.filter(is_locked=True).count()})
+        cards.append({
+            "label": "Failed Logins Today",
+            "value": LoginAttempt.objects.filter(status=LoginAttemptStatus.FAILED_PASSWORD, attempted_at__date=today).count(),
+        })
+    except Exception as exc:
+        import logging
+        logging.getLogger("dashboards").exception(f"IT dashboard: security section failed: {exc}")
+
+    try:
+        from security.models import SecurityAuditLog
+        cards.append({"label": "Security Events Today", "value": SecurityAuditLog.objects.filter(occurred_at__date=today).count()})
+    except Exception:
+        pass
+
+    # --- Staff accounts ---
+    try:
+        from api.models import User
+        cards.append({"label": "Total Staff Accounts", "value": User.objects.filter(is_active_staff=True, is_deleted=False).count()})
+    except Exception as exc:
+        import logging
+        logging.getLogger("dashboards").exception(f"IT dashboard: staff accounts section failed: {exc}")
+
+    return {"cards": cards, "line": line, "bar": bar, "pie": pie}
+
 DASHBOARD_BUILDERS = {
     Role.RECEPTIONIST: receptionist_dashboard,
     Role.CASHIER: cashier_dashboard,
@@ -552,6 +617,7 @@ DASHBOARD_BUILDERS = {
     Role.HEALTH_RECORDS_OFFICER: health_records_officer_dashboard,
     Role.MEDICAL_RECORDS_OFFICER: medical_records_officer_dashboard,
     Role.BIOMEDICAL_ENGINEER: biomedical_engineer_dashboard,
+    Role.IT_SUPPORT_OFFICER: it_support_officer_dashboard,
 }
 
 

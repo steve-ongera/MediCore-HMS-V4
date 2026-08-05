@@ -26,7 +26,7 @@ from api.models import (
 from api.models import Patient, Visit, ConsultationDiagnosis, ICD10Code
 from api.permissions import (
     HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor,
-    IsLabTechnologist, IsRadiologist, IsPharmacist, ReadOnlyOrSuperAdmin, IsSuperAdmin,
+    IsLabTechnologist, IsRadiologist, IsPharmacist, ReadOnlyOrSuperAdmin, IsSuperAdmin, IsITSupportOrSuperAdmin
 )
 from licensing.permissions import WithinUserLimit
 
@@ -59,6 +59,14 @@ from rest_framework import status
 
 from api.models import ConsultationProcedure, InvoiceSourceType
 from api.serializers import AddConsultationProcedureSerializer, ConsultationProcedureSerializer
+
+
+from datetime import date, timedelta
+from django.db.models import Count
+
+from tickets.models import Ticket, TicketStatus
+from security.models import AccountLockout, LoginAttempt, LoginAttemptStatus, SecurityAuditLog
+from api.models import Medicine
 
 
 
@@ -241,7 +249,7 @@ class UserViewSet(BaseModelViewSet):
     action, not something every authenticated staff member should be able
     to do.
     """
-    permission_classes = [WithinUserLimit]
+    permission_classes = [IsITSupportOrSuperAdmin, WithinUserLimit]
     queryset = User.objects.all().order_by("first_name")
     filterset_fields = ["role", "department", "is_active_staff"]
     search_fields = ["username", "first_name", "last_name", "email", "phone"]
@@ -254,19 +262,32 @@ class UserViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="reset-password")
     def reset_password(self, request, pk=None):
-        """
-        POST /api/users/<id>/reset-password/  { new_password }
-        Admin-initiated reset — does NOT require the target user's current
-        password (unlike /api/auth/change-password/, which is self-service
-        only). Restricted to Super Admin via this viewset's permission_classes.
-        """
+        """Admin-initiated password reset — no old password required. IT Support or Super Admin only."""
         user = self.get_object()
         serializer = AdminResetPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         user.set_password(serializer.validated_data["new_password"])
         user.password_changed_at = timezone.now()
         user.save(update_fields=["password", "password_changed_at"])
-        return Response({"detail": "Password reset successfully."})
+
+        log_audit_event(
+            AuditEventType.PASSWORD_CHANGE, user=user, actor=request.user, request=request,
+            description=f"Password reset by {request.user.get_full_name()} ({request.user.role}).",
+        )
+        return Response({"success": True, "detail": f"Password reset for {user.username}."})
+
+    @action(detail=True, methods=["post"], url_path="toggle-active")
+    def toggle_active(self, request, pk=None):
+        """Activate/deactivate a staff account — the technical mechanics of account management."""
+        user = self.get_object()
+        user.is_active_staff = not user.is_active_staff
+        user.save(update_fields=["is_active_staff"])
+        log_audit_event(
+            AuditEventType.ROLE_CHANGE, user=user, actor=request.user, request=request,
+            description=f"Account {'activated' if user.is_active_staff else 'deactivated'} by {request.user.get_full_name()}.",
+        )
+        return Response({"success": True, "is_active_staff": user.is_active_staff})
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +296,7 @@ class UserViewSet(BaseModelViewSet):
 class DepartmentViewSet(BaseModelViewSet):
     queryset = Department.objects.filter(is_active=True)
     serializer_class = DepartmentSerializer
-    permission_classes = [ReadOnlyOrSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     search_fields = ["name"]
 
 
@@ -481,7 +502,7 @@ class VitalSignsViewSet(BaseModelViewSet):
 class ICD10CodeViewSet(BaseModelViewSet):
     queryset = ICD10Code.objects.all()
     serializer_class = ICD10CodeSerializer
-    permission_classes = [ReadOnlyOrSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     search_fields = ["code", "description"]
     lookup_field = "code"
 
@@ -597,7 +618,7 @@ class PrescriptionViewSet(BaseModelViewSet):
 class LabTestCatalogViewSet(BaseModelViewSet):
     queryset = LabTestCatalog.objects.filter(is_active=True)
     serializer_class = LabTestCatalogSerializer
-    permission_classes = [ReadOnlyOrSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     search_fields = ["name", "code"]
 
 
@@ -688,7 +709,7 @@ class PermissionDeniedPaymentRequired(APIException):
 class RadiologyTestCatalogViewSet(BaseModelViewSet):
     queryset = RadiologyTestCatalog.objects.filter(is_active=True)
     serializer_class = RadiologyTestCatalogSerializer
-    permission_classes = [ReadOnlyOrSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     search_fields = ["name", "code"]
 
 
@@ -1020,12 +1041,12 @@ class OTCSaleViewSet(BaseModelViewSet):
 
 
 # ---------------------------------------------------------------------------
-# Audit Log (read-only, Super Admin)
+# Audit Log (read-only, Super Admin or IsITSupportOrSuperAdmin)
 # ---------------------------------------------------------------------------
 class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AuditLog.objects.select_related("user").all()
     serializer_class = AuditLogSerializer
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     filterset_fields = ["model_name", "action", "user"]
     search_fields = ["object_id", "model_name"]
 
@@ -2073,3 +2094,33 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
         """Combined receipt — every invoice covered by this bulk transaction, with per-service breakdown."""
         bulk_payment = self.get_object()
         return Response(BulkPaymentSerializer(bulk_payment).data)
+    
+    
+
+
+class ITSupportDashboardView(APIView):
+    permission_classes = [IsITSupportOrSuperAdmin]
+
+    def get(self, request):
+        today = date.today()
+        days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+        cards = {
+            "open_tickets": Ticket.objects.exclude(status__in=[TicketStatus.CLOSED]).count(),
+            "critical_tickets": Ticket.objects.filter(priority="CRITICAL").exclude(status=TicketStatus.CLOSED).count(),
+            "locked_accounts": AccountLockout.objects.filter(is_locked=True).count(),
+            "failed_logins_today": LoginAttempt.objects.filter(status=LoginAttemptStatus.FAILED_PASSWORD, attempted_at__date=today).count(),
+            "total_staff_accounts": User.objects.filter(is_active_staff=True, is_deleted=False).count(),
+            "security_events_today": SecurityAuditLog.objects.filter(occurred_at__date=today).count(),
+        }
+
+        ticket_trend = [{"name": d.isoformat(), "value": Ticket.objects.filter(raised_at__date=d).count()} for d in days]
+        ticket_by_category = list(Ticket.objects.exclude(status=TicketStatus.CLOSED).values("category").annotate(count=Count("id")))
+        ticket_by_priority = list(Ticket.objects.exclude(status=TicketStatus.CLOSED).values("priority").annotate(count=Count("id")))
+
+        return Response({
+            "cards": cards,
+            "line": {"title": "Tickets Raised — Last 7 Days", "data": ticket_trend},
+            "bar": {"title": "Open Tickets by Category", "data": [{"name": r["category"], "value": r["count"]} for r in ticket_by_category]},
+            "pie": {"title": "Open Tickets by Priority", "data": [{"name": r["priority"], "value": r["count"]} for r in ticket_by_priority]},
+        })

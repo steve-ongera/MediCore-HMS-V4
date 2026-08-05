@@ -234,6 +234,7 @@ import ITSupportQueue from "./pages/tickets/ITSupportQueue.jsx";
 import TicketDetail from "./pages/tickets/TicketDetail.jsx";
 
 import LicenseStatus from "./pages/settings/LicenseStatus.jsx";
+import ITSupportDashboard from "./pages/dashboard/ITSupportDashboard.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -265,6 +266,7 @@ function RoleHomeDashboard() {
     [ROLES.HEALTH_RECORDS_OFFICER]: HealthRecordsOfficerDashboard,
     [ROLES.MEDICAL_RECORDS_OFFICER]: MedicalRecordsOfficerDashboard,
     [ROLES.BIOMEDICAL_ENGINEER]: BiomedicalEngineerDashboard,
+    [ROLES.IT_SUPPORT_OFFICER]: ITSupportDashboard,
   };
 
   const role = user?.role;
@@ -550,7 +552,7 @@ export default function App() {
         <Route
           path="/settings"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}>
               <Settings />
             </ProtectedRoute>
           }
@@ -560,7 +562,7 @@ export default function App() {
         <Route
           path="/users"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}>
               <Users />
             </ProtectedRoute>
           }
@@ -568,7 +570,7 @@ export default function App() {
         <Route
           path="/departments"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}>
               <Departments />
             </ProtectedRoute>
           }
@@ -576,7 +578,7 @@ export default function App() {
         <Route
           path="/audit-logs"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}>
               <AuditLog />
             </ProtectedRoute>
           }
@@ -584,7 +586,7 @@ export default function App() {
         <Route
           path="/settings/test-catalog"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}>
               <TestCatalog />
             </ProtectedRoute>
           }
@@ -797,8 +799,8 @@ export default function App() {
         <Route path="/pharmacy/admission-orders" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><AdmissionMedicineOrders /></ProtectedRoute>} />
         <Route path="/pharmacy/emergency-orders" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIST]}><EmergencyMedicineOrders /></ProtectedRoute>} />
 
-        <Route path="/settings/sessions" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><DeviceSessionMonitoring /></ProtectedRoute>} />
-        <Route path="/settings/security-audit" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SecurityAuditLogPage /></ProtectedRoute>} />
+        <Route path="/settings/sessions" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN , ROLES.IT_SUPPORT_OFFICER]}><DeviceSessionMonitoring /></ProtectedRoute>} />
+        <Route path="/settings/security-audit" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN , ROLES.IT_SUPPORT_OFFICER]}><SecurityAuditLogPage /></ProtectedRoute>} />
 
         <Route path="/billing/till" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER]}><CashTillDashboard /></ProtectedRoute>} />
         <Route path="/finance/variance-approvals" element={<ProtectedRoute allowedRoles={[ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN]}><VarianceApprovals /></ProtectedRoute>} />
@@ -854,7 +856,7 @@ export default function App() {
 
         <Route path="/tickets/raise" element={<ProtectedRoute><RaiseTicket /></ProtectedRoute>} />
         <Route path="/tickets/mine" element={<ProtectedRoute><MyTickets /></ProtectedRoute>} />
-        <Route path="/tickets/queue" element={<ProtectedRoute allowedRoles={[ROLES.IT_SUPPORT_OFFICER]}><ITSupportQueue /></ProtectedRoute>} />
+        <Route path="/tickets/queue" element={<ProtectedRoute allowedRoles={[ROLES.IT_SUPPORT_OFFICER , ROLES.SUPER_ADMIN]}><ITSupportQueue /></ProtectedRoute>} />
         <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
 
         <Route path="/settings/license" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><LicenseStatus /></ProtectedRoute>} />

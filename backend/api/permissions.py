@@ -159,6 +159,17 @@ class IsFrontOfficeStaff(HasRole):
         return super().has_permission(request, view)
 
 
+class IsITSupportOrSuperAdmin(HasRole):
+    def has_permission(self, request, view):
+        view.allowed_roles = [Role.IT_SUPPORT_OFFICER, Role.SUPER_ADMIN]
+        return super().has_permission(request, view)
+
+
+class IsITSupportOnly(HasRole):
+    def has_permission(self, request, view):
+        view.allowed_roles = [Role.IT_SUPPORT_OFFICER]
+        return super().has_permission(request, view)
+
 # ---------------------------------------------------------------------------
 # Catalog / lookup tables — read-only for everyone, write for Super Admin only
 # ---------------------------------------------------------------------------

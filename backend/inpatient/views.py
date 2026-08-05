@@ -15,7 +15,7 @@ from api.models import (
     LabTestCatalog, RadiologyTestCatalog,
 )
 from api.permissions import (
-    HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor, ReadOnlyOrSuperAdmin,
+    HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor, ReadOnlyOrSuperAdmin, IsITSupportOrSuperAdmin
 )
 from licensing.permissions import WithinBedLimit
 
@@ -45,7 +45,7 @@ from .serializers import (
 class WardViewSet(BaseModelViewSet):
     queryset = Ward.objects.filter(is_active=True)
     serializer_class = WardSerializer
-    permission_classes = [ReadOnlyOrSuperAdmin]
+    permission_classes = [IsITSupportOrSuperAdmin]
     search_fields = ["name"]
 
     @action(detail=False, methods=["get"], url_path="occupancy")
@@ -65,7 +65,7 @@ class WardViewSet(BaseModelViewSet):
 
 
 class BedViewSet(BaseModelViewSet):
-    permission_classes = [WithinBedLimit]
+    permission_classes = [IsITSupportOrSuperAdmin, WithinBedLimit]
     queryset = Bed.objects.select_related("ward").all()
     serializer_class = BedSerializer
     filterset_fields = ["ward", "status"]
