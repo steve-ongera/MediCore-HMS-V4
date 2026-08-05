@@ -1,3 +1,4 @@
+#scheduler.py
 import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -16,6 +17,17 @@ def _run_bed_charges_job():
             logger.info("Auto-generated %d bed charge(s).", len(created))
     except Exception:
         logger.exception("Scheduled bed charge generation failed.")
+
+
+# NEW: ICU/HDU bed charges — same pattern as inpatient bed charges
+def _run_icu_bed_charges_job():
+    from icu.services import generate_daily_icu_bed_charges
+    try:
+        created = generate_daily_icu_bed_charges()
+        if created:
+            logger.info("Auto-generated %d ICU bed charge(s).", len(created))
+    except Exception:
+        logger.exception("Scheduled ICU bed charge generation failed.")
 
 
 def _run_leakage_scan_job():
@@ -91,6 +103,14 @@ def start():
         replace_existing=True,
     )
 
+    # NEW: Daily ICU/HDU bed charges
+    _scheduler.add_job(
+        _run_icu_bed_charges_job,
+        trigger=IntervalTrigger(hours=24),
+        id="generate_daily_icu_bed_charges",
+        replace_existing=True,
+    )
+
     # Hourly revenue leakage scan
     _scheduler.add_job(
         _run_leakage_scan_job,
@@ -119,11 +139,12 @@ def start():
 
     # Run immediately on startup
     _run_bed_charges_job()
+    _run_icu_bed_charges_job()  # NEW
     _run_leakage_scan_job()
     generate_insights_job()
-    _check_stale_passwords_job()  # NEW
+    _check_stale_passwords_job()
 
     logger.info(
         "Background scheduler started "
-        "(bed charges: 24h, leakage scan: 1h, business insights: 6h)."
+        "(bed charges: 24h, ICU bed charges: 24h, leakage scan: 1h, business insights: 6h)."
     )

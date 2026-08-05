@@ -59,6 +59,8 @@ class ICUAdmission(BaseModel):
     # Optional link to an existing ward admission this ICU stay is nested within
     # (e.g. patient was on Ward 3, deteriorated, moved to ICU).
     ward_admission = models.ForeignKey("inpatient.Admission", null=True, blank=True, on_delete=models.SET_NULL, related_name="icu_episodes")
+    # NEW — reused across every billing day for this ICU stay, mirrors inpatient's Admission.visit
+    visit = models.ForeignKey("api.Visit", null=True, blank=True, on_delete=models.SET_NULL, related_name="icu_admissions")
 
     bed = models.ForeignKey(ICUBed, on_delete=models.PROTECT, related_name="admissions")
     admission_reason = models.CharField(max_length=30, choices=AdmissionReason.choices, default=AdmissionReason.OTHER)

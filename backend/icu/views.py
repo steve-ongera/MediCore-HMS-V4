@@ -85,7 +85,7 @@ class ICUAdmissionViewSet(BaseModelViewSet):
             bed.save(update_fields=["status"])
 
             # First day's bed charge immediately, same as inpatient bed charging.
-            charge_icu_bed_day(icu_admission, user=request.user)
+            charge_icu_bed_day(icu_admission)
 
         return Response(ICUAdmissionSerializer(icu_admission).data, status=status.HTTP_201_CREATED)
 
@@ -100,7 +100,7 @@ class ICUAdmissionViewSet(BaseModelViewSet):
         data = serializer.validated_data
 
         with transaction.atomic():
-            charge_icu_bed_day(icu_admission, user=request.user)  # final day's charge before closing
+            charge_icu_bed_day(icu_admission)  # final day's charge before closing
 
             icu_admission.status = data["status"]
             icu_admission.discharge_summary = data.get("discharge_summary", "")
@@ -141,9 +141,9 @@ class ICUAdmissionViewSet(BaseModelViewSet):
 
         with transaction.atomic():
             invoice = raise_icu_invoice(
-                icu_admission.patient,
+                icu_admission,
                 f"ICU Procedure - {procedure.name} ({icu_admission.icu_admission_number})",
-                procedure.price, user=request.user,
+                procedure.price,
             )
             record = ICUProcedureRecord.objects.create(
                 icu_admission=icu_admission, procedure=procedure, performed_by=request.user,
@@ -158,7 +158,7 @@ class ICUAdmissionViewSet(BaseModelViewSet):
         from api.serializers import InvoiceSerializer
 
         icu_admission = self.get_object()
-        charge_icu_bed_day(icu_admission, user=request.user)  # top up to today
+        charge_icu_bed_day(icu_admission)  # top up to today
 
         invoices = Invoice.objects.filter(patient=icu_admission.patient, description__icontains=icu_admission.icu_admission_number)
         grand_total = sum((i.amount for i in invoices), start=0)

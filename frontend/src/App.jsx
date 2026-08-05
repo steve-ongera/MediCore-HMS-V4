@@ -604,7 +604,7 @@ export default function App() {
         <Route
           path="/inpatient/beds"
           element={
-            <ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.IT_SUPPORT_OFFICER, ROLES.SUPER_ADMIN]}>
               <BedManagement />
             </ProtectedRoute>
           }
@@ -772,9 +772,9 @@ export default function App() {
         <Route path="/eyeclinic/register" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><RegisterEyeVisit /></ProtectedRoute>} />
         <Route path="/eyeclinic/:id" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.NURSE]}><EyeVisitDetail /></ProtectedRoute>} />
 
-        <Route path="/icu" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><ICUBoard /></ProtectedRoute>} />
-        <Route path="/icu/admit" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><AdmitToICU /></ProtectedRoute>} />
-        <Route path="/icu/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><ICUAdmissionDetail /></ProtectedRoute>} />
+        <Route path="/icu" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR , ROLES.RECEPTIONIST]}><ICUBoard /></ProtectedRoute>} />
+        <Route path="/icu/admit" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR , ROLES.RECEPTIONIST]}><AdmitToICU /></ProtectedRoute>} />
+        <Route path="/icu/:id" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR , ROLES.RECEPTIONIST]}><ICUAdmissionDetail /></ProtectedRoute>} />
 
         <Route path="/dialysis" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisSessionsToday /></ProtectedRoute>} />
         <Route path="/dialysis/patients" element={<ProtectedRoute allowedRoles={[ROLES.NURSE, ROLES.DOCTOR]}><DialysisPatients /></ProtectedRoute>} />

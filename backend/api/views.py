@@ -249,7 +249,7 @@ class UserViewSet(BaseModelViewSet):
     action, not something every authenticated staff member should be able
     to do.
     """
-    permission_classes = [IsITSupportOrSuperAdmin, WithinUserLimit]
+    permission_classes = [WithinUserLimit]
     queryset = User.objects.all().order_by("first_name")
     filterset_fields = ["role", "department", "is_active_staff"]
     search_fields = ["username", "first_name", "last_name", "email", "phone"]

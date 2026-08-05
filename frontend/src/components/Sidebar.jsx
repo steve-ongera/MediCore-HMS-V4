@@ -48,12 +48,12 @@ const NAV_GROUPS = [
   },
   {
     label: "Inpatient",
-    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR , ROLES.SUPER_ADMIN ],
+    roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR , ROLES.SUPER_ADMIN  ],
     links: [
       { to: "/inpatient", label: "Ward Board", icon: "bi-hospital" },
       { to: "/inpatient/admissions", label: "Admissions", icon: "bi-clipboard2-pulse" , roles: [ROLES.NURSE, ROLES.DOCTOR] },
       { to: "/inpatient/admit", label: "Admit Patient", icon: "bi-person-plus-fill", roles: [ROLES.RECEPTIONIST, ROLES.NURSE, ROLES.DOCTOR] },
-      { to: "/inpatient/beds", label: "Bed Management", icon: "bi-grid-3x3-gap", roles: [ROLES.SUPER_ADMIN] },
+      { to: "/inpatient/beds", label: "Bed Management", icon: "bi-grid-3x3-gap", roles: [ROLES.SUPER_ADMIN , ROLES.IT_SUPPORT_OFFICER] },
     ],
   },
   {
@@ -276,7 +276,7 @@ const NAV_GROUPS = [
   },
   {
     label: "ICU / HDU",
-    roles: [ROLES.NURSE, ROLES.DOCTOR],
+    roles: [ROLES.NURSE, ROLES.DOCTOR , ROLES.RECEPTIONIST],
     links: [
       { to: "/icu", label: "ICU Board", icon: "bi-activity" },
       { to: "/icu/admit", label: "Admit to ICU", icon: "bi-plus-circle" },
