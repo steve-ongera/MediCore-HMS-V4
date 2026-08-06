@@ -1,3 +1,4 @@
+#theatre/models.py
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -103,6 +104,9 @@ class Surgery(BaseModel):
     """The actual operative episode, opened once a SurgeryBooking is taken into theatre."""
     booking = models.OneToOneField(SurgeryBooking, on_delete=models.CASCADE, related_name="surgery")
     theatre = models.ForeignKey(OperatingTheatre, on_delete=models.PROTECT, related_name="surgeries")
+    
+    # NEW — reused across every charge for this surgery (consumables, time, team fees)
+    visit = models.ForeignKey("api.Visit", null=True, blank=True, on_delete=models.SET_NULL, related_name="theatre_surgeries")
 
     theatre_in_at = models.DateTimeField(auto_now_add=True)
     incision_at = models.DateTimeField(null=True, blank=True)

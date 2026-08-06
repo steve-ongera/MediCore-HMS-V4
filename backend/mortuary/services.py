@@ -1,5 +1,26 @@
 from api.models import Department, ConsultationType, VisitStatus, Visit, Patient, Gender, Invoice, InvoiceSourceType
 
+def generate_daily_mortuary_storage_charges():
+    """
+    Called by the scheduled job — tops up storage charges for every case
+    still in storage. charge_storage_to_date already catches up any number
+    of missed days in a single charge line (it isn't limited to "today"),
+    so this is safe to run after any gap — a scheduler outage, a server
+    restart, or simply the first run after this job is registered.
+    """
+    from .models import MortuaryAdmission, MortuaryStatus
+
+    created = []
+    active_cases = (
+        MortuaryAdmission.objects.filter(status=MortuaryStatus.ADMITTED, compartment__isnull=False)
+        .select_related("compartment", "patient")
+    )
+
+    for case in active_cases:
+        invoice = charge_storage_to_date(case)
+        if invoice:
+            created.append(str(invoice.id))
+    return created
 
 def ensure_mortuary_visit(patient, registered_by=None):
     mortuary_dept, _ = Department.objects.get_or_create(

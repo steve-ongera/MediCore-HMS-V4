@@ -188,9 +188,9 @@ class SurgeryViewSet(BaseModelViewSet):
                 performed_by=request.user,
             )
             invoice = raise_theatre_invoice(
-                surgery.booking.patient,
+                surgery,
                 f"Theatre Consumable - {medicine.name} x{data['quantity']} ({surgery.booking.booking_number})",
-                medicine.unit_price * data["quantity"], user=request.user,
+                medicine.unit_price * data["quantity"],
             )
             usage.invoice = invoice
             usage.save(update_fields=["invoice"])
@@ -217,7 +217,6 @@ class SurgeryViewSet(BaseModelViewSet):
 
         with transaction.atomic():
             surgery.theatre_out_at = timezone.now()
-            surgery.status = SurgeryStatus.ABANDONED if data["outcome"] == "DECEASED" and data.get("complications") == "ABANDONED" else SurgeryStatus.COMPLETED
             surgery.status = SurgeryStatus.COMPLETED
             surgery.outcome = data["outcome"]
             surgery.operative_notes = data.get("operative_notes", "")
@@ -234,18 +233,18 @@ class SurgeryViewSet(BaseModelViewSet):
 
             time_charge = compute_theatre_time_charge(surgery)
             invoice = raise_theatre_invoice(
-                booking.patient,
+                surgery,
                 f"Theatre Time - {surgery.theatre.theatre_number} ({surgery.duration_hours}h) + {booking.procedure.name}",
-                float(booking.procedure.base_price) + time_charge, user=request.user,
+                float(booking.procedure.base_price) + time_charge,
             )
             surgery.invoice = invoice
             surgery.save(update_fields=["invoice"])
 
             for member in surgery.team.filter(fee__gt=0):
                 raise_theatre_invoice(
-                    booking.patient,
+                    surgery,
                     f"Surgical Fee - {member.get_role_display()} ({booking.booking_number})",
-                    member.fee, user=request.user,
+                    member.fee,
                 )
 
             surgery.theatre.status = TheatreStatus.AVAILABLE

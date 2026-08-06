@@ -40,6 +40,14 @@ def _run_emergency_bay_charges_job():
         logger.exception("Scheduled ED bay charge generation failed.")
 
 
+def _run_mortuary_storage_charges_job():
+    from mortuary.services import generate_daily_mortuary_storage_charges
+    try:
+        created = generate_daily_mortuary_storage_charges()
+        if created:
+            logger.info("Auto-generated %d mortuary storage invoice(s).", len(created))
+    except Exception:
+        logger.exception("Scheduled mortuary storage charge generation failed.")
 
 def _run_leakage_scan_job():
     from leakage.services import run_leakage_scan
@@ -120,11 +128,18 @@ def start():
         replace_existing=True,
     )
 
-    # NEW: ED bay-time top-up, hourly — ED stays are measured in hours, not days
     _scheduler.add_job(
         _run_emergency_bay_charges_job,
         trigger=IntervalTrigger(hours=1),
         id="generate_pending_emergency_bay_charges",
+        replace_existing=True,
+    )
+
+    # NEW: Daily mortuary storage charges
+    _scheduler.add_job(
+        _run_mortuary_storage_charges_job,
+        trigger=IntervalTrigger(hours=24),
+        id="generate_daily_mortuary_storage_charges",
         replace_existing=True,
     )
 
@@ -151,15 +166,19 @@ def start():
 
     _scheduler.start()
 
-    # Run immediately on startup
+    # Run immediately on startup — this is what backfills any case that
+    # was admitted while the scheduler wasn't running, without needing
+    # anyone to open its billing tab manually.
     _run_bed_charges_job()
     _run_icu_bed_charges_job()
-    _run_emergency_bay_charges_job()  # NEW
+    _run_emergency_bay_charges_job()
+    _run_mortuary_storage_charges_job()  # NEW
     _run_leakage_scan_job()
     generate_insights_job()
     _check_stale_passwords_job()
 
     logger.info(
         "Background scheduler started "
-        "(bed charges: 24h, ICU bed charges: 24h, ED bay charges: 1h, leakage scan: 1h, business insights: 6h)."
+        "(bed charges: 24h, ICU bed charges: 24h, ED bay charges: 1h, "
+        "mortuary storage: 24h, leakage scan: 1h, business insights: 6h)."
     )
