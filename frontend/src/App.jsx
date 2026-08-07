@@ -60,6 +60,7 @@ import Users from "./pages/settings/Users.jsx";
 import Departments from "./pages/settings/Departments.jsx";
 import AuditLog from "./pages/settings/AuditLog.jsx";
 import TestCatalog from "./pages/settings/TestCatalog.jsx";
+import ICD10Management from "./pages/settings/ICD10Management.jsx";
 
 // Inpatient / Wards
 import WardBoard from "./pages/inpatient/WardBoard.jsx";
@@ -860,6 +861,7 @@ export default function App() {
         <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
 
         <Route path="/settings/license" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><LicenseStatus /></ProtectedRoute>} />
+        <Route path="/settings/icd10-codes" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}><ICD10Management /></ProtectedRoute>} />
 
 
         {/* Profile - any authenticated user */}

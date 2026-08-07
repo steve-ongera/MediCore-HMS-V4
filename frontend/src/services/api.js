@@ -1,7 +1,7 @@
 //src/services/api.js
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://192.168.0.174:8000/api";
 
 // ---------------------------------------------------------------------------
 // Axios instance + interceptors
@@ -180,6 +180,13 @@ export const saveVitals = (payload) => unwrap(client.post("/vitals/", payload));
 // ICD-10
 // ===========================================================================
 export const lookupIcd10 = (query) => unwrap(client.get(`/icd10/lookup/${qs({ q: query })}`));
+
+// ADMIN MANAGEMENT OF IC10 CODES 
+export const getICD10CodesPaginated = (params) => unwrap(client.get(`/icd10/${qs(params)}`));
+export const getICD10CodeDetail = (id) => unwrap(client.get(`/icd10/${id}/`));
+export const createICD10Code = (payload) => unwrap(client.post("/icd10/", payload));
+export const updateICD10Code = (id, payload) => unwrap(client.patch(`/icd10/${id}/`, payload));
+export const deleteICD10Code = (id) => unwrap(client.delete(`/icd10/${id}/`));
 
 // ===========================================================================
 // DOCTOR / CONSULTATION
@@ -769,6 +776,10 @@ export const generateInsightsNow = () => unwrap(client.post("/business-insights/
 export const acknowledgeInsight = (id) => unwrap(client.post(`/business-insights/${id}/acknowledge/`));
 export const getStoreLocationsForDropdown = () => unwrap(client.get("/store-locations/"));
 
+export const setLocationStock = (locationId, payload) => unwrap(client.post(`/store-locations/${locationId}/set-stock/`, payload));
+export const getLocationAdjustments = (locationId) => unwrap(client.get(`/store-locations/${locationId}/adjustments/`));
+export const getStockReconciliation = () => unwrap(client.get("/store-locations/reconciliation/"));
+
 export const getConversations = () => unwrap(client.get("/conversations/"));
 export const startConversation = (userId) => unwrap(client.post("/conversations/start/", { user_id: userId }));
 export const getConversationMessages = (id) => unwrap(client.get(`/conversations/${id}/messages/`));
@@ -822,7 +833,7 @@ export const getUnverifiedDiagnoses = () => unwrap(client.get("/icd-coding-revie
 export const getUncodedDiagnoses = () => unwrap(client.get("/icd-coding-review/uncoded/"));
 export const verifyDiagnosisCoding = (id) => unwrap(client.post(`/icd-coding-review/${id}/verify/`));
 export const correctDiagnosisCoding = (id, payload) => unwrap(client.post(`/icd-coding-review/${id}/correct/`, payload));
-export const searchICD10Codes = (search) => unwrap(client.get(`/icd10-codes/${qs({ search })}`));
+export const searchICD10Codes = (search) => unwrap(client.get(`/icd10/${qs({ search })}`));
 
 
 // ===========================================================================

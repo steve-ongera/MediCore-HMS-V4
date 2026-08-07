@@ -22,6 +22,12 @@ from .serializers import (
 from .services import get_or_create_stock, dispatch_transfer, receive_transfer, approve_stock_count
 from api.permissions import ReadOnlyOrSuperAdmin, IsPharmacist
 
+
+from .models import StockAdjustment
+from .serializers import StockAdjustmentSerializer, SetLocationStockSerializer
+from api.models import Medicine, MedicineBatch
+
+
 class StoreLocationViewSet(BaseModelViewSet):
     queryset = StoreLocation.objects.filter(is_active=True)
     serializer_class = StoreLocationSerializer
@@ -36,6 +42,80 @@ class StoreLocationViewSet(BaseModelViewSet):
             quantity_on_hand__gt=0
         ).select_related("medicine")
         return Response(StoreStockSerializer(stock, many=True).data)
+    
+    
+    @action(detail=True, methods=["post"], url_path="set-stock")
+    def set_stock(self, request, pk=None):
+        """
+        Directly declares how much of a medicine is at this location —
+        used to set up a location's initial stock, or correct a known
+        discrepancy. Always logged with a mandatory reason.
+        """
+        location = self.get_object()
+        serializer = SetLocationStockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        medicine = Medicine.objects.filter(pk=data["medicine"]).first()
+        if not medicine:
+            raise ValidationError({"medicine": "Medicine not found."})
+
+        stock = get_or_create_stock(location, medicine)
+        previous = stock.quantity_on_hand
+        stock.quantity_on_hand = data["quantity"]
+        stock.save(update_fields=["quantity_on_hand"])
+
+        StockAdjustment.objects.create(
+            location=location, medicine=medicine, previous_quantity=previous,
+            new_quantity=data["quantity"], reason=data["reason"], adjusted_by=request.user,
+        )
+
+        return Response(StoreStockSerializer(stock).data)
+
+    @action(detail=True, methods=["get"], url_path="adjustments")
+    def adjustments(self, request, pk=None):
+        location = self.get_object()
+        qs = StockAdjustment.objects.filter(location=location).select_related("medicine", "adjusted_by")
+        return Response(StockAdjustmentSerializer(qs, many=True).data)
+
+    @action(detail=False, methods=["get"], url_path="reconciliation")
+    def reconciliation(self, request):
+        """
+        Cross-checks total stock summed across ALL locations against the
+        real system-wide inventory (sum of MedicineBatch.quantity_remaining
+        at Main Pharmacy's source of truth). Flags any medicine where these
+        two numbers don't match — the single most useful view for "are the
+        numbers correct all over inventory and locations."
+        """
+        results = []
+        medicines = Medicine.objects.all()
+
+        for medicine in medicines:
+            system_total = MedicineBatch.objects.filter(medicine=medicine).aggregate(
+                t=__import__("django.db.models", fromlist=["Sum"]).Sum("quantity_remaining")
+            )["t"] or 0
+
+            location_stocks = StoreStock.objects.filter(medicine=medicine).select_related("location")
+            location_total = sum(s.quantity_on_hand for s in location_stocks)
+
+            if system_total == 0 and location_total == 0:
+                continue  # nothing to report for medicines with no stock anywhere
+
+            results.append({
+                "medicine_id": str(medicine.id),
+                "medicine_name": medicine.name,
+                "system_total": system_total,
+                "location_total": location_total,
+                "variance": location_total - system_total,
+                "by_location": [
+                    {"location_id": str(s.location.id), "location_name": s.location.name, "quantity": s.quantity_on_hand}
+                    for s in location_stocks
+                ],
+            })
+
+        # Surface the biggest mismatches first
+        results.sort(key=lambda r: abs(r["variance"]), reverse=True)
+        return Response(results)
 
 class StockTransferRequestViewSet(BaseModelViewSet):
     queryset = StockTransferRequest.objects.select_related("from_location", "to_location").prefetch_related("items").all()
@@ -226,3 +306,5 @@ class StockCountViewSet(BaseModelViewSet):
     def variance_pending(self, request):
         qs = self.get_queryset().filter(status=StockCountStatus.VARIANCE_PENDING)
         return Response(StockCountSerializer(qs, many=True).data)
+    
+    

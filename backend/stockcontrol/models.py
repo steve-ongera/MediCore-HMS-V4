@@ -159,3 +159,29 @@ class StockCountLine(BaseModel):
 
     def __str__(self):
         return f"{self.medicine.name}: system {self.system_quantity} / counted {self.counted_quantity}"
+    
+    
+
+class StockAdjustment(BaseModel):
+    """
+    Direct manual stock-setting at a location — used for initial stocking
+    of a new location (e.g. setting up Ambulance or Maternity Pharmacy for
+    the first time) or correcting a known discrepancy after investigation.
+    Distinct from a StockTransferRequest (which moves stock FROM somewhere)
+    — this is used when stock is being declared at a location directly,
+    with a mandatory reason so it's never silent.
+    """
+    location = models.ForeignKey(StoreLocation, on_delete=models.CASCADE, related_name="adjustments")
+    medicine = models.ForeignKey(Medicine, on_delete=models.PROTECT, related_name="location_adjustments")
+    previous_quantity = models.IntegerField()
+    new_quantity = models.IntegerField()
+    reason = models.CharField(max_length=255)
+    adjusted_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="stock_adjustments_made")
+    adjusted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "stock_adjustments"
+        ordering = ["-adjusted_at"]
+
+    def __str__(self):
+        return f"{self.medicine.name} @ {self.location.name}: {self.previous_quantity} → {self.new_quantity}"

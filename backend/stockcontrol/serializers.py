@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     StoreLocation, StoreStock, StockTransferRequest, StockTransferItem,
-    StockCount, StockCountLine,
+    StockCount, StockCountLine, StockAdjustment
 )
 
 
@@ -126,3 +126,20 @@ class SubmitCountLineSerializer(serializers.Serializer):
 
 class SubmitStockCountSerializer(serializers.Serializer):
     lines = SubmitCountLineSerializer(many=True, min_length=1)
+    
+    
+class StockAdjustmentSerializer(serializers.ModelSerializer):
+    medicine_name = serializers.CharField(source="medicine.name", read_only=True)
+    location_name = serializers.CharField(source="location.name", read_only=True)
+    adjusted_by_name = serializers.CharField(source="adjusted_by.get_full_name", read_only=True)
+
+    class Meta:
+        model = StockAdjustment
+        fields = ["id", "location", "location_name", "medicine", "medicine_name", "previous_quantity", "new_quantity", "reason", "adjusted_by", "adjusted_by_name", "adjusted_at"]
+        read_only_fields = ["id", "previous_quantity", "adjusted_by", "adjusted_at"]
+
+
+class SetLocationStockSerializer(serializers.Serializer):
+    medicine = serializers.UUIDField()
+    quantity = serializers.IntegerField(min_value=0)
+    reason = serializers.CharField(max_length=255)

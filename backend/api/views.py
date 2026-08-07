@@ -296,7 +296,7 @@ class UserViewSet(BaseModelViewSet):
 class DepartmentViewSet(BaseModelViewSet):
     queryset = Department.objects.filter(is_active=True)
     serializer_class = DepartmentSerializer
-    permission_classes = [IsITSupportOrSuperAdmin]
+    permission_classes = []
     search_fields = ["name"]
 
 
@@ -505,6 +505,7 @@ class ICD10CodeViewSet(BaseModelViewSet):
     permission_classes = [IsITSupportOrSuperAdmin]
     search_fields = ["code", "description"]
     lookup_field = "code"
+    filterset_fields = []  # add ["category"] here if that field exists on your model
 
     @action(detail=False, methods=["get"], url_path="lookup")
     def lookup(self, request):
@@ -512,6 +513,12 @@ class ICD10CodeViewSet(BaseModelViewSet):
         query = request.query_params.get("q", "").strip()
         results = ICD10Code.objects.filter(Q(code__istartswith=query) | Q(description__icontains=query))[:20]
         return Response(ICD10CodeSerializer(results, many=True).data)
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Supports ?search= for code/description matching, handled by
+        # search_fields above via your existing SearchFilter backend.
+        return qs
 
 
 # ---------------------------------------------------------------------------

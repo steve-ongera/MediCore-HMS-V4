@@ -321,6 +321,7 @@ const NAV_GROUPS = [
       { to: "/users", label: "Staff", icon: "bi-person-badge", roles: [ROLES.IT_SUPPORT_OFFICER]  },
       { to: "/departments", label: "Departments", icon: "bi-building" , roles: [ROLES.IT_SUPPORT_OFFICER] },
       { to: "/settings/test-catalog", label: "Test Catalog", icon: "bi-clipboard2-data" , roles: [ROLES.IT_SUPPORT_OFFICER] },
+      { to: "/settings/icd10-codes", label: "ICD-10 Codes", icon: "bi-clipboard2-data", roles: [ROLES.IT_SUPPORT_OFFICER] },
       { to: "/insurance/insurers", label: "Insurers", icon: "bi-shield-check" },
       { to: "/etims/config", label: "eTIMS Settings", icon: "bi-gear-fill" },
       { to: "/assets/categories", label: "Asset Categories", icon: "bi-tags" },
