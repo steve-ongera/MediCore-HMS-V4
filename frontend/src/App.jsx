@@ -236,6 +236,8 @@ import TicketDetail from "./pages/tickets/TicketDetail.jsx";
 
 import LicenseStatus from "./pages/settings/LicenseStatus.jsx";
 import ITSupportDashboard from "./pages/dashboard/ITSupportDashboard.jsx";
+import RaiseRequisition from "./pages/procurement/RaiseRequisition.jsx";
+import HODApprovals from "./pages/procurement/HODApprovals.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -722,6 +724,8 @@ export default function App() {
         <Route path="/procurement/orders/:id" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><PurchaseOrderDetail /></ProtectedRoute>} />
         <Route path="/procurement/receipts" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><GoodsReceipts /></ProtectedRoute>} />
         <Route path="/procurement/invoices" element={<ProtectedRoute allowedRoles={[ROLES.PROCUREMENT_OFFICER, ROLES.ACCOUNTANT]}><SupplierInvoices /></ProtectedRoute>} />
+        <Route path="/requisitions/raise" element={<ProtectedRoute><RaiseRequisition /></ProtectedRoute>} />
+        <Route path="/requisitions/approvals" element={<ProtectedRoute><HODApprovals /></ProtectedRoute>} />
 
         <Route path="/hr/employees" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><Employees /></ProtectedRoute>} />
         <Route path="/hr/employees/register" element={<ProtectedRoute allowedRoles={[ROLES.HR_OFFICER]}><EmployeeForm /></ProtectedRoute>} />

@@ -112,6 +112,9 @@ class Department(BaseModel):
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    head_of_department = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="departments_headed"
+    )
 
     class Meta:
         db_table = "departments"

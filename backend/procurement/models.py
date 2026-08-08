@@ -1,3 +1,4 @@
+#procurement/models.py
 import uuid
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -5,13 +6,25 @@ from django.core.validators import MinValueValidator
 from api.models import BaseModel, User, Department, Supplier, Medicine, MedicineBatch
 
 
+class RequisitionCategory(models.TextChoices):
+    MEDICINE = "MEDICINE", "Medicine / Pharmacy"
+    IT_EQUIPMENT = "IT_EQUIPMENT", "IT Equipment (Laptops, Printers, etc.)"
+    ASSET = "ASSET", "General Asset / Equipment"
+    CONSTRUCTION = "CONSTRUCTION", "Construction / Renovation"
+    TENDER = "TENDER", "Tender (Network Installation, Contracted Works)"
+    SERVICE = "SERVICE", "Service Contract"
+    CONSUMABLE = "CONSUMABLE", "General Consumable"
+    OTHER = "OTHER", "Other"
+    
+    
 class RequisitionStatus(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
-    PENDING_APPROVAL = "PENDING_APPROVAL", "Pending Approval"
-    APPROVED = "APPROVED", "Approved"
+    PENDING_HOD_APPROVAL = "PENDING_HOD_APPROVAL", "Pending HOD Approval"
+    HOD_APPROVED = "HOD_APPROVED", "HOD Approved — With Procurement"
     REJECTED = "REJECTED", "Rejected"
     CONVERTED = "CONVERTED", "Converted to PO"
     CANCELLED = "CANCELLED", "Cancelled"
+
 
 
 class ItemType(models.TextChoices):
@@ -22,13 +35,26 @@ class ItemType(models.TextChoices):
 
 
 class PurchaseRequisition(BaseModel):
+    """
+    Any staff member can raise a requisition for their own department —
+    not limited to Procurement, and not limited to medicines. Every
+    requisition MUST be tied to an active budget line (finance.Budget) for
+    the requester's own department; a staff member cannot requisition
+    against another department's budget.
+    """
     requisition_number = models.CharField(max_length=30, unique=True, editable=False)
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="requisitions")
+    budget_line = models.ForeignKey(
+        "finance.Budget", null=True, blank=True, on_delete=models.PROTECT, related_name="requisitions",
+        help_text="The department's active fiscal-period budget this requisition draws against."
+    )
+    category = models.CharField(max_length=20, choices=RequisitionCategory.choices, default=RequisitionCategory.OTHER)
     requested_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="requisitions_made")
-    status = models.CharField(max_length=20, choices=RequisitionStatus.choices, default=RequisitionStatus.DRAFT)
+    status = models.CharField(max_length=25, choices=RequisitionStatus.choices, default=RequisitionStatus.PENDING_HOD_APPROVAL)
     justification = models.TextField(blank=True)
-    approved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="requisitions_approved")
-    approved_at = models.DateTimeField(null=True, blank=True)
+
+    hod_approved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="requisitions_hod_approved")
+    hod_approved_at = models.DateTimeField(null=True, blank=True)
     rejection_reason = models.TextField(blank=True)
 
     class Meta:
@@ -41,15 +67,22 @@ class PurchaseRequisition(BaseModel):
             self.requisition_number = generate_requisition_number()
         super().save(*args, **kwargs)
 
+    @property
+    def estimated_total(self):
+        return sum(
+            (item.quantity_requested * (item.estimated_unit_cost or 0) for item in self.items.all()),
+            start=0,
+        )
+
     def __str__(self):
-        return f"{self.requisition_number} - {self.department.name}"
+        return f"{self.requisition_number} - {self.department.name} ({self.status})"
+
 
 
 class RequisitionItem(BaseModel):
     requisition = models.ForeignKey(PurchaseRequisition, on_delete=models.CASCADE, related_name="items")
-    item_type = models.CharField(max_length=20, choices=ItemType.choices, default=ItemType.MEDICINE)
-    medicine = models.ForeignKey(Medicine, null=True, blank=True, on_delete=models.SET_NULL, related_name="requisition_items")
-    description = models.CharField(max_length=255, help_text="Free-text item description, required for non-medicine items.")
+    medicine = models.ForeignKey("api.Medicine", null=True, blank=True, on_delete=models.SET_NULL, related_name="requisition_items")
+    description = models.CharField(max_length=255, help_text="Free-text item description — required for non-medicine items (laptops, tender scope, construction details, etc.).")
     quantity_requested = models.PositiveIntegerField()
     estimated_unit_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 

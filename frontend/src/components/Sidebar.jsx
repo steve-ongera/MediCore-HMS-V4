@@ -175,12 +175,14 @@ const NAV_GROUPS = [
   },
   {
     label: "Procurement",
-    roles: [ROLES.PROCUREMENT_OFFICER],
+    roles: [ROLES.PROCUREMENT_OFFICER , ROLES.IT_SUPPORT_OFFICER , ROLES.ACCOUNTANT , ROLES.DOCTOR , ROLES.CASHIER, ROLES.PHARMACIST , ROLES.AMBULANCE_DISPATCHER , ROLES.MORTUARY_ATTENDANT, ROLES.NURSE, ROLES.HR_OFFICER , ROLES.RECEPTIONIST , ROLES.RADIOLOGIST , ROLES.LAB_TECHNOLOGIST, ROLES.SUPER_ADMIN],
     links: [
       { to: "/procurement/requisitions", label: "Requisitions", icon: "bi-clipboard2-check", roles: [ROLES.PROCUREMENT_OFFICER] },
       { to: "/procurement/orders", label: "Purchase Orders", icon: "bi-cart4", roles: [ROLES.PROCUREMENT_OFFICER] },
       { to: "/procurement/receipts", label: "Goods Receipts", icon: "bi-box-arrow-in-down", roles: [ROLES.PROCUREMENT_OFFICER] },
       { to: "/procurement/invoices", label: "Supplier Invoices", icon: "bi-receipt", roles: [ROLES.PROCUREMENT_OFFICER] },
+      { to: "/requisitions/raise", label: "Raise Requisition", icon: "bi-clipboard2-plus" },
+      { to: "/requisitions/approvals", label: "Approvals (HOD)", icon: "bi-check2-square" },
     ],
   },
   {

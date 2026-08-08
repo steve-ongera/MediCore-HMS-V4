@@ -1,6 +1,7 @@
+#finance/views.py
 from datetime import date, timedelta
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Sum
 from django.utils import timezone
 from rest_framework import status
@@ -181,10 +182,84 @@ class ExpenseViewSet(BaseModelViewSet):
 class BudgetViewSet(BaseModelViewSet):
     queryset = Budget.objects.select_related("department", "fiscal_period").all()
     serializer_class = BudgetSerializer
+    permission_classes = []
     filterset_fields = ["department", "fiscal_period"]
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        # IMPORTANT: Budget.objects is a SoftDeleteManager, but the DB-level
+        # unique_together constraint on (department, fiscal_period) applies to ALL rows,
+        # including soft-deleted ones. So we check against all_objects here — if a
+        # soft-deleted budget exists for this department/period, we revive it with the
+        # new data instead of trying to insert a new row (which would hit the DB
+        # constraint and throw a raw IntegrityError).
+        department = serializer.validated_data.get("department")
+        fiscal_period = serializer.validated_data.get("fiscal_period")
+
+        existing = Budget.all_objects.filter(
+            department=department, fiscal_period=fiscal_period
+        ).first()
+
+        if existing is not None:
+            if existing.is_deleted:
+                # Silently restore and apply the newly-submitted values, as if this
+                # were a fresh create.
+                existing.is_deleted = False
+                existing.deleted_at = None
+                existing.allocated_amount = serializer.validated_data.get("allocated_amount", existing.allocated_amount)
+                existing.notes = serializer.validated_data.get("notes", existing.notes)
+                existing.created_by = self.request.user
+                existing.save(update_fields=["is_deleted", "deleted_at", "allocated_amount", "notes", "created_by"])
+                serializer.instance = existing
+                return
+
+            raise ValidationError({
+                "detail": f"A budget already exists for {department} in {fiscal_period}. "
+                        f"Edit the existing budget line instead of creating a new one."
+            })
+
+        try:
+            with transaction.atomic():
+                serializer.save(created_by=self.request.user)
+        except IntegrityError:
+            # Genuine race: two requests both passed the check above before either
+            # committed. Don't leak the raw DB error string to the client.
+            raise ValidationError({
+                "detail": "A budget for this department and fiscal period was just created "
+                        "by another request. Please refresh and edit the existing line."
+            })
+
+    @action(detail=True, methods=["post"], url_path="restore")
+    def restore(self, request, pk=None):
+        """Undelete a soft-deleted budget line, e.g. after hitting the duplicate-on-create error above."""
+        budget = Budget.all_objects.filter(pk=pk).first()
+        if budget is None:
+            raise ValidationError({"detail": "No budget found with that id."})
+        if not budget.is_deleted:
+            raise ValidationError({"detail": "This budget is not deleted."})
+
+        # Guard against restoring into a live duplicate (e.g. someone created a new
+        # budget for this department/period after the old one was deleted).
+        conflict = Budget.objects.filter(
+            department=budget.department, fiscal_period=budget.fiscal_period
+        ).exclude(pk=budget.pk).exists()
+        if conflict:
+            raise ValidationError({
+                "detail": "Cannot restore: a different active budget already exists for "
+                          "this department and fiscal period."
+            })
+
+        budget.is_deleted = False
+        budget.deleted_at = None
+        budget.save(update_fields=["is_deleted", "deleted_at"])
+        return Response(BudgetSerializer(budget).data)
+
+    @action(detail=False, methods=["get"], url_path="my-department")
+    def my_department(self, request):
+        """The requesting user's own department's active budget lines — used by the requisition form to pick a valid budget line and show real-time utilization before submitting."""
+        if not request.user.department_id:
+            return Response([])
+        qs = self.get_queryset().filter(department=request.user.department)
+        return Response(BudgetSerializer(qs, many=True).data)
 
 
 class FinancialSummaryView(APIView):

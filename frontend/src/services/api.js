@@ -611,6 +611,7 @@ export const markExpensePaid = (id) => unwrap(client.post(`/expenses/${id}/mark-
 
 export const getBudgets = (params) => unwrap(client.get(`/budgets/${qs(params)}`));
 export const createBudget = (payload) => unwrap(client.post("/budgets/", payload));
+export const getAmIHod = () => unwrap(client.get("/purchase-requisitions/am-i-hod/"));
 
 export const getFinancialSummary = (params) => unwrap(client.get(`/finance/summary/${qs(params)}`));
 
@@ -896,6 +897,12 @@ export const updateFacilityLicense = (payload) => unwrap(client.patch("/facility
 
 export const toggleUserActive = (id) => unwrap(client.post(`/users/${id}/toggle-active/`));
 export const getITSupportDashboard = () => unwrap(client.get("/it-support/dashboard/"));
+
+export const getMyDepartmentBudgets = () => unwrap(client.get("/budgets/my-department/"));
+export const getPendingMyApprovalRequisitions = () => unwrap(client.get("/purchase-requisitions/pending-my-approval/"));
+export const getApprovedForProcurement = () => unwrap(client.get("/purchase-requisitions/approved-for-procurement/"));
+export const hodApproveRequisition = (id) => unwrap(client.post(`/purchase-requisitions/${id}/hod-approve/`));
+export const hodRejectRequisition = (id, payload) => unwrap(client.post(`/purchase-requisitions/${id}/hod-reject/`, payload));
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

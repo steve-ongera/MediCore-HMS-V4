@@ -1,3 +1,4 @@
+#finance/serializers.py
 from rest_framework import serializers
 
 from .models import (
@@ -138,21 +139,31 @@ class BudgetSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
     fiscal_period_name = serializers.CharField(source="fiscal_period.name", read_only=True)
     spent_amount = serializers.SerializerMethodField()
+    committed_amount = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
+    available_amount = serializers.SerializerMethodField()
+    utilization_percent = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Budget
         fields = [
             "id", "department", "department_name", "fiscal_period", "fiscal_period_name",
-            "allocated_amount", "spent_amount", "remaining_amount", "notes", "created_by",
+            "allocated_amount", "spent_amount", "committed_amount", "remaining_amount",
+            "available_amount", "utilization_percent", "notes", "created_by",
         ]
         read_only_fields = ["id", "created_by"]
 
     def get_spent_amount(self, obj):
         return str(obj.spent_amount)
 
+    def get_committed_amount(self, obj):
+        return str(obj.committed_amount)
+
     def get_remaining_amount(self, obj):
         return str(obj.remaining_amount)
+
+    def get_available_amount(self, obj):
+        return str(obj.available_amount)
     
     
 class CashDropSerializer(serializers.ModelSerializer):

@@ -104,8 +104,8 @@ export default function Requisitions() {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      "PENDING_APPROVAL": "badge-warning",
-      "APPROVED": "badge-success",
+      "PENDING_HOD_APPROVAL": "badge-warning",
+      "HOD_APPROVED": "badge-success",
       "REJECTED": "badge-danger",
       "CONVERTED": "badge-info",
       "CANCELLED": "badge-neutral",
@@ -268,8 +268,8 @@ export default function Requisitions() {
                 style={{ width: "180px" }}
               >
                 <option value="">All</option>
-                <option value="PENDING_APPROVAL">Pending Approval</option>
-                <option value="APPROVED">Approved</option>
+                <option value="PENDING_HOD_APPROVAL">Pending HOD Approval</option>
+                <option value="HOD_APPROVED">HOD Approved</option>
                 <option value="REJECTED">Rejected</option>
                 <option value="CONVERTED">Converted to PO</option>
                 <option value="CANCELLED">Cancelled</option>
@@ -290,8 +290,8 @@ export default function Requisitions() {
               </div>
               <h3 className="empty-state__title">No requisitions found</h3>
               <p className="empty-state__desc">
-                {statusFilter 
-                  ? `No requisitions with status "${statusFilter}" found.` 
+                {statusFilter
+                  ? `No requisitions with status "${statusFilter}" found.`
                   : "Create a new requisition using the form above."}
               </p>
             </div>
@@ -317,7 +317,7 @@ export default function Requisitions() {
                       <td>
                         <span className={`badge ${getStatusBadge(r.status)}`}>
                           <span className="badge-dot"></span>
-                          {r.status.replace("_", " ")}
+                          {r.status.replace(/_/g, " ")}
                         </span>
                       </td>
                       <td>
@@ -334,7 +334,7 @@ export default function Requisitions() {
                         </div>
                       </td>
                       <td className="cell-actions">
-                        {r.status === "PENDING_APPROVAL" && (
+                        {r.status === "PENDING_HOD_APPROVAL" && (
                           <div className="flex gap-1 justify-end">
                             <button className="btn btn-success btn-sm" onClick={() => handleApprove(r.id)}>
                               <i className="bi bi-check me-1"></i> Approve
@@ -363,7 +363,7 @@ export default function Requisitions() {
                             )}
                           </div>
                         )}
-                        {r.status === "APPROVED" && (
+                        {r.status === "HOD_APPROVED" && (
                           <Link to={`/procurement/orders?requisition=${r.id}`} className="btn btn-primary btn-sm">
                             <i className="bi bi-file-earmark-plus me-1"></i> Create PO
                           </Link>
@@ -386,11 +386,11 @@ export default function Requisitions() {
             <div className="flex gap-2">
               <span className="badge badge-warning">
                 <span className="badge-dot"></span>
-                Pending Approval
+                Pending HOD Approval
               </span>
               <span className="badge badge-success">
                 <span className="badge-dot"></span>
-                Approved
+                HOD Approved
               </span>
               <span className="badge badge-danger">
                 <span className="badge-dot"></span>

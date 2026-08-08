@@ -1,3 +1,4 @@
+#finance/models.py
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -196,6 +197,29 @@ class Budget(BaseModel):
     @property
     def remaining_amount(self):
         return self.allocated_amount - self.spent_amount
+    
+    @property
+    def committed_amount(self):
+        """
+        Sum of estimated costs on every requisition against this budget
+        line that's HOD-approved or already converted to a PO but not yet
+        an actual Expense — money that's "spoken for" but not yet spent.
+        Real-time utilization = spent + committed.
+        """
+        from procurement.models import PurchaseRequisition, RequisitionStatus
+        active_statuses = [RequisitionStatus.HOD_APPROVED, RequisitionStatus.CONVERTED]
+        requisitions = PurchaseRequisition.objects.filter(budget_line=self, status__in=active_statuses)
+        return sum((r.estimated_total for r in requisitions), start=0)
+
+    @property
+    def available_amount(self):
+        return self.allocated_amount - self.spent_amount - self.committed_amount
+
+    @property
+    def utilization_percent(self):
+        if self.allocated_amount <= 0:
+            return 0
+        return round(float((self.spent_amount + self.committed_amount) / self.allocated_amount * 100), 1)
 
     def __str__(self):
         return f"{self.department.name} - {self.fiscal_period.name}"

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     PurchaseRequisition, RequisitionItem, PurchaseOrder, PurchaseOrderItem,
-    GoodsReceipt, GoodsReceiptItem, SupplierInvoice, SupplierPayment,
+    GoodsReceipt, GoodsReceiptItem, SupplierInvoice, SupplierPayment, RequisitionCategory,
 )
 
 
@@ -10,28 +10,32 @@ class RequisitionItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RequisitionItem
-        fields = ["id", "requisition", "item_type", "medicine", "medicine_name", "description", "quantity_requested", "estimated_unit_cost"]
+        fields = ["id", "requisition", "medicine", "medicine_name", "description", "quantity_requested", "estimated_unit_cost"]
         read_only_fields = ["id", "requisition"]
 
 
 class PurchaseRequisitionSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
     requested_by_name = serializers.CharField(source="requested_by.get_full_name", read_only=True)
-    approved_by_name = serializers.CharField(source="approved_by.get_full_name", read_only=True)
+    hod_approved_by_name = serializers.CharField(source="hod_approved_by.get_full_name", read_only=True)
+    budget_line_id = serializers.UUIDField(source="budget_line.id", read_only=True, default=None)
     items = RequisitionItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = PurchaseRequisition
         fields = [
-            "id", "requisition_number", "department", "department_name", "requested_by",
-            "requested_by_name", "status", "justification", "approved_by", "approved_by_name",
-            "approved_at", "rejection_reason", "items", "created_at",
+            "id", "requisition_number", "department", "department_name", "budget_line", "budget_line_id",
+            "category", "requested_by", "requested_by_name", "status", "justification",
+            "hod_approved_by", "hod_approved_by_name", "hod_approved_at", "rejection_reason",
+            "items", "created_at",
         ]
-        read_only_fields = ["id", "requisition_number", "requested_by", "status", "approved_by", "approved_at", "created_at"]
-
-
+        read_only_fields = [
+            "id", "requisition_number", "requested_by", "status",
+            "hod_approved_by", "hod_approved_at", "created_at",
+        ]
+        
+        
 class RequisitionItemInputSerializer(serializers.Serializer):
-    item_type = serializers.ChoiceField(choices=["MEDICINE", "ASSET", "CONSUMABLE", "OTHER"], default="MEDICINE")
     medicine = serializers.UUIDField(required=False, allow_null=True)
     description = serializers.CharField(max_length=255)
     quantity_requested = serializers.IntegerField(min_value=1)
@@ -39,7 +43,19 @@ class RequisitionItemInputSerializer(serializers.Serializer):
 
 
 class CreateRequisitionSerializer(serializers.Serializer):
-    department = serializers.UUIDField()
+    budget_line = serializers.UUIDField()
+    category = serializers.ChoiceField(choices=[c[0] for c in RequisitionCategory.choices])
+    justification = serializers.CharField(required=False, allow_blank=True, default="")
+    items = RequisitionItemInputSerializer(many=True)
+
+    def validate_items(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one item is required.")
+        return value
+
+class CreateRequisitionSerializer(serializers.Serializer):
+    budget_line = serializers.UUIDField()
+    category = serializers.ChoiceField(choices=[c[0] for c in RequisitionCategory.choices])
     justification = serializers.CharField(required=False, allow_blank=True, default="")
     items = RequisitionItemInputSerializer(many=True)
 

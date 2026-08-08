@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getBudgets, createBudget, getDepartments, getFiscalPeriods } from "../../services/api";
+import { formatCurrency } from "../../utils/formatters";
 
 export default function Budgets() {
   const [budgets, setBudgets] = useState([]);
@@ -17,21 +18,19 @@ export default function Budgets() {
     try {
       const data = await getBudgets({ page_size: 100 });
       setBudgets(data.results ?? data);
-    } catch (err) { setError(err.message); } finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadDepartments = async () => {
-    try {
-      const data = await getDepartments();
-      setDepartments(data.results ?? data);
-    } catch (err) { setError(err.message); }
+    try { const data = await getDepartments(); setDepartments(data.results ?? data); } catch (err) { setError(err.message); }
   };
 
   const loadPeriods = async () => {
-    try {
-      const data = await getFiscalPeriods();
-      setPeriods(data.results ?? data);
-    } catch (err) { setError(err.message); }
+    try { const data = await getFiscalPeriods(); setPeriods(data.results ?? data); } catch (err) { setError(err.message); }
   };
 
   const handleChange = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
@@ -42,19 +41,15 @@ export default function Budgets() {
       await createBudget({ ...form, allocated_amount: Number(form.allocated_amount) });
       setForm({ department: "", fiscal_period: "", allocated_amount: "", notes: "" });
       load();
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "KES 0.00";
-    return `KES ${Number(amount).toFixed(2)}`;
-  };
-
-  const getStatusBadge = (remaining, allocated) => {
-    const percentage = allocated > 0 ? (remaining / allocated) * 100 : 0;
-    if (percentage <= 20) return "badge-danger";
-    if (percentage <= 50) return "badge-warning";
-    return "badge-success";
+  const getUtilizationColor = (pct) => {
+    if (pct >= 100) return "var(--danger-strong)";
+    if (pct >= 85) return "var(--warning-strong)";
+    return "var(--primary)";
   };
 
   if (loading && budgets.length === 0) {
@@ -75,7 +70,7 @@ export default function Budgets() {
           <p className="page-subtitle">Manage departmental budgets</p>
         </div>
         <div className="page-header__actions">
-          <button className="btn btn-secondary" onClick={load}>
+          <button className="btn btn-secondary" onClick={() => { load(); loadDepartments(); loadPeriods(); }}>
             <i className="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
         </div>
@@ -98,6 +93,11 @@ export default function Budgets() {
           </h5>
         </div>
         <div className="card-body">
+          <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
+            <i className="bi bi-info-circle me-1"></i>
+            Real-time utilization shows what's already spent plus what's currently committed by HOD-approved or converted requisitions — so "Available Now" reflects money that's genuinely still free to requisition against.
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -141,7 +141,7 @@ export default function Budgets() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
+              <button type="submit" className="btn btn-primary">
                 <i className="bi bi-plus-circle me-2"></i> Allocate Budget
               </button>
             </div>
@@ -153,7 +153,7 @@ export default function Budgets() {
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
             <i className="bi bi-grid me-1"></i>
-            <h5 className="card-title" style={{ marginBottom: 0 }}>All Budgets</h5>
+            <h5 className="card-title" style={{ marginBottom: 0 }}>All Budget Lines</h5>
           </div>
           <div>
             <span className="text-tertiary text-sm">
@@ -179,36 +179,42 @@ export default function Budgets() {
                     <th>Period</th>
                     <th className="cell-numeric">Allocated</th>
                     <th className="cell-numeric">Spent</th>
-                    <th className="cell-numeric">Remaining</th>
-                    <th>Status</th>
+                    <th className="cell-numeric">Committed</th>
+                    <th className="cell-numeric">Available Now</th>
+                    <th>Utilization</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {budgets.map((b) => {
-                    const remainingPercent = b.allocated_amount > 0 
-                      ? Math.round((b.remaining_amount / b.allocated_amount) * 100) 
-                      : 0;
-                    const statusBadge = getStatusBadge(b.remaining_amount, b.allocated_amount);
-                    let statusLabel = "Healthy";
-                    if (remainingPercent <= 20) statusLabel = "Critical";
-                    else if (remainingPercent <= 50) statusLabel = "Low";
-
-                    return (
-                      <tr key={b.id}>
-                        <td className="cell-primary">{b.department_name}</td>
-                        <td>{b.fiscal_period_name}</td>
-                        <td className="cell-numeric">{formatCurrency(b.allocated_amount)}</td>
-                        <td className="cell-numeric">{formatCurrency(b.spent_amount)}</td>
-                        <td className="cell-numeric">{formatCurrency(b.remaining_amount)}</td>
-                        <td>
-                          <span className={`badge ${statusBadge}`}>
-                            <span className="badge-dot"></span>
-                            {statusLabel} ({remainingPercent}%)
+                  {budgets.map((b) => (
+                    <tr key={b.id}>
+                      <td className="cell-primary">{b.department_name}</td>
+                      <td>{b.fiscal_period_name}</td>
+                      <td className="cell-numeric">{formatCurrency(b.allocated_amount)}</td>
+                      <td className="cell-numeric">{formatCurrency(b.spent_amount)}</td>
+                      <td className="cell-numeric">{formatCurrency(b.committed_amount)}</td>
+                      <td className="cell-numeric" style={{ fontWeight: 600, color: Number(b.available_amount) < 0 ? "var(--danger-strong)" : "var(--text-color)" }}>
+                        {formatCurrency(b.available_amount)}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <div style={{ background: "var(--bg-secondary)", height: "8px", width: "80px", borderRadius: "4px", overflow: "hidden" }}>
+                            <div 
+                              style={{
+                                width: `${Math.min(b.utilization_percent, 100)}%`,
+                                background: getUtilizationColor(b.utilization_percent),
+                                height: "100%",
+                                borderRadius: "4px",
+                                transition: "width 0.3s ease"
+                              }} 
+                            />
+                          </div>
+                          <span className="text-2xs" style={{ color: getUtilizationColor(b.utilization_percent), fontWeight: 600 }}>
+                            {b.utilization_percent}%
                           </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -224,15 +230,15 @@ export default function Budgets() {
             <div className="flex gap-2">
               <span className="badge badge-success">
                 <span className="badge-dot"></span>
-                Healthy
+                Available
               </span>
               <span className="badge badge-warning">
                 <span className="badge-dot"></span>
-                Low
+                High Utilization
               </span>
               <span className="badge badge-danger">
                 <span className="badge-dot"></span>
-                Critical
+                Exceeded
               </span>
             </div>
           </div>
