@@ -5,6 +5,25 @@ import {
   getRequisitions,
 } from "../../services/api";
 
+// Best-effort mapping from a requisition's category to a PO item_type,
+// since RequisitionItem itself has no item_type field (only the parent
+// requisition has a category). MEDICINE/ASSET map directly; everything
+// else defaults to CONSUMABLE/OTHER as appropriate.
+const categoryToItemType = (category) => {
+  switch (category) {
+    case "MEDICINE":
+      return "MEDICINE";
+    case "ASSET":
+    case "IT_EQUIPMENT":
+    case "CONSTRUCTION":
+      return "ASSET";
+    case "CONSUMABLE":
+      return "CONSUMABLE";
+    default:
+      return "OTHER";
+  }
+};
+
 export default function PurchaseOrders() {
   const [searchParams] = useSearchParams();
   const requisitionIdParam = searchParams.get("requisition");
@@ -53,7 +72,9 @@ export default function PurchaseOrders() {
 
   const loadApprovedRequisitions = async () => {
     try {
-      const data = await getRequisitions({ status: "APPROVED", page_size: 100 });
+      // Requisitions ready to become a PO are HOD_APPROVED, not "APPROVED"
+      // (that status doesn't exist on PurchaseRequisition).
+      const data = await getRequisitions({ status: "HOD_APPROVED", page_size: 100 });
       setRequisitions(data.results ?? data);
     } catch (err) { setError(err.message); }
   };
@@ -75,8 +96,9 @@ export default function PurchaseOrders() {
   const prefillFromRequisition = (reqId) => {
     const req = requisitions.find((r) => r.id === reqId);
     if (!req) return;
+    const itemType = categoryToItemType(req.category);
     setItems(req.items.map((it) => ({
-      item_type: it.item_type, medicine: it.medicine || "", description: it.description,
+      item_type: itemType, medicine: it.medicine || "", description: it.description,
       quantity_ordered: it.quantity_requested, unit_cost: it.estimated_unit_cost || "",
     })));
   };
