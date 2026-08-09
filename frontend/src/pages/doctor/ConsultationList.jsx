@@ -8,10 +8,10 @@ import SearchBar from "../../components/SearchBar";
 import Pagination from "../../components/Pagination";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, initials } from "../../utils/formatters";
 
 const STATUS_FILTERS = [
-  { value: "", label: "All Statuses" },
+  { value: "", label: "All" },
   { value: "IN_PROGRESS", label: "In Progress" },
   { value: "PAUSED", label: "Paused" },
   { value: "COMPLETED", label: "Completed" },
@@ -33,7 +33,6 @@ export default function ConsultationList() {
 
   useEffect(() => {
     loadConsultations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, statusFilter]);
 
   const loadConsultations = async () => {
@@ -80,11 +79,13 @@ export default function ConsultationList() {
       render: (row) => (
         <div className="table-row-avatar">
           <span className="avatar avatar-sm">
-            {row.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+            {initials(row.patient_name) || "?"}
           </span>
           <div>
             <div className="cell-primary">{row.patient_name}</div>
-            <div className="text-2xs text-tertiary">{row.doctor_name || "—"}</div>
+            <div className="text-2xs text-tertiary">
+              {row.doctor_name || "Unassigned"}
+            </div>
           </div>
         </div>
       ),
@@ -92,12 +93,23 @@ export default function ConsultationList() {
     {
       key: "started_at",
       label: "Started",
-      render: (row) => formatDate(row.started_at),
+      render: (row) => (
+        <span className="text-tertiary text-sm">
+          {formatDate(row.started_at)}
+        </span>
+      ),
     },
     {
       key: "completed_at",
       label: "Completed",
-      render: (row) => (row.completed_at ? formatDate(row.completed_at) : "—"),
+      render: (row) =>
+        row.completed_at ? (
+          <span className="text-tertiary text-sm">
+            {formatDate(row.completed_at)}
+          </span>
+        ) : (
+          <span className="text-tertiary text-2xs">In progress</span>
+        ),
     },
     {
       key: "status",
@@ -136,6 +148,15 @@ export default function ConsultationList() {
     },
   ];
 
+  if (loading && consultations.length === 0) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading consultations...</span>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="page-header">
@@ -163,21 +184,6 @@ export default function ConsultationList() {
               }}
               delay={400}
             />
-            <select
-              className="select"
-              style={{ maxWidth: 200 }}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              {STATUS_FILTERS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
           </div>
           <div>
             <span className="text-tertiary text-sm">
@@ -186,14 +192,51 @@ export default function ConsultationList() {
           </div>
         </div>
 
-        <div className="card-body p-0">
-          <DataTable
-            columns={columns}
-            data={consultations}
-            loading={loading}
-            emptyMessage="No consultations found. Try adjusting your search or filters."
-          />
+        <div className="card-body" style={{ borderBottom: "1px solid var(--border-color)", padding: "var(--space-3)" }}>
+          <div className="flex gap-1" style={{ flexWrap: "wrap" }}>
+            {STATUS_FILTERS.map((s) => {
+              const isActive = statusFilter === s.value;
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  className={`btn btn-sm ${isActive ? "btn-primary" : "btn-secondary"}`}
+                  onClick={() => {
+                    setStatusFilter(s.value);
+                    setPage(1);
+                  }}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
+        <div className="card-body p-0">
+          {!loading && consultations.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">
+                <i className="bi bi-clipboard2-pulse"></i>
+              </div>
+              <h3 className="empty-state__title">No consultations found</h3>
+              <p className="empty-state__desc">
+                {search || statusFilter
+                  ? "Try adjusting your search or filters."
+                  : "Consultations will appear here once patients are seen."}
+              </p>
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={consultations}
+              loading={loading}
+              emptyMessage="No consultations found. Try adjusting your search or filters."
+            />
+          )}
+        </div>
+
+        <div className="card-footer">
           <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>

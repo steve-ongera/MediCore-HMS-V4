@@ -317,6 +317,7 @@ class AddConsultationProcedureSerializer(serializers.Serializer):
 
 class ConsultationSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="visit.patient.full_name", read_only=True)
+    doctor_name = serializers.SerializerMethodField()
     diagnoses = ConsultationDiagnosisSerializer(source="consultationdiagnosis_set", many=True, read_only=True)
     prescriptions = PrescriptionSerializer(many=True, read_only=True)
     lab_orders = LabOrderSerializer(many=True, read_only=True)
@@ -327,7 +328,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Consultation
         fields = [
-            "id", "visit", "patient_name", "doctor", "chief_complaint",
+            "id", "visit", "patient_name", "doctor", "doctor_name", "chief_complaint",
             "history_of_present_illness", "physical_examination", "treatment_plan",
             "clinical_notes", "diagnoses", "prescriptions", "lab_orders", "radiology_orders",
             "procedures",
@@ -335,12 +336,14 @@ class ConsultationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "doctor", "started_at", "completed_at"]
 
+    def get_doctor_name(self, obj):
+        return obj.doctor.get_full_name() if obj.doctor else None
+
     def get_vitals(self, obj):
         try:
             return VitalSignsSerializer(obj.visit.vitals).data
         except Exception:
             return None
-
 
 class ConsultationPauseSerializer(serializers.Serializer):
     pause_reason = serializers.ChoiceField(choices=["WAITING_LAB", "WAITING_RADIOLOGY", "PATIENT_NOT_READY", "OTHER"])

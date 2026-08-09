@@ -8,7 +8,7 @@ import { getConsultation, saveConsultation, deleteConsultation } from "../../ser
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { formatDate, formatDateTime } from "../../utils/formatters";
+import { formatDate, formatDateTime, initials } from "../../utils/formatters";
 import medicoreLogo from "../../assets/logo.png";
 
 const HOSPITAL_NAME = "City General Hospital";
@@ -428,7 +428,7 @@ export default function ConsultationDetail() {
           <div className="card">
             <div className="card-body text-center">
               <span className="avatar avatar-xl mb-3" style={{ fontSize: "2.5rem" }}>
-                {consultation.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+                {initials(consultation.patient_name) || "?"}
               </span>
               <h5 className="mb-0">{consultation.patient_name}</h5>
               <p className="text-muted text-sm">@{consultation.visit || "No visit"}</p>

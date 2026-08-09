@@ -8,7 +8,7 @@ import Pagination from "../../components/Pagination";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { formatDate, formatDateTime } from "../../utils/formatters";
+import { formatDate, formatDateTime, initials } from "../../utils/formatters";
 
 export default function PatientList() {
   const [patients, setPatients] = useState([]);
@@ -72,7 +72,7 @@ export default function PatientList() {
       render: (row) => (
         <Link to={`/patients/${row.id}`} className="table-row-avatar table-row-avatar--link">
           <span className="avatar avatar-sm">
-            {row.full_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+            {initials(row.full_name) || "?"}
           </span>
           <div>
             <div className="cell-primary">{row.full_name}</div>
@@ -139,6 +139,15 @@ export default function PatientList() {
       ),
     },
   ];
+
+  if (loading && patients.length === 0) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading patients...</span>
+      </div>
+    );
+  }
 
   return (
     <>
