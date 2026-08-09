@@ -5,7 +5,15 @@ import { formatNumber } from "../../utils/formatters";
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 
-export default function MOHDataTable({ endpoint, columns, filters = [], searchPlaceholder = "Search...", dateFrom, dateTo, title }) {
+export default function MOHDataTable({ 
+  endpoint, 
+  columns, 
+  filters = [], 
+  searchPlaceholder = "Search...", 
+  dateFrom, 
+  dateTo, 
+  title 
+}) {
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -79,28 +87,34 @@ export default function MOHDataTable({ endpoint, columns, filters = [], searchPl
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
 
   return (
-    <div className="card" style={{ marginBottom: "var(--space-6)" }}>
-      <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
+    <div className="card mb-6">
+      {/* Card Header - Using CSS classes */}
+      <div className="card-header">
         <h5 className="card-title">{title || "Detailed Records"}</h5>
-        <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
-          <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "var(--space-2)" }}>
-            <input
-              type="text"
-              className="input"
-              placeholder={searchPlaceholder}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              style={{ width: "220px" }}
-            />
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Search Bar - Using search-bar component from CSS */}
+          <form onSubmit={handleSearchSubmit} className="flex gap-2">
+            <div className="search-bar">
+              <i className="search-bar__icon bi bi-search"></i>
+              <input
+                type="text"
+                className="search-bar__input"
+                placeholder={searchPlaceholder}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                style={{ width: "220px" }}
+              />
+            </div>
             <button type="submit" className="btn btn-secondary btn-sm">
               <i className="bi bi-search"></i>
             </button>
           </form>
 
+          {/* Filters */}
           {filters.map((f) => (
             <select
               key={f.key}
-              className="input"
+              className="select"
               style={{ width: "160px" }}
               value={filterValues[f.key] || ""}
               onChange={(e) => handleFilterChange(f.key, e.target.value)}
@@ -112,73 +126,117 @@ export default function MOHDataTable({ endpoint, columns, filters = [], searchPl
             </select>
           ))}
 
-          <button className="btn btn-secondary btn-sm" onClick={handleDownload} disabled={downloading}>
+          {/* Download Button */}
+          <button 
+            className="btn btn-secondary btn-sm" 
+            onClick={handleDownload} 
+            disabled={downloading}
+          >
             <i className={`bi ${downloading ? "bi-hourglass-split" : "bi-download"} me-1`}></i>
             {downloading ? "Preparing..." : "Download CSV"}
           </button>
         </div>
       </div>
 
-      <div className="card-body" style={{ padding: 0 }}>
+      {/* Card Body - Using table-wrap for table container */}
+      <div className="card-body p-0">
         {error && (
-          <div style={{ padding: "var(--space-4)" }}>
-            <div className="text-danger"><i className="bi bi-exclamation-circle me-2"></i>{error}</div>
+          <div className="p-4">
+            <div className="text-danger">
+              <i className="bi bi-exclamation-circle me-2"></i>{error}
+            </div>
           </div>
         )}
 
-        <div style={{ overflowX: "auto" }}>
-          <table className="table" style={{ width: "100%" }}>
-            <thead>
-              <tr>
-                {columns.map((c) => <th key={c.key}>{c.label}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={columns.length} style={{ textAlign: "center", padding: "var(--space-6)" }}>
-                  <div className="spinner"></div>
-                </td></tr>
-              ) : rows.length === 0 ? (
-                <tr><td colSpan={columns.length} style={{ textAlign: "center", padding: "var(--space-6)" }}>
-                  No records found for the current filters.
-                </td></tr>
-              ) : (
-                rows.map((row, i) => (
-                  <tr key={row.id ?? i}>
-                    {columns.map((c) => (
-                      <td key={c.key}>{c.render ? c.render(row) : (row[c.key] ?? "—")}</td>
-                    ))}
+        {/* Table Wrapper */}
+        <div className="table-wrap">
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  {columns.map((c) => (
+                    <th key={c.key} className="cell-primary">{c.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={columns.length} className="text-center p-6">
+                      <div className="spinner"></div>
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length} className="text-center p-6">
+                      <div className="empty-state">
+                        <div className="empty-state__icon">
+                          <i className="bi bi-inbox"></i>
+                        </div>
+                        <div className="empty-state__title">No records found</div>
+                        <div className="empty-state__desc">No records found for the current filters.</div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((row, i) => (
+                    <tr key={row.id ?? i} className="is-clickable">
+                      {columns.map((c) => (
+                        <td key={c.key} className="cell-primary">
+                          {c.render ? c.render(row) : (row[c.key] ?? "—")}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "var(--space-4)", borderTop: "1px solid var(--border)", flexWrap: "wrap", gap: "var(--space-3)"
-        }}>
-          <span className="text-sm text-muted">
-            {count === 0 ? "0 records" : `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, count)} of ${formatNumber(count)}`}
+        {/* Table Footer with Pagination */}
+        <div className="table-footer">
+          <span className="table-footer__meta">
+            {count === 0 
+              ? "0 records" 
+              : `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, count)} of ${formatNumber(count)}`
+            }
           </span>
 
-          <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+          <div className="flex gap-2 items-center">
             <select
-              className="input"
-              style={{ width: "90px" }}
+              className="select"
+              style={{ width: "100px" }}
               value={pageSize}
-              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => { 
+                setPageSize(Number(e.target.value)); 
+                setPage(1); 
+              }}
             >
-              {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n} / page</option>)}
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <option key={n} value={n}>{n} / page</option>
+              ))}
             </select>
-            <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              <i className="bi bi-chevron-left"></i>
-            </button>
-            <span className="text-sm">Page {page} of {totalPages}</span>
-            <button className="btn btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-              <i className="bi bi-chevron-right"></i>
-            </button>
+            
+            <div className="pagination">
+              <button 
+                className="pagination__btn" 
+                disabled={page <= 1} 
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <i className="bi bi-chevron-left"></i>
+              </button>
+              <span className="text-sm text-muted">
+                Page {page} of {totalPages}
+              </span>
+              <button 
+                className="pagination__btn" 
+                disabled={page >= totalPages} 
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
