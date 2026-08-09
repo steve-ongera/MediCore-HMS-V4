@@ -903,6 +903,16 @@ export const getPendingMyApprovalRequisitions = () => unwrap(client.get("/purcha
 export const getApprovedForProcurement = () => unwrap(client.get("/purchase-requisitions/approved-for-procurement/"));
 export const hodApproveRequisition = (id) => unwrap(client.post(`/purchase-requisitions/${id}/hod-approve/`));
 export const hodRejectRequisition = (id, payload) => unwrap(client.post(`/purchase-requisitions/${id}/hod-reject/`, payload));
+
+export const getMOHOpdReport = (params) => unwrap(client.get(`/moh/opd/${qs(params)}`));
+export const getMOHInpatientReport = (params) => unwrap(client.get(`/moh/inpatient-capacity/${qs(params)}`));
+export const getMOHMCHReport = (params) => unwrap(client.get(`/moh/mch/${qs(params)}`));
+export const getMOHMortalityReport = (params) => unwrap(client.get(`/moh/mortality/${qs(params)}`));
+export const getMOHDiseaseReport = (params) => unwrap(client.get(`/moh/disease-surveillance/${qs(params)}`));
+export const getMOHLabRadiologyReport = (params) => unwrap(client.get(`/moh/lab-radiology/${qs(params)}`));
+export const getMOHPharmacyReport = (params) => unwrap(client.get(`/moh/pharmacy-commodities/${qs(params)}`));
+export const getMOHTheatreReport = (params) => unwrap(client.get(`/moh/theatre-emergency-blood-referral/${qs(params)}`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
