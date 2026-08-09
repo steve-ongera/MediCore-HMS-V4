@@ -14,10 +14,20 @@ export default function CashTillDashboard() {
   const [dropAmount, setDropAmount] = useState("");
   const [dropReason, setDropReason] = useState("");
   const [countedCash, setCountedCash] = useState("");
+  const [countedCashTouched, setCountedCashTouched] = useState(false);
   const [closeNotes, setCloseNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { load(); }, []);
+
+  // Auto-fill Counted Cash from the freshly-fetched expected amount — but
+  // only while the cashier hasn't started typing their own count, so a
+  // background refresh never silently overwrites what they're entering.
+  useEffect(() => {
+    if (shift && shift.status === "OPEN" && !countedCashTouched && shift.running_expected_cash != null) {
+      setCountedCash(String(shift.running_expected_cash));
+    }
+  }, [shift, countedCashTouched]);
 
   const load = async () => {
     setLoading(true);
@@ -60,9 +70,17 @@ export default function CashTillDashboard() {
     try {
       await closeCashierShift(shift.id, { counted_cash: Number(countedCash), notes: closeNotes });
       setCountedCash("");
+      setCountedCashTouched(false);
       setCloseNotes("");
       load();
     } catch (err) { setError(err.message); } finally { setSubmitting(false); }
+  };
+
+  const useExpectedAmount = () => {
+    if (shift?.running_expected_cash != null) {
+      setCountedCash(String(shift.running_expected_cash));
+      setCountedCashTouched(false);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -276,18 +294,39 @@ export default function CashTillDashboard() {
             <div className="card-body">
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
                 <i className="bi bi-info-circle me-1"></i>
-                Physically count all cash in your drawer and enter the total. The system will compare it to what's expected.
+                Counted Cash is pre-filled with what the system expects based on today's payments — physically count
+                your drawer and adjust the amount if it differs.
               </div>
               <form onSubmit={handleClose}>
                 <div className="field-row">
                   <div className="field" style={{ marginBottom: 0, flex: 1 }}>
-                    <label className="field-label">Counted Cash (KES) <span className="required">*</span></label>
+                    <label className="field-label" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span>Counted Cash (KES) <span className="required">*</span></span>
+                      <button
+                        type="button"
+                        onClick={useExpectedAmount}
+                        style={{
+                          border: "none",
+                          background: "none",
+                          color: "var(--brand, #2563eb)",
+                          fontSize: "var(--fs-xs)",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                        title="Reset to system-expected amount"
+                      >
+                        Use expected (KES {formatCurrency(shift.running_expected_cash)})
+                      </button>
+                    </label>
                     <input
                       type="number"
                       className="input"
                       placeholder="Counted amount"
                       value={countedCash}
-                      onChange={(e) => setCountedCash(e.target.value)}
+                      onChange={(e) => {
+                        setCountedCash(e.target.value);
+                        setCountedCashTouched(true);
+                      }}
                       required
                     />
                   </div>
