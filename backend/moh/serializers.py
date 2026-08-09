@@ -72,3 +72,34 @@ class VisitListSerializer(serializers.ModelSerializer):
 
     def get_department_name(self, obj):
         return getattr(obj.department, "name", "") if obj.department_id else ""
+    
+    
+
+from api.models import ConsultationDiagnosis  # add to the existing import block
+
+
+class ConsultationDiagnosisListSerializer(serializers.ModelSerializer):
+    patient_name = serializers.SerializerMethodField()
+    consultation_date = serializers.SerializerMethodField()
+    icd10_code_display = serializers.SerializerMethodField()
+    diagnosis_description = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ConsultationDiagnosis
+        fields = [
+            "id", "patient_name", "consultation_date",
+            "icd10_code_display", "diagnosis_description", "is_primary", "is_coding_verified",
+        ]
+
+    def get_patient_name(self, obj):
+        patient = obj.consultation.visit.patient  # Consultation -> visit (OneToOne) -> patient
+        return getattr(patient, "full_name", str(patient)) if patient else ""
+
+    def get_consultation_date(self, obj):
+        return obj.consultation.started_at
+
+    def get_icd10_code_display(self, obj):
+        return obj.icd10_code.code
+
+    def get_diagnosis_description(self, obj):
+        return obj.icd10_code.description

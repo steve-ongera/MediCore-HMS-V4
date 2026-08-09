@@ -171,3 +171,30 @@ class OPDVisitDetailView(BaseMOHReportDetailView):
     def get_base_queryset(self):
         from api.models import Visit
         return Visit.objects.select_related("patient", "department").order_by("-visit_date")
+    
+    
+    
+class DiseaseSurveillanceDetailView(BaseMOHReportDetailView):
+    from .serializers import ConsultationDiagnosisListSerializer
+    serializer_class = ConsultationDiagnosisListSerializer
+
+    search_fields = ["icd10_code__code", "icd10_code__description", "consultation__visit__patient__full_name"]
+    filter_fields = [("icd10_code", "icd10_code__code"), "is_coding_verified"]
+    date_field = "consultation__started_at"
+    csv_filename = "disease_surveillance.csv"
+    csv_columns = [
+        ("Patient", lambda d: d.consultation.visit.patient.full_name),
+        ("Consultation Date", lambda d: d.consultation.started_at),
+        ("ICD-10 Code", lambda d: d.icd10_code.code),
+        ("Diagnosis", lambda d: d.icd10_code.description),
+        ("Primary", lambda d: "Yes" if d.is_primary else "No"),
+        ("Coding Verified", lambda d: "Yes" if d.is_coding_verified else "No"),
+    ]
+
+    def get_base_queryset(self):
+        from api.models import ConsultationDiagnosis
+        return (
+            ConsultationDiagnosis.objects
+            .select_related("consultation", "consultation__visit", "consultation__visit__patient", "icd10_code")
+            .order_by("-consultation__started_at")
+        )
