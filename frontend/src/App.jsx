@@ -239,6 +239,15 @@ import ITSupportDashboard from "./pages/dashboard/ITSupportDashboard.jsx";
 import RaiseRequisition from "./pages/procurement/RaiseRequisition.jsx";
 import HODApprovals from "./pages/procurement/HODApprovals.jsx";
 
+import OPDReport from "./pages/moh/OPDReport.jsx";
+import InpatientCapacityReport from "./pages/moh/InpatientCapacityReport.jsx";
+import MCHReport from "./pages/moh/MCHReport.jsx";
+import MortalityReport from "./pages/moh/MortalityReport.jsx";
+import DiseaseSurveillanceReport from "./pages/moh/DiseaseSurveillanceReport.jsx";
+import LabRadiologyReport from "./pages/moh/LabRadiologyReport.jsx";
+import PharmacyCommoditiesReport from "./pages/moh/PharmacyCommoditiesReport.jsx";
+import TheatreEmergencyReport from "./pages/moh/TheatreEmergencyReport.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
