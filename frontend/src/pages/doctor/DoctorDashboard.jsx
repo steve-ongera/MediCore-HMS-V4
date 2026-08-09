@@ -5,7 +5,7 @@ import { getMyQueue, callNextInQueue, getPatients } from "../../services/api";
 import StatusBadge from "../../components/StatusBadge";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StatCard from "../../components/StatCard";
-import { formatTimeAgo } from "../../utils/formatters";
+import { formatTimeAgo, initials } from "../../utils/formatters";
 
 export default function DoctorDashboard() {
   const [queue, setQueue] = useState([]);
@@ -63,7 +63,6 @@ export default function DoctorDashboard() {
   };
 
   const handleSelectPatient = (patient) => {
-    // Check if patient is in queue
     const existingInQueue = queue.find(q => q.patient === patient.id);
     if (existingInQueue) {
       if (existingInQueue.status === "WAITING_DOCTOR" || existingInQueue.status === "WAITING") {
@@ -303,7 +302,7 @@ export default function DoctorDashboard() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                     <span className="avatar avatar-sm">
-                      {entry.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+                      {initials(entry.patient_name) || "?"}
                     </span>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
