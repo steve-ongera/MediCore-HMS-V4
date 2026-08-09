@@ -1,7 +1,7 @@
 // src/pages/billing/WalkInSale.jsx
 import { useEffect, useRef, useState } from "react";
 import { toast } from "../../context/ToastContext";
-import { searchMedicines, createOTCSale } from "../../services/api";
+import { searchMedicines, getMedicines, createOTCSale } from "../../services/api";
 import { formatDateTime } from "../../utils/formatters";
 
 const PAYMENT_METHODS = [
@@ -10,25 +10,24 @@ const PAYMENT_METHODS = [
   { value: "CARD", label: "Card" },
 ];
 
-// Page-specific layout primitives (split POS columns, search dropdown, qty
-// stepper, summary lines) that don't have a home in main.css yet. Built
-// entirely from the shared design tokens so it stays visually consistent —
-// worth promoting into main.css if this pattern gets reused elsewhere.
+const toArray = (data) => (Array.isArray(data) ? data : data?.results ?? []);
+
+const UNIT_ICONS = {
+  tablet: "bi-capsule",
+  capsule: "bi-capsule",
+  syrup: "bi-droplet-half",
+  injection: "bi-syringe",
+  cream: "bi-droplet",
+  ointment: "bi-droplet",
+  drops: "bi-eyedropper",
+  inhaler: "bi-wind",
+  suppository: "bi-capsule-pill",
+};
+const iconForUnit = (unit) => UNIT_ICONS[(unit || "").toLowerCase()] || "bi-capsule";
+
 function WalkInSaleStyles() {
   return (
     <style>{`
-      .wis-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 360px;
-        gap: var(--space-5);
-        align-items: start;
-      }
-      @media (max-width: 960px) {
-        .wis-layout {
-          grid-template-columns: 1fr;
-        }
-      }
-
       .wis-results {
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-md);
@@ -56,6 +55,77 @@ function WalkInSaleStyles() {
       .wis-results__item:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+
+      .wis-catalog {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: var(--space-3);
+        max-height: 420px;
+        overflow-y: auto;
+        padding-right: var(--space-1);
+      }
+      .wis-catalog__card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+        padding: var(--space-3);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        text-align: left;
+        background: var(--surface, #fff);
+        transition: border-color var(--duration-fast) var(--ease-standard),
+                    box-shadow var(--duration-fast) var(--ease-standard),
+                    background var(--duration-fast) var(--ease-standard);
+      }
+      .wis-catalog__card:hover:not(:disabled) {
+        border-color: var(--brand, var(--border-strong));
+        box-shadow: var(--shadow-sm);
+        background: var(--surface-hover);
+      }
+      .wis-catalog__card:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .wis-catalog__icon {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: var(--radius-md);
+        background: var(--surface-hover);
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+      }
+      .wis-catalog__name {
+        font-weight: var(--fw-medium);
+        font-size: var(--fs-sm);
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+      .wis-catalog__price {
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        color: var(--text-secondary);
+      }
+      .wis-catalog__stock {
+        font-size: var(--fs-2xs, 0.7rem);
+        padding: 2px 6px;
+        border-radius: var(--radius-sm, 4px);
+        font-weight: var(--fw-medium);
+      }
+      .wis-catalog__stock--ok {
+        background: var(--success-soft, #ecfdf5);
+        color: var(--success-strong, #047857);
+      }
+      .wis-catalog__stock--low {
+        background: var(--warning-soft, #fffbeb);
+        color: var(--warning-strong, #b45309);
+      }
+      .wis-catalog__stock--out {
+        background: var(--danger-soft);
+        color: var(--danger-strong);
       }
 
       .wis-stepper {
@@ -111,7 +181,10 @@ export default function WalkInSale() {
   const [searching, setSearching] = useState(false);
   const debounceRef = useRef(null);
 
-  const [cart, setCart] = useState([]); // [{ medicine, quantity }]
+  const [catalog, setCatalog] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  const [cart, setCart] = useState([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [discount, setDiscount] = useState("0");
@@ -121,6 +194,22 @@ export default function WalkInSale() {
   const [submitting, setSubmitting] = useState(false);
 
   const [receipt, setReceipt] = useState(null);
+
+  const loadCatalog = async () => {
+    setCatalogLoading(true);
+    try {
+      const data = await getMedicines({ page_size: 500 });
+      setCatalog(toArray(data));
+    } catch (err) {
+      toast.error(err.message || "Failed to load medicine catalog");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCatalog();
+  }, []);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -143,15 +232,21 @@ export default function WalkInSale() {
   }, [query]);
 
   const addToCart = (medicine) => {
+    if (medicine.current_stock <= 0) return;
     setCart((current) => {
       const existing = current.find((item) => item.medicine.id === medicine.id);
       if (existing) {
+        if (existing.quantity >= medicine.current_stock) return current;
         return current.map((item) =>
           item.medicine.id === medicine.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
       return [...current, { medicine, quantity: 1 }];
     });
+  };
+
+  const handleSearchResultClick = (medicine) => {
+    addToCart(medicine);
     setQuery("");
     setResults([]);
   };
@@ -202,11 +297,18 @@ export default function WalkInSale() {
       toast.success(`Sale ${sale.sale_number} completed`);
       setReceipt(sale);
       resetSale();
+      loadCatalog();
     } catch (err) {
       toast.error(err.message || "Failed to complete sale");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const stockBadgeClass = (medicine) => {
+    if (medicine.current_stock <= 0) return "wis-catalog__stock--out";
+    if (medicine.is_low_stock) return "wis-catalog__stock--low";
+    return "wis-catalog__stock--ok";
   };
 
   return (
@@ -221,11 +323,17 @@ export default function WalkInSale() {
         </div>
       </div>
 
-      <div className="wis-layout">
-        <div>
-          <div className="card mb-5">
+      <div className="grid-8-4">
+        {/* Left Column - 8 columns: Medicine Selection */}
+        <div className="grid-8-4__main">
+          <div className="card">
             <div className="card-header">
               <h2 className="card-title">Find Medicine</h2>
+              {!query.trim() && (
+                <span className="text-xs text-faint">
+                  {catalogLoading ? "Loading catalog..." : `${catalog.length} item${catalog.length !== 1 ? "s" : ""}`}
+                </span>
+              )}
             </div>
             <div className="card-body">
               <input
@@ -238,25 +346,65 @@ export default function WalkInSale() {
 
               {searching && <p className="text-xs text-faint mt-2">Searching...</p>}
 
-              {results.length > 0 && (
-                <div className="wis-results mt-2">
-                  {results.map((medicine) => (
+              {query.trim() ? (
+                results.length > 0 ? (
+                  <div className="wis-results mt-2">
+                    {results.map((medicine) => (
+                      <button
+                        type="button"
+                        key={medicine.id}
+                        className="wis-results__item"
+                        onClick={() => handleSearchResultClick(medicine)}
+                        disabled={medicine.current_stock <= 0}
+                      >
+                        <div className="min-w-0">
+                          <div className="font-medium truncate">{medicine.name}</div>
+                          <div className="text-2xs text-faint truncate">
+                            {medicine.generic_name || "—"} &middot; {medicine.current_stock} {medicine.unit}
+                            {medicine.current_stock !== 1 ? "s" : ""} in stock
+                          </div>
+                        </div>
+                        <span className="font-mono text-sm flex-shrink-0">
+                          KES {Number(medicine.unit_price).toLocaleString()}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  !searching && <p className="text-xs text-faint mt-2">No matches for "{query}".</p>
+                )
+              ) : catalogLoading ? (
+                <p className="text-xs text-faint mt-3">Loading medicines...</p>
+              ) : catalog.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state__icon">
+                    <i className="bi bi-capsule" style={{ fontSize: "1.25rem" }}></i>
+                  </div>
+                  <div className="empty-state__title">No medicines in catalog</div>
+                  <div className="empty-state__desc">Add medicines under Pharmacy &middot; Inventory first.</div>
+                </div>
+              ) : (
+                <div className="wis-catalog mt-3">
+                  {catalog.map((medicine) => (
                     <button
                       type="button"
                       key={medicine.id}
-                      className="wis-results__item"
+                      className="wis-catalog__card"
                       onClick={() => addToCart(medicine)}
                       disabled={medicine.current_stock <= 0}
+                      title={medicine.current_stock <= 0 ? "Out of stock" : `Add ${medicine.name} to cart`}
                     >
-                      <div className="min-w-0">
-                        <div className="font-medium truncate">{medicine.name}</div>
-                        <div className="text-2xs text-faint truncate">
-                          {medicine.generic_name || "—"} &middot; {medicine.current_stock} {medicine.unit}
-                          {medicine.current_stock !== 1 ? "s" : ""} in stock
-                        </div>
-                      </div>
-                      <span className="font-mono text-sm flex-shrink-0">
+                      <span className="wis-catalog__icon">
+                        <i className={`bi ${iconForUnit(medicine.unit)}`}></i>
+                      </span>
+                      <span className="wis-catalog__name">{medicine.name}</span>
+                      <span className="wis-catalog__price">
                         KES {Number(medicine.unit_price).toLocaleString()}
+                      </span>
+                      <span className={`wis-catalog__stock ${stockBadgeClass(medicine)}`}>
+                        {medicine.current_stock <= 0
+                          ? "Out of stock"
+                          : `${medicine.current_stock} ${medicine.unit}${medicine.current_stock !== 1 ? "s" : ""}`}
                       </span>
                     </button>
                   ))}
@@ -264,8 +412,12 @@ export default function WalkInSale() {
               )}
             </div>
           </div>
+        </div>
 
-          <div className="card">
+        {/* Right Column - 4 columns: Cart + Order Summary */}
+        <div className="grid-4-8__sidebar">
+          {/* Cart Section */}
+          <div className="card" style={{ marginBottom: "var(--space-4)" }}>
             <div className="card-header">
               <h2 className="card-title">Cart</h2>
               <span className="text-xs text-faint">
@@ -274,72 +426,74 @@ export default function WalkInSale() {
             </div>
             <div className="card-body p-0">
               {cart.length === 0 ? (
-                <div className="empty-state">
+                <div className="empty-state" style={{ padding: "var(--space-4)" }}>
                   <div className="empty-state__icon">
                     <i className="bi bi-cart" style={{ fontSize: "1.25rem" }}></i>
                   </div>
-                  <div className="empty-state__title">Cart is empty</div>
-                  <div className="empty-state__desc">Search for a medicine above to add it to the sale.</div>
+                  <div className="empty-state__title" style={{ fontSize: "14px" }}>Cart is empty</div>
+                  <div className="empty-state__desc" style={{ fontSize: "12px" }}>Tap a medicine to add it.</div>
                 </div>
               ) : (
-                <div className="table-scroll">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Medicine</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cart.map((item) => (
-                        <tr key={item.medicine.id}>
-                          <td className="cell-primary">{item.medicine.name}</td>
-                          <td>
-                            <div className="wis-stepper">
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(item.medicine.id, item.quantity - 1)}
-                              >
-                                <i className="bi bi-dash"></i>
-                              </button>
-                              <span>{item.quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(item.medicine.id, item.quantity + 1)}
-                              >
-                                <i className="bi bi-plus"></i>
-                              </button>
-                            </div>
-                          </td>
-                          <td className="cell-mono">KES {Number(item.medicine.unit_price).toLocaleString()}</td>
-                          <td className="cell-mono">
-                            KES {(Number(item.medicine.unit_price) * item.quantity).toLocaleString()}
-                          </td>
-                          <td className="cell-actions">
+                <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+                  {cart.map((item) => (
+                    <div
+                      key={item.medicine.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "var(--space-2) var(--space-3)",
+                        borderBottom: "1px solid var(--border-subtle)"
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "13px", fontWeight: 500, truncate: true }}>
+                          {item.medicine.name}
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                          <div className="wis-stepper" style={{ height: "28px" }}>
                             <button
                               type="button"
-                              className="btn-icon-only"
-                              style={{ color: "var(--danger-strong)" }}
-                              onClick={() => removeFromCart(item.medicine.id)}
-                              title="Remove"
+                              onClick={() => updateQuantity(item.medicine.id, item.quantity - 1)}
+                              style={{ width: "24px", height: "24px" }}
                             >
-                              <i className="bi bi-trash"></i>
+                              <i className="bi bi-dash" style={{ fontSize: "12px" }}></i>
                             </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            <span style={{ width: "24px", fontSize: "12px" }}>{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.medicine.id, item.quantity + 1)}
+                              style={{ width: "24px", height: "24px" }}
+                            >
+                              <i className="bi bi-plus" style={{ fontSize: "12px" }}></i>
+                            </button>
+                          </div>
+                          <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+                            KES {(Number(item.medicine.unit_price) * item.quantity).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--danger-strong)",
+                          cursor: "pointer",
+                          padding: "4px"
+                        }}
+                        onClick={() => removeFromCart(item.medicine.id)}
+                      >
+                        <i className="bi bi-x-lg" style={{ fontSize: "12px" }}></i>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
-        </div>
 
-        <div>
+          {/* Order Summary Section */}
           <form className="card" onSubmit={handleCompleteSale}>
             <div className="card-header">
               <h2 className="card-title">Order Summary</h2>
