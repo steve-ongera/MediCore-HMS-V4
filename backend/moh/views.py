@@ -148,3 +148,26 @@ class InpatientAdmissionDetailView(BaseMOHReportDetailView):
             )
             .order_by("-admission_date")
         )
+        
+        
+        
+
+class OPDVisitDetailView(BaseMOHReportDetailView):
+    from .serializers import VisitListSerializer
+    serializer_class = VisitListSerializer
+
+    search_fields = ["patient__full_name"]
+    filter_fields = ["department", ("gender", "patient__gender"), "consultation_type"]
+    date_field = "visit_date"  # DateTimeField, per opd_report()'s visit_date__date__gte usage
+    csv_filename = "opd_visits.csv"
+    csv_columns = [
+        ("Patient", lambda v: getattr(v.patient, "full_name", "")),
+        ("Gender", lambda v: getattr(v.patient, "gender", "")),
+        ("Visit Date", "visit_date"),
+        ("Department", lambda v: getattr(v.department, "name", "")),
+        ("Consultation Type", "consultation_type"),
+    ]
+
+    def get_base_queryset(self):
+        from api.models import Visit
+        return Visit.objects.select_related("patient", "department").order_by("-visit_date")

@@ -14,5 +14,23 @@ export default function OPDReport() {
       { dataKey: "by_department", title: "Visits by Department", type: "bar" },
       { dataKey: "by_consultation_type", title: "Visits by Type", type: "pie" },
     ]}
+    detailTable={{
+      endpoint: "/moh/opd/visits/",
+      title: "Visit Records",
+      searchPlaceholder: "Search patient name...",
+      columns: [
+        { key: "patient_name", label: "Patient" },
+        { key: "patient_gender", label: "Gender" },
+        { key: "visit_date", label: "Visit Date" },
+        { key: "department_name", label: "Department" },
+        { key: "consultation_type", label: "Type" },
+      ],
+      filters: [
+        { key: "gender", label: "Gender", options: [
+          { value: "MALE", label: "Male" },
+          { value: "FEMALE", label: "Female" },
+        ]},
+      ],
+    }}
   />;
 }

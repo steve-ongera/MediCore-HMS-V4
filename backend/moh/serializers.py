@@ -46,3 +46,29 @@ class AdmissionListSerializer(serializers.ModelSerializer):
 
     def get_attending_doctor_name(self, obj):
         return user_display(obj.attending_doctor)
+    
+    
+    
+from api.models import Visit  # add to the existing import block
+
+
+class VisitListSerializer(serializers.ModelSerializer):
+    patient_name = serializers.SerializerMethodField()
+    patient_gender = serializers.SerializerMethodField()
+    department_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Visit
+        fields = [
+            "id", "patient_name", "patient_gender", "visit_date",
+            "department_name", "consultation_type", "created_at",
+        ]
+
+    def get_patient_name(self, obj):
+        return getattr(obj.patient, "full_name", str(obj.patient)) if obj.patient_id else ""
+
+    def get_patient_gender(self, obj):
+        return getattr(obj.patient, "gender", "") if obj.patient_id else ""
+
+    def get_department_name(self, obj):
+        return getattr(obj.department, "name", "") if obj.department_id else ""
