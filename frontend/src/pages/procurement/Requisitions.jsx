@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getRequisitions, createRequisition, approveRequisition, rejectRequisition,
-  getDepartments, getMedicines,
+  getDepartments, getMedicines, getBudgets,
 } from "../../services/api";
 
 export default function Requisitions() {
   const [requisitions, setRequisitions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [medicines, setMedicines] = useState([]);
+  const [budgetLines, setBudgetLines] = useState([]);
+  const [budgetLinesLoading, setBudgetLinesLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState({ department: "", justification: "" });
+  const [form, setForm] = useState({ department: "", budget_line: "", justification: "" });
   const [items, setItems] = useState([
     { item_type: "MEDICINE", medicine: "", description: "", quantity_requested: "", estimated_unit_cost: "" },
   ]);
@@ -23,6 +25,17 @@ export default function Requisitions() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   useEffect(() => { load(); loadDepartments(); loadMedicines(); }, [statusFilter]);
+
+  // Budget lines are scoped to the selected department — the backend
+  // rejects a budget_line that doesn't belong to the requester's own
+  // department, so only offer ones that will actually pass validation.
+  useEffect(() => {
+    if (!form.department) {
+      setBudgetLines([]);
+      return;
+    }
+    loadBudgetLines(form.department);
+  }, [form.department]);
 
   const load = async () => {
     setLoading(true);
@@ -48,7 +61,29 @@ export default function Requisitions() {
     } catch (err) { setError(err.message); }
   };
 
-  const handleFormChange = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
+  const loadBudgetLines = async (departmentId) => {
+    setBudgetLinesLoading(true);
+    try {
+      const data = await getBudgets({ department: departmentId, page_size: 100 });
+      setBudgetLines(data.results ?? data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBudgetLinesLoading(false);
+    }
+  };
+
+  const handleFormChange = (f) => (e) => {
+    const value = e.target.value;
+    setForm((p) => {
+      // Changing department invalidates whatever budget line was picked,
+      // since budget lines belong to exactly one department.
+      if (f === "department") {
+        return { ...p, department: value, budget_line: "" };
+      }
+      return { ...p, [f]: value };
+    });
+  };
 
   const handleItemChange = (index, field) => (e) => {
     const updated = [...items];
@@ -64,6 +99,14 @@ export default function Requisitions() {
     setItems(items.filter((_, i) => i !== index));
   };
 
+  const selectedBudgetLine = budgetLines.find((b) => b.id === form.budget_line);
+
+  const estimatedTotal = items.reduce((sum, it) => {
+    const qty = Number(it.quantity_requested) || 0;
+    const cost = Number(it.estimated_unit_cost) || 0;
+    return sum + qty * cost;
+  }, 0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -71,6 +114,7 @@ export default function Requisitions() {
     try {
       await createRequisition({
         department: form.department,
+        budget_line: form.budget_line,
         justification: form.justification,
         items: items.map((it) => ({
           item_type: it.item_type,
@@ -80,8 +124,9 @@ export default function Requisitions() {
           estimated_unit_cost: it.estimated_unit_cost || undefined,
         })),
       });
-      setForm({ department: "", justification: "" });
+      setForm({ department: "", budget_line: "", justification: "" });
       setItems([{ item_type: "MEDICINE", medicine: "", description: "", quantity_requested: "", estimated_unit_cost: "" }]);
+      setBudgetLines([]);
       load();
     } catch (err) { setError(err.message); } finally { setSubmitting(false); }
   };
@@ -111,6 +156,11 @@ export default function Requisitions() {
       "CANCELLED": "badge-neutral",
     };
     return statusMap[status] || "badge-neutral";
+  };
+
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null || amount === "") return "KES 0.00";
+    return `KES ${Number(amount).toFixed(2)}`;
   };
 
   if (loading && requisitions.length === 0) {
@@ -163,7 +213,49 @@ export default function Requisitions() {
                   {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
-              <div className="field" style={{ marginBottom: 0, flex: 2 }}>
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="field-label">Budget Line <span className="required">*</span></label>
+                <select
+                  className="select"
+                  value={form.budget_line}
+                  onChange={handleFormChange("budget_line")}
+                  required
+                  disabled={!form.department || budgetLinesLoading}
+                >
+                  <option value="">
+                    {!form.department
+                      ? "Select a department first"
+                      : budgetLinesLoading
+                        ? "Loading budget lines..."
+                        : budgetLines.length === 0
+                          ? "No budget lines for this department"
+                          : "Select budget line"}
+                  </option>
+                  {budgetLines.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name || b.category} — KES {Number(b.available_amount ?? 0).toFixed(2)} available
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {selectedBudgetLine && (
+              <div className="text-2xs text-tertiary" style={{ marginBottom: "var(--space-2)" }}>
+                Available on this budget line: {formatCurrency(selectedBudgetLine.available_amount)}
+                {estimatedTotal > 0 && (
+                  <>
+                    {" "}· Estimated total for this requisition: {formatCurrency(estimatedTotal)}
+                    {estimatedTotal > Number(selectedBudgetLine.available_amount ?? 0) && (
+                      <span className="text-danger"> — exceeds available amount</span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
                 <label className="field-label">Justification <span className="required">*</span></label>
                 <input
                   type="text"

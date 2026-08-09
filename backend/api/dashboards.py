@@ -276,7 +276,7 @@ def procurement_dashboard(user):
     days = _last7()
 
     cards = [
-        {"label": "Pending Requisitions", "value": PurchaseRequisition.objects.filter(status=RequisitionStatus.PENDING_APPROVAL).count()},
+        {"label": "Pending Requisitions", "value": PurchaseRequisition.objects.filter(status=RequisitionStatus.PENDING_HOD_APPROVAL).count()},
         {"label": "Open Purchase Orders", "value": PurchaseOrder.objects.exclude(status__in=[PurchaseOrderStatus.FULLY_RECEIVED, PurchaseOrderStatus.CANCELLED]).count()},
         {"label": "Goods Receipts This Month", "value": GoodsReceipt.objects.filter(received_at__date__gte=today.replace(day=1)).count()},
         {"label": "Outstanding Supplier Invoices", "value": SupplierInvoice.objects.exclude(status=SupplierInvoiceStatus.PAID).count()},
@@ -290,7 +290,6 @@ def procurement_dashboard(user):
     pie_qs = PurchaseRequisition.objects.values("status").annotate(count=Count("id"))
     pie = {"title": "Requisition Status Breakdown", "data": [{"name": r["status"], "value": r["count"]} for r in pie_qs]}
     return {"cards": cards, "line": line, "bar": bar, "pie": pie}
-
 
 def ambulance_dashboard(user):
     from ambulance.models import Ambulance, AmbulanceStatus, AmbulanceDispatch, DispatchStatus
