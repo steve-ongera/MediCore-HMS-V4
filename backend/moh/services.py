@@ -1,3 +1,4 @@
+#moh/services.py
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -11,22 +12,27 @@ def _date_range(request):
 
 
 def opd_report(date_from, date_to):
-    from api.models import Visit, ConsultationType
+    from api.models import Visit, Patient
+    from django.db.models import Min
 
     visits = Visit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to)
     total_visits = visits.count()
-    unique_patients = visits.values("patient").distinct().count()
 
-    # New vs returning — a patient is "new" on their first-ever visit date within this system.
-    from api.models import Patient
-    new_count = 0
-    returning_count = 0
-    for patient_id in visits.values_list("patient", flat=True).distinct():
-        first_visit = Visit.objects.filter(patient_id=patient_id).order_by("visit_date").first()
-        if first_visit and date_from <= str(first_visit.visit_date.date()) <= date_to:
-            new_count += 1
-        else:
-            returning_count += 1
+    patient_ids_in_range = visits.values_list("patient", flat=True).distinct()
+    unique_patients = patient_ids_in_range.count()
+
+    # One query for everyone's first-ever visit date, instead of one query per patient
+    first_visit_dates = dict(
+        Visit.objects.filter(patient_id__in=patient_ids_in_range)
+        .values("patient")
+        .annotate(first_visit=Min("visit_date"))
+        .values_list("patient", "first_visit")
+    )
+    new_count = sum(
+        1 for pid in patient_ids_in_range
+        if first_visit_dates.get(pid) and date_from <= str(first_visit_dates[pid].date()) <= date_to
+    )
+    returning_count = unique_patients - new_count
 
     by_department = list(visits.values("department__name").annotate(count=Count("id")).order_by("-count"))
 
@@ -69,10 +75,11 @@ def inpatient_capacity_report(date_from, date_to):
     try:
         from inpatient.models import Admission
         admissions_in_period = Admission.objects.filter(
-            admission_date__gte=date_from, admission_date__lte=date_to
+            admission_date__date__gte=date_from, admission_date__date__lte=date_to
         )
         discharges_in_period = Admission.objects.filter(
-            discharge_date__isnull=False, discharge_date__gte=date_from, discharge_date__lte=date_to
+            discharge_date__isnull=False,
+            discharge_date__date__gte=date_from, discharge_date__date__lte=date_to,
         )
         result["total_admissions"] = admissions_in_period.count()
         result["total_discharges"] = discharges_in_period.count()
@@ -120,7 +127,7 @@ def inpatient_capacity_report(date_from, date_to):
         d = date.fromisoformat(str(date_from))
         end = date.fromisoformat(str(date_to))
         while d <= end:
-            admission_trend.append({"name": d.isoformat(), "value": Admission.objects.filter(admission_date=d).count()})
+            admission_trend.append({"name": d.isoformat(), "value": Admission.objects.filter(admission_date__date=d).count()})
             d += timedelta(days=1)
         result["admission_trend"] = admission_trend
     except Exception:

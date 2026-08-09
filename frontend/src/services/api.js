@@ -912,6 +912,8 @@ export const getMOHDiseaseReport = (params) => unwrap(client.get(`/moh/disease-s
 export const getMOHLabRadiologyReport = (params) => unwrap(client.get(`/moh/lab-radiology/${qs(params)}`));
 export const getMOHPharmacyReport = (params) => unwrap(client.get(`/moh/pharmacy-commodities/${qs(params)}`));
 export const getMOHTheatreReport = (params) => unwrap(client.get(`/moh/theatre-emergency-blood-referral/${qs(params)}`));
+export const getMOHInpatientCapacityReport = (params) => unwrap(client.get(`/moh/inpatient-capacity/${qs(params)}`));
+
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads

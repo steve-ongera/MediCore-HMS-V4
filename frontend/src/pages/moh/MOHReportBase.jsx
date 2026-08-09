@@ -1,11 +1,13 @@
+// src/pages/moh/MOHReportBase.jsx
 import { useEffect, useState } from "react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { exportTableToExcel, exportTableToPDF } from "../../utils/reportExport";
 import { formatNumber } from "../../utils/formatters";
+import MOHDataTable from "../../components/moh/MOHDataTable";
 
 const COLORS = ["#2962FF", "#00C48C", "#FFAB00", "#FF5252", "#7C4DFF", "#00BCD4", "#FF7043", "#9333EA"];
 
-export default function MOHReportBase({ title, subtitle, fetchFn, cardsConfig, chartsConfig, exportFilename }) {
+export default function MOHReportBase({ title, subtitle, fetchFn, cardsConfig, chartsConfig, exportFilename, detailTable }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -174,6 +176,19 @@ export default function MOHReportBase({ title, subtitle, fetchFn, cardsConfig, c
           );
         })}
       </div>
+
+      {/* Detailed, paginated/searchable/filterable/downloadable record table */}
+      {detailTable && (
+        <MOHDataTable
+          endpoint={detailTable.endpoint}
+          columns={detailTable.columns}
+          filters={detailTable.filters}
+          searchPlaceholder={detailTable.searchPlaceholder}
+          title={detailTable.title}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+        />
+      )}
 
       {/* Export Options Card */}
       <div className="card">
