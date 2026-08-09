@@ -6,7 +6,7 @@ import SearchBar from "../../components/SearchBar";
 import Pagination from "../../components/Pagination";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, initials } from "../../utils/formatters";
 
 const ROLE_OPTIONS = [
   { value: "SUPER_ADMIN", label: "Super Admin" },
@@ -23,7 +23,6 @@ const ROLE_OPTIONS = [
   { value: "PROCUREMENT_OFFICER", label: "Procurement Officer"},
   { value: "AMBULANCE_DISPATCHER", label: "Ambulance Dispatcher"},
   { value: "IT_SUPPORT_OFFICER", label: "IT Support Officer"},
-  
 ];
 
 const roleLabel = (value) => ROLE_OPTIONS.find((r) => r.value === value)?.label || value;
@@ -164,7 +163,7 @@ export default function Users() {
       render: (row) => (
         <div className="table-row-avatar">
           <span className="avatar avatar-sm">
-            {(row.full_name || row.username)?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "?"}
+            {initials(row.full_name || row.username) || "?"}
           </span>
           <div>
             <div className="cell-primary">{row.full_name || `${row.first_name} ${row.last_name}`.trim() || row.username}</div>
@@ -235,6 +234,15 @@ export default function Users() {
     },
   ];
 
+  if (loading && users.length === 0) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-lg"></div>
+        <span className="loading-screen__label">Loading staff...</span>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="page-header">
@@ -253,7 +261,7 @@ export default function Users() {
 
       <div className="card">
         <div className="card-header">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap" style={{ flex: 1 }}>
             <SearchBar
               placeholder="Search by name, username, email, or phone..."
               onSearch={(val) => {
@@ -262,23 +270,23 @@ export default function Users() {
               }}
               delay={400}
             />
+          </div>
+          <div className="flex items-center gap-3">
             <select
               className="select"
-              style={{ maxWidth: 220, height: '38px' }}
               value={roleFilter}
               onChange={(e) => {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
+              style={{ minWidth: "160px" }}
             >
               <option value="">All roles</option>
               {ROLE_OPTIONS.map((r) => (
                 <option key={r.value} value={r.value}>{r.label}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <span className="text-tertiary text-sm">
+            <span className="text-tertiary text-sm" style={{ whiteSpace: "nowrap" }}>
               {total} staff member{total !== 1 ? "s" : ""}
             </span>
           </div>
@@ -291,9 +299,7 @@ export default function Users() {
             loading={loading}
             emptyMessage="No staff found. Add a staff member to get started."
           />
-        </div>
 
-        <div className="card-footer">
           <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>
