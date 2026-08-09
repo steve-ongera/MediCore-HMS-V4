@@ -51,72 +51,90 @@ def opd_report(date_from, date_to):
 
 
 def inpatient_capacity_report(date_from, date_to):
-    from inpatient.models import Admission, AdmissionStatus, Bed, Ward
+    from datetime import date, timedelta
 
-    admissions_in_period = Admission.objects.filter(admitted_at__date__gte=date_from, admitted_at__date__lte=date_to)
-    discharges_in_period = Admission.objects.filter(
-        discharged_at__isnull=False, discharged_at__date__gte=date_from, discharged_at__date__lte=date_to
-    )
-
-    total_admissions = admissions_in_period.count()
-    total_discharges = discharges_in_period.count()
-
-    los_values = [
-        (a.discharged_at - a.admitted_at).days
-        for a in discharges_in_period if a.discharged_at and a.admitted_at
-    ]
-    avg_los = round(sum(los_values) / len(los_values), 1) if los_values else 0
+    result = {
+        "total_admissions": None,
+        "total_discharges": None,
+        "average_length_of_stay_days": None,
+        "total_beds": None,
+        "currently_occupied_beds": None,
+        "bed_occupancy_rate_percent": None,
+        "icu_total_beds": None,
+        "icu_occupied_beds": None,
+        "by_ward": [],
+        "admission_trend": [],
+    }
 
     try:
-        total_beds = Bed.objects.count()
+        from inpatient.models import Admission
+        admissions_in_period = Admission.objects.filter(
+            admission_date__gte=date_from, admission_date__lte=date_to
+        )
+        discharges_in_period = Admission.objects.filter(
+            discharge_date__isnull=False, discharge_date__gte=date_from, discharge_date__lte=date_to
+        )
+        result["total_admissions"] = admissions_in_period.count()
+        result["total_discharges"] = discharges_in_period.count()
+
+        los_values = [
+            (a.discharge_date - a.admission_date).days
+            for a in discharges_in_period if a.discharge_date and a.admission_date
+        ]
+        result["average_length_of_stay_days"] = round(sum(los_values) / len(los_values), 1) if los_values else 0
     except Exception:
-        total_beds = None
+        import logging
+        logging.getLogger("moh").exception("inpatient_capacity_report: admissions section failed")
 
     try:
-        currently_occupied = Bed.objects.filter(status__iexact="OCCUPIED").count()
+        from inpatient.models import Bed
+        result["total_beds"] = Bed.objects.count()
     except Exception:
-        currently_occupied = None
+        import logging
+        logging.getLogger("moh").exception("inpatient_capacity_report: bed count failed")
 
-    bed_occupancy_rate = (
-        round((currently_occupied / total_beds) * 100, 1)
-        if total_beds and currently_occupied is not None and total_beds > 0 else None
-    )
-
-    by_ward = []
     try:
+        from inpatient.models import Bed
+        result["currently_occupied_beds"] = Bed.objects.filter(status__iexact="OCCUPIED").count()
+        if result["total_beds"] and result["total_beds"] > 0:
+            result["bed_occupancy_rate_percent"] = round((result["currently_occupied_beds"] / result["total_beds"]) * 100, 1)
+    except Exception:
+        import logging
+        logging.getLogger("moh").exception("inpatient_capacity_report: occupied bed count failed")
+
+    try:
+        from inpatient.models import Bed, Ward
+        by_ward = []
         for ward in Ward.objects.all():
             ward_beds = Bed.objects.filter(ward=ward).count()
             ward_occupied = Bed.objects.filter(ward=ward, status__iexact="OCCUPIED").count()
             by_ward.append({"name": ward.name, "total": ward_beds, "occupied": ward_occupied})
+        result["by_ward"] = by_ward
     except Exception:
-        pass
-
-    admission_trend = []
-    d = date.fromisoformat(str(date_from))
-    end = date.fromisoformat(str(date_to))
-    while d <= end:
-        admission_trend.append({"name": d.isoformat(), "value": Admission.objects.filter(admitted_at__date=d).count()})
-        d += timedelta(days=1)
+        import logging
+        logging.getLogger("moh").exception("inpatient_capacity_report: by_ward section failed")
 
     try:
-        from icu.models import ICUBed, ICUAdmission
-        icu_total_beds = ICUBed.objects.count()
-        icu_occupied = ICUBed.objects.filter(status__iexact="OCCUPIED").count()
+        from inpatient.models import Admission
+        admission_trend = []
+        d = date.fromisoformat(str(date_from))
+        end = date.fromisoformat(str(date_to))
+        while d <= end:
+            admission_trend.append({"name": d.isoformat(), "value": Admission.objects.filter(admission_date=d).count()})
+            d += timedelta(days=1)
+        result["admission_trend"] = admission_trend
     except Exception:
-        icu_total_beds = icu_occupied = None
+        import logging
+        logging.getLogger("moh").exception("inpatient_capacity_report: admission_trend section failed")
 
-    return {
-        "total_admissions": total_admissions,
-        "total_discharges": total_discharges,
-        "average_length_of_stay_days": avg_los,
-        "total_beds": total_beds,
-        "currently_occupied_beds": currently_occupied,
-        "bed_occupancy_rate_percent": bed_occupancy_rate,
-        "icu_total_beds": icu_total_beds,
-        "icu_occupied_beds": icu_occupied,
-        "by_ward": by_ward,
-        "admission_trend": admission_trend,
-    }
+    try:
+        from icu.models import ICUBed
+        result["icu_total_beds"] = ICUBed.objects.count()
+        result["icu_occupied_beds"] = ICUBed.objects.filter(status__iexact="OCCUPIED").count()
+    except Exception:
+        pass  # ICU module optional — no error log needed for a genuinely missing app
+
+    return result
 
 
 def mch_report(date_from, date_to):

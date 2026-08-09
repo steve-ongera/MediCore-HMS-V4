@@ -18,14 +18,16 @@ class BaseMOHReportView(APIView):
     service_fn = None
 
     def get(self, request):
-        date_from, date_to = services._date_range(request)
         try:
+            date_from, date_to = services._date_range(request)
             data = self.service_fn(date_from, date_to)
+            return Response({"date_from": date_from, "date_to": date_to, **data})
         except Exception as exc:
+            import logging
+            logging.getLogger("moh").exception(f"{self.__class__.__name__} failed")
             return Response({"detail": f"Report failed: {exc}"}, status=500)
-        return Response({"date_from": date_from, "date_to": date_to, **data})
-
-
+        
+        
 class OPDReportView(BaseMOHReportView):
     service_fn = staticmethod(services.opd_report)
 
