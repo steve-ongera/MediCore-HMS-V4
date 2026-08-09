@@ -128,3 +128,35 @@ class DeathRegisterListSerializer(serializers.ModelSerializer):
 
     def get_certifying_doctor_name(self, obj):
         return user_display(obj.certifying_doctor)
+    
+    
+    
+
+from api.models import PharmacyDispense  # add to the existing import block
+
+
+class PharmacyDispenseListSerializer(serializers.ModelSerializer):
+    patient_name = serializers.SerializerMethodField()
+    medicine_name = serializers.SerializerMethodField()
+    dosage = serializers.SerializerMethodField()
+    dispensed_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PharmacyDispense
+        fields = [
+            "id", "patient_name", "medicine_name", "dosage", "quantity_dispensed",
+            "payment_method", "status", "dispensed_by_name", "dispensed_at", "completed_at",
+        ]
+
+    def get_patient_name(self, obj):
+        patient = obj.prescription.consultation.visit.patient
+        return getattr(patient, "full_name", "") if patient else ""
+
+    def get_medicine_name(self, obj):
+        return obj.prescription.medicine.name
+
+    def get_dosage(self, obj):
+        return f"{obj.prescription.dosage} · {obj.prescription.frequency}"
+
+    def get_dispensed_by_name(self, obj):
+        return user_display(obj.dispensed_by)

@@ -226,3 +226,41 @@ class MortalityDetailView(BaseMOHReportDetailView):
     def get_base_queryset(self):
         from medrecords.models import DeathRegister
         return DeathRegister.objects.select_related("patient", "certifying_doctor").order_by("-date_of_death")
+    
+    
+    
+
+class PharmacyDispenseDetailView(BaseMOHReportDetailView):
+    from .serializers import PharmacyDispenseListSerializer
+    serializer_class = PharmacyDispenseListSerializer
+
+    search_fields = [
+        "prescription__medicine__name",
+        "prescription__consultation__visit__patient__full_name",
+    ]
+    filter_fields = ["status", "payment_method"]
+    date_field = "completed_at"  # DateTimeField, nullable — pending dispenses auto-excluded by range filter
+    csv_filename = "pharmacy_dispenses.csv"
+    csv_columns = [
+        ("Patient", lambda d: getattr(d.prescription.consultation.visit.patient, "full_name", "")),
+        ("Medicine", lambda d: d.prescription.medicine.name),
+        ("Dosage", lambda d: f"{d.prescription.dosage} · {d.prescription.frequency}"),
+        ("Quantity", "quantity_dispensed"),
+        ("Payment Method", "payment_method"),
+        ("Status", "status"),
+        ("Dispensed By", lambda d: user_display(d.dispensed_by)),
+        ("Dispensed At", "dispensed_at"),
+        ("Completed At", "completed_at"),
+    ]
+
+    def get_base_queryset(self):
+        from api.models import PharmacyDispense
+        return (
+            PharmacyDispense.objects
+            .select_related(
+                "prescription", "prescription__medicine",
+                "prescription__consultation", "prescription__consultation__visit",
+                "prescription__consultation__visit__patient", "dispensed_by",
+            )
+            .order_by("-dispensed_at")
+        )
