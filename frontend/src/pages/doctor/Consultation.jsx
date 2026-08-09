@@ -25,7 +25,7 @@ import {
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Modal from "../../components/Modal";
 import StatusBadge from "../../components/StatusBadge";
-import { formatDate, formatDateTime } from "../../utils/formatters";
+import { formatDate, formatDateTime, initials } from "../../utils/formatters";
 
 const TABS = [
   { key: "notes", label: "Clinical Notes", icon: "bi-file-text" },
@@ -562,7 +562,7 @@ export default function Consultation() {
           <div className="card">
             <div className="card-body text-center">
               <span className="avatar avatar-xl mb-3" style={{ fontSize: "2.5rem" }}>
-                {consultation?.patient_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "?"}
+                {initials(consultation?.patient_name) || "?"}
               </span>
               <h5 className="mb-0">{consultation?.patient_name}</h5>
               <span className="text-muted text-sm">
