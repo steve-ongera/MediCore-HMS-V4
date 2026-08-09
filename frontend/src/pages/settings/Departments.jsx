@@ -1,17 +1,30 @@
 import { useEffect, useState } from "react";
 import { toast } from "../../context/ToastContext";
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from "../../services/api";
+import {
+  getDepartments,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
+  getUsers,
+} from "../../services/api";
 import DataTable from "../../components/DataTable";
 import SearchBar from "../../components/SearchBar";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
-const EMPTY_FORM = { name: "", consultation_fee: "", description: "", is_active: true };
+const EMPTY_FORM = {
+  name: "",
+  consultation_fee: "",
+  description: "",
+  is_active: true,
+  head_of_department: "", // FK id, or "" for unassigned
+};
 
 const toArray = (data) => (Array.isArray(data) ? data : data?.results ?? []);
 
 export default function Departments() {
   const [departments, setDepartments] = useState([]);
+  const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -25,6 +38,7 @@ export default function Departments() {
 
   useEffect(() => {
     load();
+    loadStaff();
   }, []);
 
   const load = async () => {
@@ -36,6 +50,19 @@ export default function Departments() {
       toast.error(err.message || "Failed to load departments");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStaff = async () => {
+    try {
+      // page_size bypasses default DRF pagination so the dropdown gets
+      // every user in one request instead of just page 1. If your
+      // UserViewSet uses LimitOffsetPagination instead of PageNumber,
+      // swap this to { limit: 500 }.
+      const data = await getUsers({ page_size: 500 });
+      setStaff(toArray(data));
+    } catch (err) {
+      toast.error(err.message || "Failed to load staff list");
     }
   };
 
@@ -57,6 +84,7 @@ export default function Departments() {
       consultation_fee: dept.consultation_fee,
       description: dept.description || "",
       is_active: dept.is_active,
+      head_of_department: dept.head_of_department || "",
     });
     setFormError("");
     setShowForm(true);
@@ -73,11 +101,16 @@ export default function Departments() {
     setSaving(true);
     setFormError("");
     try {
+      // Backend FK expects null, not "", for unassigned
+      const payload = {
+        ...form,
+        head_of_department: form.head_of_department || null,
+      };
       if (editingId) {
-        await updateDepartment(editingId, form);
+        await updateDepartment(editingId, payload);
         toast.success("Department updated");
       } else {
-        await createDepartment(form);
+        await createDepartment(payload);
         toast.success("Department added");
       }
       closeForm();
@@ -121,6 +154,19 @@ export default function Departments() {
           <div className="text-2xs text-tertiary">{row.description || "—"}</div>
         </div>
       ),
+    },
+    {
+      key: "head_of_department",
+      label: "Head of Department",
+      render: (row) =>
+        row.head_of_department_name ? (
+          <div>
+            <div className="cell-primary">{row.head_of_department_name}</div>
+            <div className="text-2xs text-tertiary">{row.head_of_department_role || "—"}</div>
+          </div>
+        ) : (
+          <span className="text-tertiary text-2xs">Unassigned</span>
+        ),
     },
     {
       key: "consultation_fee",
@@ -217,9 +263,9 @@ export default function Departments() {
 
               <div className="modal-body">
                 {formError && (
-                  <div className="alert alert-danger" style={{ 
-                    padding: 'var(--space-3) var(--space-4)', 
-                    background: 'var(--danger-soft)', 
+                  <div className="alert alert-danger" style={{
+                    padding: 'var(--space-3) var(--space-4)',
+                    background: 'var(--danger-soft)',
                     color: 'var(--danger-strong)',
                     borderRadius: 'var(--radius-md)',
                     marginBottom: 'var(--space-4)',
@@ -259,6 +305,23 @@ export default function Departments() {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="field">
+                  <label className="field-label">Head of Department</label>
+                  <select
+                    className="input"
+                    value={form.head_of_department}
+                    onChange={(e) => setForm({ ...form, head_of_department: e.target.value })}
+                  >
+                    <option value="">— Unassigned —</option>
+                    {staff.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.get_full_name || u.username} ({u.role}){!u.is_active_staff ? " — inactive" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="field-hint">Optional: assign a staff member to head this department</span>
                 </div>
 
                 <div className="field">
@@ -302,11 +365,11 @@ export default function Departments() {
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? (
                     <>
-                      <span className="spinner spinner-sm" style={{ 
-                        display: 'inline-block', 
-                        width: '16px', 
+                      <span className="spinner spinner-sm" style={{
+                        display: 'inline-block',
+                        width: '16px',
                         height: '16px',
-                        marginRight: 'var(--space-2)' 
+                        marginRight: 'var(--space-2)'
                       }}></span>
                       Saving...
                     </>

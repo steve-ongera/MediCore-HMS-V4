@@ -296,8 +296,19 @@ class UserViewSet(BaseModelViewSet):
 class DepartmentViewSet(BaseModelViewSet):
     queryset = Department.objects.filter(is_active=True)
     serializer_class = DepartmentSerializer
-    permission_classes = []
     search_fields = ["name"]
+
+    def get_permissions(self):
+        # Department lookup (list/retrieve) feeds many dropdowns across the
+        # app and stays open, matching existing behavior. But create/update/
+        # delete — including assigning a Head of Department, which affects
+        # who can approve that department's requisitions — is an
+        # administrative action and must require auth. The old
+        # `permission_classes = []` disabled auth for ALL actions, not just
+        # reads; this scopes it back down.
+        if self.action in ("list", "retrieve"):
+            return []
+        return [IsAuthenticated()]
 
 
 # ---------------------------------------------------------------------------

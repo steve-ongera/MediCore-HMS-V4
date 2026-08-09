@@ -62,10 +62,15 @@ class AdminResetPasswordSerializer(serializers.Serializer):
 # ---------------------------------------------------------------------------
 class DepartmentSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(default=True)
+    head_of_department_name = serializers.CharField(source="head_of_department.get_full_name", read_only=True)
+    head_of_department_role = serializers.CharField(source="head_of_department.role", read_only=True)
 
     class Meta:
         model = Department
-        fields = ["id", "name", "consultation_fee", "description", "is_active"]
+        fields = [
+            "id", "name", "consultation_fee", "description", "is_active",
+            "head_of_department", "head_of_department_name", "head_of_department_role",
+        ]
 
 
 # ---------------------------------------------------------------------------
