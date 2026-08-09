@@ -241,7 +241,7 @@ import HODApprovals from "./pages/procurement/HODApprovals.jsx";
 
 import OPDReport from "./pages/moh/OPDReport.jsx";
 import InpatientCapacityReport from "./pages/moh/InpatientCapacityReport.jsx";
-import MCHReport from "./pages/moh/MCHReport.jsx";
+import XMCHReport from "./pages/moh/MCHReport.jsx";
 import MortalityReport from "./pages/moh/MortalityReport.jsx";
 import DiseaseSurveillanceReport from "./pages/moh/DiseaseSurveillanceReport.jsx";
 import LabRadiologyReport from "./pages/moh/LabRadiologyReport.jsx";

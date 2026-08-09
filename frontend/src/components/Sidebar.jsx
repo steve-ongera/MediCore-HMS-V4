@@ -314,6 +314,20 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "MOH / KHIS Reports",
+    roles: [ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER],
+    links: [
+      { to: "/moh/opd", label: "OPD & Outpatient", icon: "bi-clipboard2-pulse" },
+      { to: "/moh/inpatient", label: "Inpatient & Capacity", icon: "bi-hospital" },
+      { to: "/moh/mch", label: "Maternal & Child Health", icon: "bi-heart" },
+      { to: "/moh/mortality", label: "Mortality", icon: "bi-file-earmark-x" },
+      { to: "/moh/disease-surveillance", label: "Disease Surveillance", icon: "bi-virus" },
+      { to: "/moh/lab-radiology", label: "Lab & Radiology", icon: "bi-droplet-half" },
+      { to: "/moh/pharmacy", label: "Pharmacy & Commodities", icon: "bi-capsule" },
+      { to: "/moh/theatre-emergency", label: "Theatre, ED, Blood & Referrals", icon: "bi-activity" },
+    ],
+  },
+  {
     label: "Administration",
     roles: [],
     links: [
