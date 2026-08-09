@@ -3,7 +3,8 @@ from django.urls import path
 from .views import (
     OPDReportView, InpatientCapacityReportView, MCHReportView, MortalityReportView,
     DiseaseSurveillanceReportView, LabRadiologyReportView, PharmacyCommoditiesReportView,
-    TheatreEmergencyBloodReferralReportView,InpatientAdmissionDetailView, OPDVisitDetailView, DiseaseSurveillanceDetailView
+    TheatreEmergencyBloodReferralReportView,InpatientAdmissionDetailView, OPDVisitDetailView, DiseaseSurveillanceDetailView ,
+    MortalityDetailView ,
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     path("moh/inpatient-capacity/admissions/", InpatientAdmissionDetailView.as_view(), name="inpatient-admission-detail"),
     path("moh/opd/visits/", OPDVisitDetailView.as_view(), name="opd-visit-detail"),
     path("moh/disease-surveillance/diagnoses/", DiseaseSurveillanceDetailView.as_view(), name="disease-surveillance-detail"),
+    path("moh/mortality/deaths/", MortalityDetailView.as_view(), name="mortality-detail"),
 ]

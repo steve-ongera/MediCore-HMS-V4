@@ -5,6 +5,11 @@ from rest_framework.response import Response
 from api.permissions import IsAccountant, HasRole
 from api.models import Role
 
+def user_display(user):
+    if not user:
+        return ""
+    return getattr(user, "full_name", None) or getattr(user, "get_full_name", lambda: "")() or str(user)
+
 from . import services
 from .pagination import MOHReportPagination
 from .utils import apply_search, apply_exact_filters, stream_csv
@@ -198,3 +203,26 @@ class DiseaseSurveillanceDetailView(BaseMOHReportDetailView):
             .select_related("consultation", "consultation__visit", "consultation__visit__patient", "icd10_code")
             .order_by("-consultation__started_at")
         )
+        
+        
+
+class MortalityDetailView(BaseMOHReportDetailView):
+    from .serializers import DeathRegisterListSerializer
+    serializer_class = DeathRegisterListSerializer
+
+    search_fields = ["registration_number", "deceased_name", "cause_of_death"]
+    filter_fields = [("gender", "patient__gender")]
+    date_field = "date_of_death"  # DateTimeField
+    csv_filename = "mortality_register.csv"
+    csv_columns = [
+        ("Registration #", "registration_number"),
+        ("Deceased Name", "deceased_name"),
+        ("Linked Patient", lambda d: getattr(d.patient, "full_name", "") if d.patient_id else ""),
+        ("Date of Death", "date_of_death"),
+        ("Cause of Death", "cause_of_death"),
+        ("Certifying Doctor", lambda d: user_display(d.certifying_doctor)),
+    ]
+
+    def get_base_queryset(self):
+        from medrecords.models import DeathRegister
+        return DeathRegister.objects.select_related("patient", "certifying_doctor").order_by("-date_of_death")

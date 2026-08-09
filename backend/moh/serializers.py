@@ -103,3 +103,28 @@ class ConsultationDiagnosisListSerializer(serializers.ModelSerializer):
 
     def get_diagnosis_description(self, obj):
         return obj.icd10_code.description
+    
+    
+from medrecords.models import DeathRegister  # add to the existing import block
+
+
+class DeathRegisterListSerializer(serializers.ModelSerializer):
+    patient_name = serializers.SerializerMethodField()
+    patient_gender = serializers.SerializerMethodField()
+    certifying_doctor_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DeathRegister
+        fields = [
+            "id", "registration_number", "deceased_name", "patient_name", "patient_gender",
+            "date_of_death", "cause_of_death", "certifying_doctor_name",
+        ]
+
+    def get_patient_name(self, obj):
+        return getattr(obj.patient, "full_name", "") if obj.patient_id else ""
+
+    def get_patient_gender(self, obj):
+        return getattr(obj.patient, "gender", "") if obj.patient_id else ""
+
+    def get_certifying_doctor_name(self, obj):
+        return user_display(obj.certifying_doctor)

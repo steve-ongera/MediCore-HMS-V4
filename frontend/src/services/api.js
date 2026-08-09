@@ -915,6 +915,7 @@ export const getMOHTheatreReport = (params) => unwrap(client.get(`/moh/theatre-e
 export const getMOHInpatientCapacityReport = (params) => unwrap(client.get(`/moh/inpatient-capacity/${qs(params)}`));
 export const getMOHOpdVisits = (params) => unwrap(client.get(`/moh/opd/visits/${qs(params)}`));
 export const getMOHDiseaseDiagnoses = (params) => unwrap(client.get(`/moh/disease-surveillance/diagnoses/${qs(params)}`));
+export const getMOHMortalityDeaths = (params) => unwrap(client.get(`/moh/mortality/deaths/${qs(params)}`));
 
 
 // ---------------------------------------------------------------------------
