@@ -261,15 +261,19 @@ class LabOrderSerializer(serializers.ModelSerializer):
     test_name = serializers.CharField(source="test.name", read_only=True)
     test_price = serializers.DecimalField(source="test.price", max_digits=10, decimal_places=2, read_only=True)
     patient_name = serializers.CharField(source="consultation.visit.patient.full_name", read_only=True)
+    ordered_by_name = serializers.SerializerMethodField()
     result = serializers.SerializerMethodField()
 
     class Meta:
         model = LabOrder
         fields = [
             "id", "consultation", "test", "test_name", "test_price", "patient_name",
-            "status", "is_paid", "invoice", "ordered_by", "ordered_at", "result",
+            "status", "is_paid", "invoice", "ordered_by", "ordered_by_name", "ordered_at", "result",
         ]
         read_only_fields = ["id", "status", "is_paid", "invoice", "ordered_by", "ordered_at"]
+
+    def get_ordered_by_name(self, obj):
+        return obj.ordered_by.get_full_name() if obj.ordered_by else None
 
     def get_result(self, obj):
         result = getattr(obj, "result", None)

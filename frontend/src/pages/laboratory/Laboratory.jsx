@@ -105,6 +105,8 @@ export default function Laboratory() {
     y += 7;
     doc.text(`Test: ${row.test_name || "—"}`, margin, y);
     y += 7;
+    doc.text(`Ordered By: ${row.ordered_by_name || "—"}`, margin, y);
+    y += 7;
     doc.text(`Ordered: ${row.ordered_at ? formatDateTime(row.ordered_at) : "—"}`, margin, y);
     y += 7;
     if (row.result?.completed_at) {
@@ -150,6 +152,11 @@ export default function Laboratory() {
       key: "patient_name",
       label: "Patient",
       render: (row) => row.patient_name || "—",
+    },
+    {
+      key: "ordered_by_name",
+      label: "Ordered By",
+      render: (row) => row.ordered_by_name || "—",
     },
     {
       key: "status",
@@ -216,8 +223,8 @@ export default function Laboratory() {
         return (
           <div className="flex gap-1 items-center">
             {row.result.result_file && (
-              <a
-                href={row.result.result_file}
+              
+               <a href={row.result.result_file}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-outline btn-sm"

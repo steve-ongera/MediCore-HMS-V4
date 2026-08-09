@@ -727,7 +727,7 @@ class PermissionDeniedPaymentRequired(APIException):
 class RadiologyTestCatalogViewSet(BaseModelViewSet):
     queryset = RadiologyTestCatalog.objects.filter(is_active=True)
     serializer_class = RadiologyTestCatalogSerializer
-    permission_classes = [IsITSupportOrSuperAdmin]
+    permission_classes = []
     search_fields = ["name", "code"]
 
 
