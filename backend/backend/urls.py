@@ -37,6 +37,7 @@ urlpatterns = [
     path("api/", include("communication.urls")),
     path("api/", include("tickets.urls")),
     path("api/", include("licensing.urls")),
+    path("api/", include("moh.urls")),
 
     # OpenAPI / Swagger documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
