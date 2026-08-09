@@ -876,6 +876,15 @@ export default function App() {
         <Route path="/settings/license" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><LicenseStatus /></ProtectedRoute>} />
         <Route path="/settings/icd10-codes" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}><ICD10Management /></ProtectedRoute>} />
 
+        <Route path="/moh/opd" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><OPDReport /></ProtectedRoute>} />
+        <Route path="/moh/inpatient" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><InpatientCapacityReport /></ProtectedRoute>} />
+        <Route path="/moh/mch" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><MCHReport /></ProtectedRoute>} />
+        <Route path="/moh/mortality" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><MortalityReport /></ProtectedRoute>} />
+        <Route path="/moh/disease-surveillance" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><DiseaseSurveillanceReport /></ProtectedRoute>} />
+        <Route path="/moh/lab-radiology" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><LabRadiologyReport /></ProtectedRoute>} />
+        <Route path="/moh/pharmacy" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><PharmacyCommoditiesReport /></ProtectedRoute>} />
+        <Route path="/moh/theatre-emergency" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><TheatreEmergencyReport /></ProtectedRoute>} />
+
 
         {/* Profile - any authenticated user */}
         <Route
