@@ -4658,3 +4658,178 @@ fieldset legend {
   padding: 0;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
+
+/* Alert Component */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+}
+
+.alert-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert-title {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  margin-bottom: 2px;
+}
+
+.alert-message {
+  font-size: var(--fs-sm);
+  opacity: 0.9;
+}
+
+.alert-warning {
+  background: var(--warning-soft);
+  border-color: var(--warning-soft);
+  color: var(--warning-strong);
+}
+
+.alert-danger {
+  background: var(--danger-soft);
+  border-color: var(--danger-soft);
+  color: var(--danger-strong);
+}
+
+.alert-info {
+  background: var(--info-soft);
+  border-color: var(--info-soft);
+  color: var(--info-strong);
+}
+
+.alert-success {
+  background: var(--success-soft);
+  border-color: var(--success-soft);
+  color: var(--success-strong);
+}
+
+/* Spin animation for refresh icon */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Patient header compact */
+.patient-header--compact {
+  padding: var(--space-3);
+  margin-bottom: 0;
+  background: var(--surface-sunken);
+}
+
+/* Image Grid */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+/* Image Card */
+.image-card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.image-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.image-card__container {
+  position: relative;
+  padding-bottom: 75%;
+  background: var(--gray-900);
+  overflow: hidden;
+}
+
+.image-card__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--gray-900);
+}
+
+.image-card__badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+}
+
+.image-card__badge--simulated {
+  background: rgba(255, 193, 7, 0.9);
+  color: var(--gray-900);
+}
+
+.image-card__info {
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.image-card__number {
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+
+/* Warning button variant */
+.btn-warning {
+  background: var(--warning);
+  color: var(--text-inverse);
+  border-color: var(--warning);
+}
+
+.btn-warning:hover {
+  background: var(--warning-strong);
+  border-color: var(--warning-strong);
+}
+
+.btn-warning:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Info Grid in card */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+/* Study UID */
+.study-uid {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  word-break: break-all;
+}

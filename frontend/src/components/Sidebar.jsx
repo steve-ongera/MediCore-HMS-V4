@@ -84,6 +84,7 @@ const NAV_GROUPS = [
       { to: "/laboratory/catalog", label: "Test Catalog", icon: "bi-clipboard2-data", roles: [ROLES.LAB_TECHNOLOGIST] },
       { to: "/radiology/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.RADIOLOGIST] },
       { to: "/radiology/catalog", label: "Test Catalog", icon: "bi-clipboard2-data", roles: [ROLES.RADIOLOGIST] },
+      { to: "/pacs", label: "PACS Worklist", icon: "bi-file-medical" },
     ],
   },
   {
