@@ -5,8 +5,10 @@ import {
   getSuppliers,
   getMedicineBatches,
   createMedicine,
+  updateMedicine,
   createSupplier,
   createMedicineBatch,
+  updateMedicineBatch,
   getLowStockMedicines,
 } from "../../services/api";
 import DataTable from "../../components/DataTable";
@@ -45,6 +47,8 @@ export default function Inventory() {
   const [showMedicineModal, setShowMedicineModal] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [showEditMedicineModal, setShowEditMedicineModal] = useState(false);
+  const [showEditBatchModal, setShowEditBatchModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [medicineForm, setMedicineForm] = useState({
@@ -68,6 +72,28 @@ export default function Inventory() {
     supplier: "",
     batch_number: "",
     quantity_received: "",
+    expiry_date: "",
+  });
+
+  // Edit Medicine — separate from medicineForm so the "Add Medicine" modal's
+  // state isn't disturbed by opening an edit.
+  const [editingMedicineId, setEditingMedicineId] = useState(null);
+  const [editMedicineForm, setEditMedicineForm] = useState({
+    name: "",
+    generic_name: "",
+    category: "",
+    unit: "tablet",
+    unit_price: "",
+    reorder_level: 20,
+  });
+
+  // Edit / Adjust Stock — quantity_remaining is the actual stock correction;
+  // batch_number and expiry_date are editable for fixing data-entry mistakes.
+  const [editingBatchId, setEditingBatchId] = useState(null);
+  const [editBatchForm, setEditBatchForm] = useState({
+    medicine_name: "",
+    batch_number: "",
+    quantity_remaining: "",
     expiry_date: "",
   });
 
@@ -168,6 +194,45 @@ export default function Inventory() {
     }
   };
 
+  const openEditMedicine = (row) => {
+    setEditingMedicineId(row.id);
+    setEditMedicineForm({
+      name: row.name || "",
+      generic_name: row.generic_name || "",
+      category: row.category || "",
+      unit: row.unit || "tablet",
+      unit_price: row.unit_price ?? "",
+      reorder_level: row.reorder_level ?? 20,
+    });
+    setShowEditMedicineModal(true);
+  };
+
+  const handleUpdateMedicine = async (e) => {
+    e.preventDefault();
+    if (!editMedicineForm.name || !editMedicineForm.unit_price) {
+      toast.error("Name and price are required");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await updateMedicine(editingMedicineId, {
+        ...editMedicineForm,
+        unit_price: parseFloat(editMedicineForm.unit_price),
+        reorder_level: parseInt(editMedicineForm.reorder_level) || 20,
+      });
+      toast.success("Medicine updated successfully");
+      setShowEditMedicineModal(false);
+      setEditingMedicineId(null);
+      await loadMedicines(medPage);
+      await loadCounts();
+    } catch (err) {
+      toast.error(err.message || "Failed to update medicine");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCreateSupplier = async (e) => {
     e.preventDefault();
     if (!supplierForm.name) {
@@ -212,6 +277,43 @@ export default function Inventory() {
       await loadCounts();
     } catch (err) {
       toast.error(err.message || "Failed to add batch");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openEditBatch = (row) => {
+    setEditingBatchId(row.id);
+    setEditBatchForm({
+      medicine_name: row.medicine_name || "",
+      batch_number: row.batch_number || "",
+      quantity_remaining: row.quantity_remaining ?? "",
+      expiry_date: row.expiry_date || "",
+    });
+    setShowEditBatchModal(true);
+  };
+
+  const handleUpdateBatch = async (e) => {
+    e.preventDefault();
+    if (!editBatchForm.batch_number || editBatchForm.quantity_remaining === "" || !editBatchForm.expiry_date) {
+      toast.error("Batch number, stock quantity, and expiry date are required");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await updateMedicineBatch(editingBatchId, {
+        batch_number: editBatchForm.batch_number,
+        quantity_remaining: parseInt(editBatchForm.quantity_remaining),
+        expiry_date: editBatchForm.expiry_date,
+      });
+      toast.success("Stock updated successfully");
+      setShowEditBatchModal(false);
+      setEditingBatchId(null);
+      await loadBatches(batchPage);
+      await loadCounts();
+    } catch (err) {
+      toast.error(err.message || "Failed to update stock");
     } finally {
       setSubmitting(false);
     }
@@ -267,6 +369,17 @@ export default function Inventory() {
       label: "Unit",
       render: (row) => row.unit || "—",
     },
+    {
+      key: "actions",
+      label: "",
+      render: (row) => (
+        <div className="flex gap-1 justify-end">
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => openEditMedicine(row)}>
+            <i className="bi bi-pencil me-1"></i> Edit
+          </button>
+        </div>
+      ),
+    },
   ];
 
   // NOTE: MedicineBatchSerializer returns `medicine` and `supplier` as plain
@@ -312,6 +425,17 @@ export default function Inventory() {
           </span>
         );
       },
+    },
+    {
+      key: "actions",
+      label: "",
+      render: (row) => (
+        <div className="flex gap-1 justify-end">
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => openEditBatch(row)}>
+            <i className="bi bi-pencil me-1"></i> Update Stock
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -608,6 +732,133 @@ export default function Inventory() {
         </div>
       </Modal>
 
+      {/* Edit Medicine Modal */}
+      <Modal
+        show={showEditMedicineModal}
+        onClose={() => {
+          setShowEditMedicineModal(false);
+          setEditingMedicineId(null);
+        }}
+        title="Edit Medicine"
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowEditMedicineModal(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleUpdateMedicine}
+              disabled={submitting}
+            >
+              {submitting ? <span className="spinner-border spinner-border-sm" /> : "Save Changes"}
+            </button>
+          </>
+        }
+      >
+        <div className="field">
+          <label className="field-label" htmlFor="edit_med_name">
+            Name <span className="required">*</span>
+          </label>
+          <input
+            id="edit_med_name"
+            type="text"
+            className="input"
+            placeholder="Medicine name"
+            value={editMedicineForm.name}
+            onChange={(e) => setEditMedicineForm((prev) => ({ ...prev, name: e.target.value }))}
+          />
+        </div>
+        <div className="field">
+          <label className="field-label" htmlFor="edit_med_generic">
+            Generic Name
+          </label>
+          <input
+            id="edit_med_generic"
+            type="text"
+            className="input"
+            placeholder="Generic name"
+            value={editMedicineForm.generic_name}
+            onChange={(e) => setEditMedicineForm((prev) => ({ ...prev, generic_name: e.target.value }))}
+          />
+        </div>
+        <div className="row">
+          <div className="col-md-6">
+            <div className="field">
+              <label className="field-label" htmlFor="edit_med_category">
+                Category
+              </label>
+              <input
+                id="edit_med_category"
+                type="text"
+                className="input"
+                placeholder="e.g., Antibiotic"
+                value={editMedicineForm.category}
+                onChange={(e) => setEditMedicineForm((prev) => ({ ...prev, category: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="field">
+              <label className="field-label" htmlFor="edit_med_unit">
+                Unit
+              </label>
+              <select
+                id="edit_med_unit"
+                className="select"
+                value={editMedicineForm.unit}
+                onChange={(e) => setEditMedicineForm((prev) => ({ ...prev, unit: e.target.value }))}
+              >
+                <option value="tablet">Tablet</option>
+                <option value="capsule">Capsule</option>
+                <option value="syrup">Syrup</option>
+                <option value="injection">Injection</option>
+                <option value="cream">Cream</option>
+                <option value="drops">Drops</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-6">
+            <div className="field">
+              <label className="field-label" htmlFor="edit_med_price">
+                Unit Price (KES) <span className="required">*</span>
+              </label>
+              <input
+                id="edit_med_price"
+                type="number"
+                step="0.01"
+                className="input"
+                placeholder="0.00"
+                value={editMedicineForm.unit_price}
+                onChange={(e) => setEditMedicineForm((prev) => ({ ...prev, unit_price: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="field">
+              <label className="field-label" htmlFor="edit_med_reorder">
+                Reorder Level
+              </label>
+              <input
+                id="edit_med_reorder"
+                type="number"
+                className="input"
+                placeholder="20"
+                value={editMedicineForm.reorder_level}
+                onChange={(e) => setEditMedicineForm((prev) => ({ ...prev, reorder_level: parseInt(e.target.value) || 20 }))}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
+
       {/* Add Supplier Modal */}
       <Modal
         show={showSupplierModal}
@@ -802,6 +1053,88 @@ export default function Inventory() {
                 className="input"
                 value={batchForm.expiry_date}
                 onChange={(e) => setBatchForm((prev) => ({ ...prev, expiry_date: e.target.value }))}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit / Adjust Stock Modal */}
+      <Modal
+        show={showEditBatchModal}
+        onClose={() => {
+          setShowEditBatchModal(false);
+          setEditingBatchId(null);
+        }}
+        title="Update Stock"
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowEditBatchModal(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleUpdateBatch}
+              disabled={submitting}
+            >
+              {submitting ? <span className="spinner-border spinner-border-sm" /> : "Save Changes"}
+            </button>
+          </>
+        }
+      >
+        <div className="field">
+          <label className="field-label">Medicine</label>
+          <input type="text" className="input" value={editBatchForm.medicine_name} disabled />
+        </div>
+        <div className="field">
+          <label className="field-label" htmlFor="edit_batch_number">
+            Batch Number <span className="required">*</span>
+          </label>
+          <input
+            id="edit_batch_number"
+            type="text"
+            className="input"
+            placeholder="Batch number"
+            value={editBatchForm.batch_number}
+            onChange={(e) => setEditBatchForm((prev) => ({ ...prev, batch_number: e.target.value }))}
+          />
+        </div>
+        <div className="row">
+          <div className="col-md-6">
+            <div className="field">
+              <label className="field-label" htmlFor="edit_batch_qty">
+                Stock Remaining <span className="required">*</span>
+              </label>
+              <input
+                id="edit_batch_qty"
+                type="number"
+                className="input"
+                placeholder="0"
+                value={editBatchForm.quantity_remaining}
+                onChange={(e) => setEditBatchForm((prev) => ({ ...prev, quantity_remaining: e.target.value }))}
+              />
+              <div className="text-xs text-muted mt-1">
+                Changing this logs a stock adjustment for audit purposes.
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="field">
+              <label className="field-label" htmlFor="edit_batch_expiry">
+                Expiry Date <span className="required">*</span>
+              </label>
+              <input
+                id="edit_batch_expiry"
+                type="date"
+                className="input"
+                value={editBatchForm.expiry_date}
+                onChange={(e) => setEditBatchForm((prev) => ({ ...prev, expiry_date: e.target.value }))}
               />
             </div>
           </div>

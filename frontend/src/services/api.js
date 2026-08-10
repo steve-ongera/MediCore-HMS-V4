@@ -253,6 +253,7 @@ export const deleteSupplier = (id) => unwrap(client.delete(`/suppliers/${id}/`))
 
 export const getMedicineBatches = (params) => unwrap(client.get(`/medicine-batches/${qs(params)}`));
 export const createMedicineBatch = (payload) => unwrap(client.post("/medicine-batches/", payload));
+export const updateMedicineBatch = (id, payload) => unwrap(client.patch(`/medicine-batches/${id}/`, payload));
 
 export const getStockTransactions = (params) => unwrap(client.get(`/stock-transactions/${qs(params)}`));
 export const createStockTransaction = (payload) => unwrap(client.post("/stock-transactions/", payload));
