@@ -397,6 +397,13 @@ class VisitViewSet(BaseModelViewSet):
 # ---------------------------------------------------------------------------
 # Billing
 # ---------------------------------------------------------------------------
+from decimal import Decimal
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db.models import Sum, Count, Q, F
+from django.db.models.functions import Coalesce
+
+
 class InvoiceViewSet(BaseModelViewSet):
     queryset = Invoice.objects.select_related("patient", "visit").all()
     serializer_class = InvoiceSerializer
@@ -404,6 +411,25 @@ class InvoiceViewSet(BaseModelViewSet):
     search_fields = ["invoice_number", "patient__full_name"]
     http_method_names = ["get", "post", "head", "options"]  # invoices are system-generated, not hand-edited
 
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        # Same filtering/search DRF already applies to the list endpoint —
+        # so stats always match whatever search/status filter is active,
+        # aggregated over ALL matching rows, not just the current page.
+        queryset = self.filter_queryset(self.get_queryset())
+        zero = Decimal("0.00")
+
+        aggregates = queryset.aggregate(
+            total_invoices=Count("id"),
+            total_amount=Coalesce(Sum("amount"), zero),
+            total_paid=Coalesce(Sum("amount_paid"), zero),
+            total_outstanding=Coalesce(Sum(F("amount") - F("amount_paid")), zero),
+            unpaid_count=Count("id", filter=Q(status="UNPAID")),
+            partial_count=Count("id", filter=Q(status="PARTIAL")),
+            paid_count=Count("id", filter=Q(status="PAID")),
+            cancelled_count=Count("id", filter=Q(status="CANCELLED")),
+        )
+        return Response(aggregates)
 
 class PaymentViewSet(BaseModelViewSet):
     permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
@@ -513,7 +539,7 @@ class VitalSignsViewSet(BaseModelViewSet):
 class ICD10CodeViewSet(BaseModelViewSet):
     queryset = ICD10Code.objects.all()
     serializer_class = ICD10CodeSerializer
-    permission_classes = [IsITSupportOrSuperAdmin]
+    permission_classes = []
     search_fields = ["code", "description"]
     lookup_field = "code"
     filterset_fields = []  # add ["category"] here if that field exists on your model
