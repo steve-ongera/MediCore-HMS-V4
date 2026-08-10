@@ -150,21 +150,20 @@ def mch_report(date_from, date_to):
     anc_registrations = AntenatalProfile.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to).count()
     anc_visits = ANCVisit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to).count()
 
-    deliveries = DeliveryRecord.objects.filter(delivery_date__date__gte=date_from, delivery_date__date__lte=date_to) \
-        if hasattr(DeliveryRecord, "delivery_date") else DeliveryRecord.objects.none()
+    deliveries = DeliveryRecord.objects.filter(delivery_date__date__gte=date_from, delivery_date__date__lte=date_to)
 
     total_deliveries = deliveries.count()
-    by_mode = list(deliveries.values("mode").annotate(count=Count("id"))) if total_deliveries else []
-    c_sections = deliveries.filter(mode__icontains="CAESAR").count() if total_deliveries else 0
+    by_mode = list(deliveries.values("mode_of_delivery").annotate(count=Count("id"))) if total_deliveries else []
+    c_sections = deliveries.filter(mode_of_delivery=DeliveryMode.CAESAREAN).count() if total_deliveries else 0
 
-    live_births = deliveries.filter(outcome__icontains="LIVE").count() if hasattr(DeliveryRecord, "outcome") else None
-    stillbirths = deliveries.filter(outcome__icontains="STILL").count() if hasattr(DeliveryRecord, "outcome") else None
+    live_births = deliveries.filter(outcome="LIVE_BIRTH").count()
+    stillbirths = deliveries.filter(outcome="STILLBIRTH").count()
 
     pnc_visits = PostnatalVisit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to).count()
 
     immunizations_given = ChildImmunization.objects.filter(
-        status__iexact="GIVEN", given_date__gte=date_from, given_date__lte=date_to
-    ).count() if hasattr(ChildImmunization, "given_date") else None
+        status="GIVEN", given_date__gte=date_from, given_date__lte=date_to
+    ).count()
 
     try:
         from medrecords.models import DeathRegister
@@ -185,7 +184,7 @@ def mch_report(date_from, date_to):
         "maternal_deaths": maternal_deaths,
         "pnc_visits": pnc_visits,
         "immunizations_given": immunizations_given,
-        "by_delivery_mode": [{"name": r["mode"], "value": r["count"]} for r in by_mode],
+        "by_delivery_mode": [{"name": r["mode_of_delivery"], "value": r["count"]} for r in by_mode],
     }
 
 

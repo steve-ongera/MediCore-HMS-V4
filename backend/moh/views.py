@@ -264,3 +264,35 @@ class PharmacyDispenseDetailView(BaseMOHReportDetailView):
             )
             .order_by("-dispensed_at")
         )
+        
+        
+        
+
+class MCHDeliveryDetailView(BaseMOHReportDetailView):
+    from .serializers import DeliveryRecordListSerializer
+    serializer_class = DeliveryRecordListSerializer
+
+    search_fields = ["delivery_number", "profile__mother__full_name", "profile__anc_number"]
+    filter_fields = ["mode_of_delivery", "outcome"]
+    date_field = "delivery_date"  # DateTimeField, manually set (not auto_now_add) but same lookup pattern
+    csv_filename = "mch_deliveries.csv"
+    csv_columns = [
+        ("Delivery #", "delivery_number"),
+        ("Mother", lambda d: d.profile.mother.full_name),
+        ("ANC #", lambda d: d.profile.anc_number),
+        ("Delivery Date", "delivery_date"),
+        ("Mode", "mode_of_delivery"),
+        ("Outcome", "outcome"),
+        ("Place", "place_of_delivery"),
+        ("Attended By", lambda d: user_display(d.attended_by)),
+        ("Complications", "complications"),
+        ("Blood Loss (ml)", "blood_loss_ml"),
+    ]
+
+    def get_base_queryset(self):
+        from mch.models import DeliveryRecord
+        return (
+            DeliveryRecord.objects
+            .select_related("profile", "profile__mother", "attended_by")
+            .order_by("-delivery_date")
+        )

@@ -160,3 +160,29 @@ class PharmacyDispenseListSerializer(serializers.ModelSerializer):
 
     def get_dispensed_by_name(self, obj):
         return user_display(obj.dispensed_by)
+    
+
+from mch.models import DeliveryRecord  # add to the existing import block
+
+
+class DeliveryRecordListSerializer(serializers.ModelSerializer):
+    mother_name = serializers.SerializerMethodField()
+    anc_number = serializers.SerializerMethodField()
+    attended_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DeliveryRecord
+        fields = [
+            "id", "delivery_number", "mother_name", "anc_number", "delivery_date",
+            "mode_of_delivery", "outcome", "place_of_delivery", "attended_by_name",
+            "complications", "blood_loss_ml",
+        ]
+
+    def get_mother_name(self, obj):
+        return obj.profile.mother.full_name
+
+    def get_anc_number(self, obj):
+        return obj.profile.anc_number
+
+    def get_attended_by_name(self, obj):
+        return user_display(obj.attended_by)
