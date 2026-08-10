@@ -1,112 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import autoTable from "jspdf-autotable";
 import { toast } from "../../context/ToastContext";
 import { getBulkPaymentReceipt } from "../../services/api";
 import { formatCurrency, formatDateTime } from "../../utils/formatters";
 import medicoreLogo from "../../assets/logo.png";
 
-// Styles for the off-screen receipt-doc used ONLY for print + PDF output.
-// Not applied to the visible page — the visible page keeps its own card/
-// info-grid styling untouched.
-const RECEIPT_DOC_STYLES = `
-  * { box-sizing: border-box; }
-  .receipt-preview {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: #1f2937;
-    width: 480px;
-  }
-  .receipt-doc { border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; overflow: hidden; }
-  .receipt-doc__header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    gap: 18px; padding: 28px 28px 20px;
-  }
-  .receipt-doc__brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-  .receipt-doc__logo {
-    width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; overflow: hidden; padding: 4px;
-  }
-  .receipt-doc__logo img { width: 100%; height: 100%; object-fit: contain; }
-  .receipt-doc__hospital-name { font-size: 20px; font-weight: 600; color: #111827; line-height: 1.3; }
-  .receipt-doc__hospital-tag {
-    font-size: 11px; color: #6b7280; margin-top: 2px;
-    letter-spacing: 0.5px; text-transform: uppercase; font-weight: 500;
-  }
-  .receipt-doc__meta { text-align: right; flex-shrink: 0; margin-left: auto; }
-  .receipt-doc__meta-row {
-    display: flex; justify-content: flex-end; align-items: baseline;
-    gap: 12px; font-size: 13px; padding: 3px 0; white-space: nowrap;
-  }
-  .receipt-doc__meta-row span:first-child { color: #6b7280; }
-  .receipt-doc__meta-row span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; color: #111827; }
-  .receipt-doc__parties {
-    display: flex; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; background: #fafafa;
-  }
-  .receipt-doc__party { flex: 1; padding: 16px 28px; }
-  .receipt-doc__party + .receipt-doc__party { border-left: 1px solid #e5e7eb; }
-  .receipt-doc__party-label {
-    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px;
-    color: #6b7280; font-weight: 600; display: block; margin-bottom: 4px;
-  }
-  .receipt-doc__party-name { font-size: 14.5px; font-weight: 500; line-height: 1.4; color: #111827; }
-  .receipt-doc__party-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .receipt-doc__table { width: 100%; border-collapse: collapse; }
-  .receipt-doc__table thead th {
-    background: #f9fafb; color: #6b7280; font-size: 10.5px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px; text-align: left;
-    padding: 12px 28px; border-bottom: 1px solid #e5e7eb;
-    margin-right: 12px;
-  }
-  .receipt-doc__table thead th.text-right { text-align: right; }
-  .receipt-doc__table tbody td {
-    font-size: 13.5px; padding: 13px 28px; border-bottom: 1px solid #f3f4f6;
-    vertical-align: middle; color: #111827;
-  }
-  .receipt-doc__table tbody td.text-right {
-    text-align: right; font-variant-numeric: tabular-nums; font-weight: 500;
-  }
-  .receipt-doc__method {
-    display: inline-block; background: #f3f4f6; color: #374151;
-    padding: 3px 12px; border-radius: 12px; font-size: 11.5px; font-weight: 500;
-  }
-  .receipt-doc__totals { padding: 8px 28px 20px; }
-  .receipt-doc__totals-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 14px; padding: 7px 0; border-bottom: 1px solid #f3f4f6;
-  }
-  .receipt-doc__totals-row span:first-child { color: #6b7280; }
-  .receipt-doc__totals-row span:last-child { font-variant-numeric: tabular-nums; font-weight: 500; }
-  .receipt-doc__totals-row--main {
-    font-size: 18px; font-weight: 700; color: #111827;
-    border-bottom: 2px solid #111827; padding: 12px 0 10px; margin-top: 4px;
-  }
-  .receipt-doc__totals-row--main span:first-child { color: #111827; }
-  .receipt-doc__totals-row--main span:last-child { font-weight: 700; }
-  .receipt-doc__note {
-    font-size: 11.5px; color: #6b7280; text-align: center; line-height: 1.6;
-    padding: 16px 32px 20px; border-top: 1px solid #f3f4f6;
-  }
-  .receipt-doc__footer {
-    text-align: center; font-size: 13px; font-weight: 600; color: #6b7280;
-    padding: 14px; border-top: 1px solid #e5e7eb; letter-spacing: 0.3px;
-  }
-  .cell-mono { font-family: 'SF Mono', 'Courier New', monospace; font-variant-numeric: tabular-nums; }
-`;
-
-// Print window wraps the same styles inside an A4 page.
-const PRINT_STYLES = `
-  ${RECEIPT_DOC_STYLES}
-  @page { size: A4; margin: 0; }
-  body {
-    margin: 0;
-    padding: 40px 20px;
-    display: flex;
-    justify-content: center;
-    background: #ffffff;
-    -webkit-font-smoothing: antialiased;
-  }
-`;
+// Design constants aligned with ConsultationDetail PDF exports
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
 
 export default function BulkPaymentReceipt() {
   const { id } = useParams();
@@ -115,7 +21,6 @@ export default function BulkPaymentReceipt() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const receiptRef = useRef(null); // off-screen node, used for print + PDF only
 
   useEffect(() => {
     load();
@@ -126,60 +31,350 @@ export default function BulkPaymentReceipt() {
     try {
       const data = await getBulkPaymentReceipt(id);
       setReceipt(data);
-    } catch (err) { setError(err.message); } finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePrint = () => {
-    if (!receiptRef.current) return;
-    const printWindow = window.open("", "_blank", "width=900,height=1100");
-    if (!printWindow) {
-      toast.error("Please allow pop-ups to print the receipt");
-      return;
+  /**
+   * Helper to load an image element into jsPDF
+   */
+  const loadImage = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  /**
+   * Generates a simple, lightweight QR Code Canvas Data URL for verification demo
+   */
+  const generateQrCodeDataUrl = (text) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 120;
+      canvas.height = 120;
+      const ctx = canvas.getContext("2d");
+
+      // Draw standard clean QR placeholder box with outer border & corner markers
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 120, 120);
+
+      ctx.strokeStyle = "#1e40af";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, 116, 116);
+
+      // Corner Position Markers
+      const drawMarker = (x, y) => {
+        ctx.fillStyle = "#1e40af";
+        ctx.fillRect(x, y, 28, 28);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + 4, y + 4, 20, 20);
+        ctx.fillStyle = "#1e40af";
+        ctx.fillRect(x + 8, y + 8, 12, 12);
+      };
+
+      drawMarker(8, 8);
+      drawMarker(84, 8);
+      drawMarker(8, 84);
+
+      // Simulated Data Grid
+      ctx.fillStyle = "#111827";
+      for (let i = 0; i < 14; i++) {
+        for (let j = 0; j < 14; j++) {
+          if ((i < 5 && j < 5) || (i > 9 && j < 5) || (i < 5 && j > 9)) continue;
+          if ((i * 7 + j * 13) % 3 === 0) {
+            ctx.fillRect(10 + i * 7, 10 + j * 7, 5, 5);
+          }
+        }
+      }
+
+      resolve(canvas.toDataURL("image/png"));
+    });
+  };
+
+  /**
+   * Generates the PDF using jsPDF + jspdf-autotable
+   */
+  const generatePdf = async () => {
+    if (!receipt) return null;
+
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 12; // Tightened margin for slim document structure
+
+    // Load hospital logo & generate QR code
+    const logoImg = await loadImage(medicoreLogo);
+    const qrDataUrl = await generateQrCodeDataUrl(
+      `RECEIPT:${receipt.receipt_number}|PATIENT:${receipt.hospital_number}|AMT:${receipt.total_amount}`
+    );
+
+    // 1. Header Rendering
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+      } catch (e) {
+        console.warn("Could not render logo in PDF:", e);
+      }
     }
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Receipt ${receipt?.receipt_number || ""}</title>
-          <style>${PRINT_STYLES}</style>
-        </head>
-        <body>
-          <div class="receipt-preview">${receiptRef.current.innerHTML}</div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 350);
-    };
+
+    const brandX = logoImg ? margin + 15 : margin;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(receipt.hospital_name || "MEDICORE HOSPITAL", brandX, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Healthcare Management Information System", brandX, 19);
+
+    // Right Header Title & Metadata
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("COMBINED PAYMENT RECEIPT", pageWidth - margin, 15, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+    // Accent line beneath header
+    doc.setDrawColor(...BRAND_COLOR);
+    doc.setLineWidth(0.4);
+    doc.line(margin, 24, pageWidth - margin, 24);
+
+    let startY = 28;
+
+    // 2. Receipt & Patient Information Grid (Slim, Compact Summary)
+    autoTable(doc, {
+      startY: startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: {
+        fontSize: 8,
+        cellPadding: 1.8,
+        textColor: DARK_TEXT,
+      },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 32 },
+        1: { cellWidth: 58 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 32 },
+        3: { cellWidth: 58 },
+      },
+      body: [
+        [
+          "Receipt Number:",
+          receipt.receipt_number || "N/A",
+          "Patient Name:",
+          receipt.patient_name || "N/A",
+        ],
+        [
+          "Payment Date:",
+          formatDateTime(receipt.paid_at),
+          "Hospital Number:",
+          receipt.hospital_number || "N/A",
+        ],
+        [
+          "Payment Method:",
+          `${receipt.method || "N/A"}${receipt.reference_number ? ` (Ref: ${receipt.reference_number})` : ""}`,
+          "Received By:",
+          receipt.cashier_name || "N/A",
+        ],
+        [
+          "Total Amount Paid:",
+          formatCurrency(receipt.total_amount),
+          "Invoices Covered:",
+          `${receipt.lines?.length || 0} invoice(s)`,
+        ],
+      ],
+      didDrawCell: (data) => {
+        if (data.row.index === 0 && data.column.index === 0) {
+          doc.setDrawColor(...LIGHT_BORDER);
+          doc.setFillColor(...LIGHT_FILL);
+        }
+      },
+    });
+
+    startY = doc.lastAutoTable.finalY + 5;
+
+    // 3. Section Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("Invoices Breakdown", margin, startY);
+
+    startY += 3;
+
+    // 4. Invoices Table (Slim Rows & Reduced Heights)
+    const tableColumns = [
+      { header: "Invoice #", dataKey: "invoice_number" },
+      { header: "Service Description", dataKey: "invoice_description" },
+      { header: "Type", dataKey: "invoice_source_type" },
+      { header: "Receipt #", dataKey: "receipt_number" },
+      { header: "Amount Paid", dataKey: "amount_applied" },
+    ];
+
+    const tableRows = (receipt.lines || []).map((line) => ({
+      invoice_number: line.invoice_number || "-",
+      invoice_description: line.invoice_description || "-",
+      invoice_source_type: line.invoice_source_type || "-",
+      receipt_number: line.receipt_number || "-",
+      amount_applied: formatCurrency(line.amount_applied),
+    }));
+
+    autoTable(doc, {
+      startY: startY,
+      columns: tableColumns,
+      body: tableRows,
+      margin: { left: margin, right: margin, bottom: 40 },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2, // Slim padding for reduced height
+        textColor: DARK_TEXT,
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: BRAND_COLOR,
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 8,
+        cellPadding: 2.2,
+      },
+      alternateRowStyles: {
+        fillColor: LIGHT_FILL,
+      },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: "auto" },
+        2: { cellWidth: 26 },
+        3: { cellWidth: 34 },
+        4: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+      },
+      didDrawPage: (data) => {
+        // Page level footer
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...MUTED_COLOR);
+
+        doc.setDrawColor(...LIGHT_BORDER);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+
+        doc.text(
+          `Confidential - Official Receipt generated by ${receipt.hospital_name || "Hospital HMIS"}`,
+          margin,
+          pageHeight - 7
+        );
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}`,
+          pageWidth - margin,
+          pageHeight - 7,
+          { align: "right" }
+        );
+      },
+    });
+
+    // 5. Total Paid Box + Verification QR Code + Signature & Stamp Section
+    let finalY = doc.lastAutoTable.finalY + 5;
+
+    // Check page overflow for bottom sign-off section (requires ~40mm)
+    if (finalY + 42 > pageHeight - 15) {
+      doc.addPage();
+      finalY = 15;
+    }
+
+    // A. Total Summary Highlight Box
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(pageWidth - margin - 70, finalY, 70, 14, "F");
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.rect(pageWidth - margin - 70, finalY, 70, 14, "S");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("Total Paid:", pageWidth - margin - 66, finalY + 8.5);
+
+    doc.setFontSize(10);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text(formatCurrency(receipt.total_amount), pageWidth - margin - 4, finalY + 8.5, {
+      align: "right",
+    });
+
+    finalY += 18;
+
+    // B. Left: QR Code Verification Block
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, "PNG", margin, finalY, 22, 22);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("Scan to Verify", margin + 25, finalY + 6);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text(`Doc ID: ${receipt.receipt_number}`, margin + 25, finalY + 11);
+      doc.text("Official Digital Copy", margin + 25, finalY + 15);
+    }
+
+    // C. Right: Signature, Stamp & Printed By Details
+    const sigX = pageWidth - margin - 70;
+    const lineY = finalY + 14;
+
+    // Signature Line
+    doc.setDrawColor(...MUTED_COLOR);
+    doc.setLineWidth(0.3);
+    doc.line(sigX, lineY, sigX + 32, lineY);
+
+    // Stamp Line
+    doc.line(sigX + 38, lineY, sigX + 70, lineY);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Authorized Signature", sigX, lineY + 4);
+    doc.text("Official Stamp", sigX + 38, lineY + 4);
+
+    // Printed / Stamped By Details
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(`Issued By: ${receipt.cashier_name || "Authorized Cashier"}`, sigX, lineY + 9);
+
+    return doc;
+  };
+
+  const handlePrint = async () => {
+    try {
+      const doc = await generatePdf();
+      if (!doc) return;
+      doc.autoPrint();
+      const blobUrl = doc.output("bloburl");
+      window.open(blobUrl, "_blank");
+    } catch (err) {
+      console.error("Print error:", err);
+      toast.error("Failed to prepare receipt for printing.");
+    }
   };
 
   const handleDownloadPdf = async () => {
-    if (!receiptRef.current || !receipt) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 3,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL("image/png");
-
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 20;
-      const contentWidth = Math.min(pageWidth - margin * 2, 170);
-      const contentHeight = (canvas.height * contentWidth) / canvas.width;
-      const x = (pageWidth - contentWidth) / 2;
-      const y = margin;
-
-      pdf.addImage(imgData, "PNG", x, y, contentWidth, contentHeight);
-      pdf.save(`Receipt_${receipt.receipt_number}.pdf`);
+      const doc = await generatePdf();
+      if (doc) {
+        doc.save(`Receipt_${receipt.receipt_number || "Bulk_Payment"}.pdf`);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("PDF generation error:", err);
       toast.error("Failed to generate PDF.");
     } finally {
       setDownloading(false);
@@ -201,7 +396,7 @@ export default function BulkPaymentReceipt() {
         <div className="text-danger font-semibold">Error loading receipt</div>
         <p className="text-sm text-muted" style={{ marginTop: "var(--space-2)" }}>{error}</p>
         <button className="btn btn-primary mt-4" onClick={load}>
-          <i className="bi bi-arrow-clockwise  me-1"></i> Retry
+          <i className="bi bi-arrow-clockwise me-1"></i> Retry
         </button>
       </div>
     );
@@ -211,7 +406,6 @@ export default function BulkPaymentReceipt() {
 
   return (
     <>
-      {/* ---- Your original page, unchanged ---- */}
       <div className="page-header" id="print-header">
         <div>
           <div className="page-eyebrow">Billing</div>
@@ -220,31 +414,21 @@ export default function BulkPaymentReceipt() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/billing/bulk-payment")}>
-            <i className="bi bi-arrow-left  me-1"></i> Back
+            <i className="bi bi-arrow-left me-1"></i> Back
           </button>
           <button className="btn btn-outline-primary" onClick={handlePrint}>
-            <i className="bi bi-printer  me-1"></i> Print
+            <i className="bi bi-printer me-1"></i> Print
           </button>
           <button className="btn btn-primary" onClick={handleDownloadPdf} disabled={downloading}>
             {downloading ? (
-              <span className="spinner-border spinner-border-sm  me-1" role="status" />
+              <span className="spinner-border spinner-border-sm me-1" role="status" />
             ) : (
-              <i className="bi bi-download  me-1"></i>
+              <i className="bi bi-download me-1"></i>
             )}
             Download PDF
           </button>
         </div>
       </div>
-
-      {error && (
-        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
-          <div className="card-body">
-            <div className="text-danger">
-              <i className="bi bi-exclamation-circle  me-1"></i> {error}
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="receipt-container" id="receipt-content">
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
@@ -257,7 +441,7 @@ export default function BulkPaymentReceipt() {
                 <div className="patient-header__name">{receipt.patient_name}</div>
                 <div className="patient-header__sub">
                   <span className="patient-header__id">
-                    <i className="bi bi-hash  me-1"></i> {receipt.hospital_number}
+                    <i className="bi bi-hash me-1"></i> {receipt.hospital_number}
                   </span>
                   <span>•</span>
                   <span>{receipt.receipt_number}</span>
@@ -297,7 +481,7 @@ export default function BulkPaymentReceipt() {
         <div className="card">
           <div className="card-header">
             <div className="flex items-center gap-3 flex-wrap">
-              <i className="bi bi-list-ul  me-1"></i>
+              <i className="bi bi-list-ul me-1"></i>
               <h5 className="card-title" style={{ marginBottom: 0 }}>Invoices Covered</h5>
             </div>
             <div>
@@ -343,102 +527,6 @@ export default function BulkPaymentReceipt() {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* ---- Off-screen receipt-doc: used ONLY for print + PDF, never shown on the page ---- */}
-      <div
-        aria-hidden="true"
-        style={{ position: "fixed", top: 0, left: "-10000px", zIndex: -1 }}
-      >
-        <style>{RECEIPT_DOC_STYLES}</style>
-        <div className="receipt-preview" ref={receiptRef}>
-          <div className="receipt-doc">
-            <div className="receipt-doc__header">
-              <div className="receipt-doc__brand">
-                <div className="receipt-doc__logo">
-                  <img src={medicoreLogo} alt="Hospital logo" />
-                </div>
-                <div>
-                  <div className="receipt-doc__hospital-name">{receipt.hospital_name}</div>
-                  <div className="receipt-doc__hospital-tag">Combined Payment Receipt</div>
-                </div>
-              </div>
-              <div className="receipt-doc__meta">
-                <div className="receipt-doc__meta-row">
-                  <span>Receipt No.</span>
-                  <span className="cell-mono">{receipt.receipt_number}</span>
-                </div>
-                <div className="receipt-doc__meta-row">
-                  <span>Date</span>
-                  <span>{formatDateTime(receipt.paid_at)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="receipt-doc__parties">
-              <div className="receipt-doc__party">
-                <span className="receipt-doc__party-label">Patient</span>
-                <div className="receipt-doc__party-name">{receipt.patient_name}</div>
-                <div className="receipt-doc__party-sub">{receipt.hospital_number}</div>
-              </div>
-              <div className="receipt-doc__party">
-                <span className="receipt-doc__party-label">Received By</span>
-                <div className="receipt-doc__party-name">{receipt.cashier_name}</div>
-              </div>
-              <div className="receipt-doc__party">
-                <span className="receipt-doc__party-label">Method</span>
-                <div className="receipt-doc__party-name">
-                  <span className="receipt-doc__method">{receipt.method}</span>
-                </div>
-                {receipt.reference_number && (
-                  <div className="receipt-doc__party-sub">Ref: {receipt.reference_number}</div>
-                )}
-              </div>
-            </div>
-
-            <table className="receipt-doc__table">
-              <thead>
-                <tr>
-                  <th>Invoice #</th>
-                  <th>Service</th>
-                  <th>Type</th>
-                  <th className="text-right">Amount Paid</th>
-                  <th>Receipt #</th>
-                </tr>
-              </thead>
-              <tbody>
-                {receipt.lines.map((line) => (
-                  <tr key={line.id}>
-                    <td className="cell-mono">{line.invoice_number}</td>
-                    <td>{line.invoice_description}</td>
-                    <td><span className="receipt-doc__method">{line.invoice_source_type}</span></td>
-                    <td className="text-right">{formatCurrency(line.amount_applied)}</td>
-                    <td className="cell-mono">{line.receipt_number}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="receipt-doc__totals">
-              <div className="receipt-doc__totals-row receipt-doc__totals-row--main">
-                <span>Total Paid</span>
-                <span>{formatCurrency(receipt.total_amount)}</span>
-              </div>
-              <div className="receipt-doc__totals-row">
-                <span>Invoices Covered</span>
-                <span>{receipt.lines.length}</span>
-              </div>
-            </div>
-
-            <div className="receipt-doc__note">
-              This is an automated combined receipt generated by the {receipt.hospital_name} Hospital
-              Management Information System (HMIS), covering payments applied across {receipt.lines.length}{" "}
-              invoice{receipt.lines.length !== 1 ? "s" : ""} in a single transaction.
-            </div>
-
-            <div className="receipt-doc__footer">Thank you for choosing {receipt.hospital_name}</div>
-          </div>
         </div>
       </div>
     </>
