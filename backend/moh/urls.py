@@ -4,7 +4,7 @@ from .views import (
     OPDReportView, InpatientCapacityReportView, MCHReportView, MortalityReportView,
     DiseaseSurveillanceReportView, LabRadiologyReportView, PharmacyCommoditiesReportView,
     TheatreEmergencyBloodReferralReportView,InpatientAdmissionDetailView, OPDVisitDetailView, DiseaseSurveillanceDetailView ,
-    MortalityDetailView , PharmacyDispenseDetailView , MCHDeliveryDetailView
+    MortalityDetailView , PharmacyDispenseDetailView , MCHDeliveryDetailView , ReferralDetailView
 )
 
 urlpatterns = [
@@ -22,4 +22,5 @@ urlpatterns = [
     path("moh/mortality/deaths/", MortalityDetailView.as_view(), name="mortality-detail"),
     path("moh/pharmacy-commodities/dispenses/", PharmacyDispenseDetailView.as_view(), name="pharmacy-dispense-detail"),
     path("moh/mch/deliveries/", MCHDeliveryDetailView.as_view(), name="mch-delivery-detail"),
+    path("moh/theatre-emergency-blood-referral/referrals/", ReferralDetailView.as_view(), name="referral-detail"),
 ]

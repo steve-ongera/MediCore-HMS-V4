@@ -296,3 +296,34 @@ class MCHDeliveryDetailView(BaseMOHReportDetailView):
             .select_related("profile", "profile__mother", "attended_by")
             .order_by("-delivery_date")
         )
+        
+        
+
+class ReferralDetailView(BaseMOHReportDetailView):
+    from .serializers import ReferralListSerializer
+    serializer_class = ReferralListSerializer
+
+    search_fields = ["referral_number", "patient__full_name", "facility_name", "reason"]
+    filter_fields = ["direction", "status"]
+    date_field = "created_at_display"  # DateTimeField, auto_now_add
+    csv_filename = "referrals.csv"
+    csv_columns = [
+        ("Referral #", "referral_number"),
+        ("Patient", lambda r: r.patient.full_name),
+        ("Direction", "direction"),
+        ("Facility", "facility_name"),
+        ("Reason", "reason"),
+        ("Status", "status"),
+        ("Referring Doctor", "referring_doctor"),
+        ("Receiving Doctor", lambda r: user_display(r.receiving_doctor)),
+        ("Created", "created_at_display"),
+        ("Resolved", "resolved_at"),
+    ]
+
+    def get_base_queryset(self):
+        from medrecords.models import Referral
+        return (
+            Referral.objects
+            .select_related("patient", "receiving_doctor", "created_by")
+            .order_by("-created_at_display")
+        )

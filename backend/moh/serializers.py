@@ -186,3 +186,30 @@ class DeliveryRecordListSerializer(serializers.ModelSerializer):
 
     def get_attended_by_name(self, obj):
         return user_display(obj.attended_by)
+    
+
+    
+from medrecords.models import Referral  # add to the existing import block
+
+
+class ReferralListSerializer(serializers.ModelSerializer):
+    patient_name = serializers.SerializerMethodField()
+    receiving_doctor_name = serializers.SerializerMethodField()
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Referral
+        fields = [
+            "id", "referral_number", "patient_name", "direction", "facility_name",
+            "facility_contact", "reason", "status", "referring_doctor",
+            "receiving_doctor_name", "created_by_name", "created_at_display", "resolved_at",
+        ]
+
+    def get_patient_name(self, obj):
+        return obj.patient.full_name
+
+    def get_receiving_doctor_name(self, obj):
+        return user_display(obj.receiving_doctor)
+
+    def get_created_by_name(self, obj):
+        return user_display(obj.created_by)
