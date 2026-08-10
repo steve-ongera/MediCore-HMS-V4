@@ -253,6 +253,9 @@ import HelpCenter from "./pages/support/HelpCenter.jsx";
 import ContactUs from "./pages/support/ContactUs.jsx";
 import Subscriptions from "./pages/support/Subscriptions.jsx";
 
+import PACSWorklist from "./pages/pacs/PACSWorklist.jsx";
+import StudyDetail from "./pages/pacs/StudyDetail.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -897,6 +900,8 @@ export default function App() {
         <Route path="/contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
         <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
 
+        <Route path="/pacs" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST, ROLES.DOCTOR]}><PACSWorklist /></ProtectedRoute>} />
+        <Route path="/pacs/studies/:id" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST, ROLES.DOCTOR]}><StudyDetail /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route
