@@ -836,6 +836,23 @@ class MedicineBatchViewSet(BaseModelViewSet):
             performed_by=self.request.user,
         )
 
+    def perform_update(self, serializer):
+        # A manual edit (correcting a data-entry error, writing off damaged
+        # stock, etc.) can change quantity_remaining directly — without this,
+        # that change would never show up in the StockTransaction audit
+        # trail the rest of the app relies on for "why did stock move".
+        old_quantity = serializer.instance.quantity_remaining
+        batch = serializer.save()
+        delta = batch.quantity_remaining - old_quantity
+        if delta != 0:
+            StockTransaction.objects.create(
+                medicine=batch.medicine, batch=batch,
+                transaction_type=StockTransactionType.ADJUSTMENT,
+                quantity=delta,
+                reason=f"Manual stock update by {self.request.user.get_full_name() or self.request.user.username}",
+                performed_by=self.request.user,
+            )
+
     @action(detail=False, methods=["get"], url_path="expiring-soon")
     def expiring_soon(self, request):
         cutoff = date.today() + timedelta(days=30)
@@ -845,8 +862,8 @@ class MedicineBatchViewSet(BaseModelViewSet):
             quantity_remaining__gt=0,
         ).order_by("expiry_date")
         return Response(self.get_serializer(qs, many=True).data)
-
-
+    
+    
 class StockTransactionViewSet(BaseModelViewSet):
     queryset = StockTransaction.objects.select_related("medicine", "batch").all()
     serializer_class = StockTransactionSerializer
