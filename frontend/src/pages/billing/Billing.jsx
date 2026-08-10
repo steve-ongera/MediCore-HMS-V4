@@ -118,14 +118,14 @@ export default function Billing() {
             to={`/billing/payments?invoice=${row.id}`}
             className="btn btn-primary btn-sm"
           >
-            <i className="bi bi-cash me-1"></i> Pay
+            <i className="bi bi-cash  me-1"></i> Pay
           </Link>
           {row.balance > 0 && (
             <Link
               to={`/insurance/claims/new?patient=${row.patient}&invoice=${row.id}`}
               className="btn btn-secondary btn-sm"
             >
-              <i className="bi bi-shield-check me-1"></i> Claim
+              <i className="bi bi-shield-check  me-1"></i> Claim
             </Link>
           )}
         </div>
@@ -162,10 +162,10 @@ export default function Billing() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { setPage(1); loadInvoices(); loadSummary(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/billing/payments" className="btn btn-success">
-            <i className="bi bi-cash-stack me-2"></i>
+            <i className="bi bi-cash-stack  me-1"></i>
             Process Payment
           </Link>
         </div>

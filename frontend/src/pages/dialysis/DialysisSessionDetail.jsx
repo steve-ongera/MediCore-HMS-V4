@@ -109,10 +109,10 @@ export default function DialysisSessionDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-            <i className="bi bi-arrow-left me-2"></i> Back
+            <i className="bi bi-arrow-left  me-1"></i> Back
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function DialysisSessionDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function DialysisSessionDetail() {
               <div className="patient-header__name">{session.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {session.session_number}
+                  <i className="bi bi-hash  me-1"></i> {session.session_number}
                 </span>
                 <span>•</span>
                 <span>Machine: {session.machine_number || "Unassigned"}</span>
@@ -150,7 +150,7 @@ export default function DialysisSessionDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> {new Date(session.scheduled_date).toLocaleString()}
+                <i className="bi bi-calendar  me-1"></i> {new Date(session.scheduled_date).toLocaleString()}
               </span>
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function DialysisSessionDetail() {
           {isScheduled && (
             <div style={{ marginTop: "var(--space-3)" }}>
               <button className="btn btn-danger" onClick={handleMarkMissed}>
-                <i className="bi bi-x-circle me-2"></i> Mark as Missed
+                <i className="bi bi-x-circle  me-1"></i> Mark as Missed
               </button>
             </div>
           )}
@@ -235,7 +235,7 @@ export default function DialysisSessionDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-play-circle me-2"></i> Start Session
+              <i className="bi bi-play-circle  me-1"></i> Start Session
             </h5>
           </div>
           <div className="card-body">
@@ -317,7 +317,7 @@ export default function DialysisSessionDetail() {
               </div>
 
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-play-circle me-2"></i> Start Session
+                <i className="bi bi-play-circle  me-1"></i> Start Session
               </button>
             </form>
           </div>
@@ -328,7 +328,7 @@ export default function DialysisSessionDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-check-circle me-2"></i> Complete Session
+              <i className="bi bi-check-circle  me-1"></i> Complete Session
             </h5>
           </div>
           <div className="card-body">
@@ -387,7 +387,7 @@ export default function DialysisSessionDetail() {
               </div>
 
               <button type="submit" className="btn btn-success">
-                <i className="bi bi-check-circle me-2"></i> Complete Session & Bill
+                <i className="bi bi-check-circle  me-1"></i> Complete Session & Bill
               </button>
             </form>
           </div>
@@ -398,12 +398,12 @@ export default function DialysisSessionDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-receipt me-2"></i> Billing
+              <i className="bi bi-receipt  me-1"></i> Billing
             </h5>
           </div>
           <div className="card-body">
             <div className="text-sm text-muted">
-              <i className="bi bi-info-circle me-1"></i> Invoice created — view under Billing → Invoices.
+              <i className="bi bi-info-circle  me-1"></i> Invoice created — view under Billing → Invoices.
             </div>
           </div>
         </div>

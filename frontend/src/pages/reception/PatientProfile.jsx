@@ -149,11 +149,11 @@ export default function PatientProfile() {
         </div>
         <div className="page-header__actions">
           <Link to={`/patients/${id}/visits`} className="btn btn-outline">
-            <i className="bi bi-clock-history me-2"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             Visit History
           </Link>
           <Link to={`/patients/${id}/edit`} className="btn btn-primary">
-            <i className="bi bi-pencil me-2"></i>
+            <i className="bi bi-pencil  me-1"></i>
             Edit Patient
           </Link>
         </div>
@@ -169,7 +169,7 @@ export default function PatientProfile() {
               <div className="patient-header__name">{patient.full_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {patient.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {patient.hospital_number}
                 </span>
                 <span>•</span>
                 <span>{patient.gender || "—"}</span>
@@ -179,7 +179,7 @@ export default function PatientProfile() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> DOB: {patient.dob ? formatDate(patient.dob) : "—"}
+                <i className="bi bi-calendar  me-1"></i> DOB: {patient.dob ? formatDate(patient.dob) : "—"}
               </span>
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function PatientProfile() {
                 className={`tabs__item ${activeTab === tab.id ? "is-active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <i className={`bi ${tab.icon} me-1`}></i> {tab.label}
+                <i className={`bi ${tab.icon}  me-1`}></i> {tab.label}
               </button>
             ))}
           </div>
@@ -280,7 +280,7 @@ export default function PatientProfile() {
               <div className="flex items-center gap-3 flex-wrap" style={{ marginBottom: "var(--space-3)" }}>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Allergies</h5>
                 <button className="btn btn-primary btn-sm" onClick={() => setShowAllergyForm((v) => !v)}>
-                  <i className="bi bi-plus-lg me-1"></i> Add Allergy
+                  <i className="bi bi-plus-lg  me-1"></i> Add Allergy
                 </button>
               </div>
 
@@ -362,7 +362,7 @@ export default function PatientProfile() {
               <div className="flex items-center gap-3 flex-wrap" style={{ marginBottom: "var(--space-3)" }}>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Medical History</h5>
                 <button className="btn btn-primary btn-sm" onClick={() => setShowHistoryForm((v) => !v)}>
-                  <i className="bi bi-plus-lg me-1"></i> Add Note
+                  <i className="bi bi-plus-lg  me-1"></i> Add Note
                 </button>
               </div>
 
@@ -454,7 +454,7 @@ export default function PatientProfile() {
               <div className="flex items-center gap-3 flex-wrap" style={{ marginBottom: "var(--space-2)" }}>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Recent Visits</h5>
                 <Link to={`/patients/${id}/visits`} className="btn btn-secondary btn-sm">
-                  <i className="bi bi-arrow-right me-1"></i> View All
+                  <i className="bi bi-arrow-right  me-1"></i> View All
                 </Link>
               </div>
               <DataTable

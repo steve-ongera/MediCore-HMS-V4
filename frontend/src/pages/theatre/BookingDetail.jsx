@@ -95,10 +95,10 @@ export default function BookingDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/theatre")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Board
+            <i className="bi bi-arrow-left  me-1"></i> Back to Board
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function BookingDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function BookingDetail() {
               <div className="patient-header__name">{booking.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {booking.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {booking.hospital_number}
                 </span>
                 <span>•</span>
                 <span>{booking.procedure_name}</span>
@@ -210,7 +210,7 @@ export default function BookingDetail() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-play-circle me-2"></i> Start Surgery
+                <i className="bi bi-play-circle  me-1"></i> Start Surgery
               </h5>
             </div>
             <div className="card-body">
@@ -225,7 +225,7 @@ export default function BookingDetail() {
                   </div>
                   <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                     <button type="submit" className="btn btn-success">
-                      <i className="bi bi-play-circle me-2"></i> Start Surgery
+                      <i className="bi bi-play-circle  me-1"></i> Start Surgery
                     </button>
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export default function BookingDetail() {
           <div className="card">
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-x-circle me-2"></i> Cancel Booking
+                <i className="bi bi-x-circle  me-1"></i> Cancel Booking
               </h5>
             </div>
             <div className="card-body">
@@ -253,7 +253,7 @@ export default function BookingDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button className="btn btn-danger" onClick={handleCancel}>
-                    <i className="bi bi-x-circle me-2"></i> Cancel Booking
+                    <i className="bi bi-x-circle  me-1"></i> Cancel Booking
                   </button>
                 </div>
               </div>

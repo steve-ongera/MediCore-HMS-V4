@@ -45,7 +45,7 @@ export default function WardBoard() {
         <div className="text-danger font-semibold">Error loading ward data</div>
         <p className="text-sm text-muted" style={{ marginTop: "var(--space-2)" }}>{error}</p>
         <button className="btn btn-primary mt-4" onClick={loadOccupancy}>
-          <i className="bi bi-arrow-clockwise me-2"></i> Retry
+          <i className="bi bi-arrow-clockwise  me-1"></i> Retry
         </button>
       </div>
     );
@@ -61,7 +61,7 @@ export default function WardBoard() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={loadOccupancy}>
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -87,7 +87,7 @@ export default function WardBoard() {
           </div>
           <div className="stat-card__value">{totalOccupied}</div>
           <div className="stat-card__delta is-up">
-            <i className="bi bi-arrow-up me-1"></i> {occupancyRate}% occupancy
+            <i className="bi bi-arrow-up  me-1"></i> {occupancyRate}% occupancy
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export default function WardBoard() {
                 Start by adding wards to track bed occupancy across your facility.
               </p>
               <button className="btn btn-primary">
-                <i className="bi bi-plus-circle me-2"></i> Add Ward
+                <i className="bi bi-plus-circle  me-1"></i> Add Ward
               </button>
             </div>
           )}

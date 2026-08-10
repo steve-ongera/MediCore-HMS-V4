@@ -118,7 +118,7 @@ export default function ServiceRequests() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function ServiceRequests() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -136,12 +136,12 @@ export default function ServiceRequests() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Report a Problem
+            <i className="bi bi-plus-circle  me-1"></i> Report a Problem
           </h5>
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Any staff member can report a breakdown. Biomedical engineers assign and resolve requests.
           </div>
           <form onSubmit={submit}>
@@ -183,7 +183,7 @@ export default function ServiceRequests() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-send me-2"></i> Submit Report
+                    <i className="bi bi-send  me-1"></i> Submit Report
                   </>
                 )}
               </button>
@@ -195,7 +195,7 @@ export default function ServiceRequests() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -274,7 +274,7 @@ export default function ServiceRequests() {
                         <div className="flex gap-1 justify-end" style={{ flexWrap: "wrap", minWidth: "120px" }}>
                           {isBiomed && r.status === "OPEN" && (
                             <button className="btn btn-primary btn-sm" onClick={() => handleAssign(r.id)}>
-                              <i className="bi bi-person-check me-1"></i> Assign
+                              <i className="bi bi-person-check  me-1"></i> Assign
                             </button>
                           )}
                           {isBiomed && (r.status === "ASSIGNED" || r.status === "IN_PROGRESS") && (
@@ -305,7 +305,7 @@ export default function ServiceRequests() {
                                   style={{ width: "100px" }}
                                 />
                                 <button className="btn btn-success btn-sm" onClick={submitResolve}>
-                                  <i className="bi bi-check me-1"></i> Confirm
+                                  <i className="bi bi-check  me-1"></i> Confirm
                                 </button>
                                 <button className="btn btn-secondary btn-sm" onClick={() => setResolvingId(null)}>
                                   <i className="bi bi-x"></i>
@@ -313,7 +313,7 @@ export default function ServiceRequests() {
                               </div>
                             ) : (
                               <button className="btn btn-success btn-sm" onClick={() => openResolve(r.id)}>
-                                <i className="bi bi-check-circle me-1"></i> Resolve
+                                <i className="bi bi-check-circle  me-1"></i> Resolve
                               </button>
                             )
                           )}

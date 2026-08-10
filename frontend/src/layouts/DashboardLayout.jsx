@@ -45,7 +45,7 @@ export default function DashboardLayout() {
             <div className="modal-header">
               <div>
                 <h5 className="modal-title">
-                  <i className="bi bi-clock-history me-2" style={{ color: "var(--warning-strong, #b45309)" }}></i>
+                  <i className="bi bi-clock-history  me-1" style={{ color: "var(--warning-strong, #b45309)" }}></i>
                   Still there?
                 </h5>
                 <p className="modal-desc">
@@ -59,7 +59,7 @@ export default function DashboardLayout() {
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-primary" onClick={staySignedIn}>
-                <i className="bi bi-check-circle me-2"></i>
+                <i className="bi bi-check-circle  me-1"></i>
                 Stay Signed In
               </button>
             </div>

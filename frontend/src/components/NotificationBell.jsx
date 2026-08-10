@@ -94,7 +94,7 @@ export default function NotificationBell() {
                 className="notification-bell__mark-all" 
                 onClick={handleMarkAll}
               >
-                <i className="bi bi-check-all me-1"></i> Mark all read
+                <i className="bi bi-check-all  me-1"></i> Mark all read
               </button>
             )}
           </div>
@@ -114,7 +114,7 @@ export default function NotificationBell() {
                 <div className="notification-bell__title">{n.title}</div>
                 {n.message && <div className="notification-bell__message">{n.message}</div>}
                 <div className="notification-bell__time">
-                  <i className="bi bi-clock me-1"></i>
+                  <i className="bi bi-clock  me-1"></i>
                   {new Date(n.created_at).toLocaleString()}
                 </div>
               </div>

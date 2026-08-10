@@ -113,7 +113,7 @@ export default function Announcements() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function Announcements() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function Announcements() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--success)", background: "var(--success-soft)" }}>
           <div className="card-body">
             <div className="text-success">
-              <i className="bi bi-check-circle me-2"></i> {success}
+              <i className="bi bi-check-circle  me-1"></i> {success}
             </div>
           </div>
         </div>
@@ -141,12 +141,12 @@ export default function Announcements() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-megaphone me-2"></i> New Announcement
+            <i className="bi bi-megaphone  me-1"></i> New Announcement
           </h5>
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Send hospital-wide or role-targeted announcements — delivered as in-app notifications and bulk email simultaneously.
           </div>
 
@@ -210,7 +210,7 @@ export default function Announcements() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-people me-1"></i> Target Audience
+              <i className="bi bi-people  me-1"></i> Target Audience
             </h6>
             <div className="text-sm text-muted" style={{ marginBottom: "var(--space-2)" }}>
               Leave all unchecked to send to every active staff member.
@@ -230,7 +230,7 @@ export default function Announcements() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
-              <i className="bi bi-broadcast me-1"></i> Delivery Channels
+              <i className="bi bi-broadcast  me-1"></i> Delivery Channels
             </h6>
             <div className="flex gap-4" style={{ marginBottom: "var(--space-3)" }}>
               <label className="checkbox-row" style={{ cursor: "pointer" }}>
@@ -262,7 +262,7 @@ export default function Announcements() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-send me-2"></i> Send Announcement
+                    <i className="bi bi-send  me-1"></i> Send Announcement
                   </>
                 )}
               </button>
@@ -274,7 +274,7 @@ export default function Announcements() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Sent Announcements</h5>
           </div>
           <div>

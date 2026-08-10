@@ -185,11 +185,11 @@ export default function RadiologyTestCatalogManagement() {
         </div>
         <div className="page-header__actions">
           <Link to="/radiology" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back to Radiology
           </Link>
           <button className="btn btn-primary" onClick={openCreateForm}>
-            <i className="bi bi-plus-lg me-2"></i>
+            <i className="bi bi-plus-lg  me-1"></i>
             Add Test
           </button>
         </div>

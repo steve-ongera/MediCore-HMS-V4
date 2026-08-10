@@ -36,8 +36,8 @@ export default function RoleReportBase({ reportType, title, subtitle, tableColum
         <div className="page-header__actions">
           <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
           <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          <button className="btn btn-secondary" onClick={() => exportTableToExcel(data.table, reportType)}><i className="bi bi-file-earmark-excel me-2"></i>Excel</button>
-          <button className="btn btn-secondary" onClick={() => exportTableToPDF(data.table, title, reportType)}><i className="bi bi-file-earmark-pdf me-2"></i>PDF</button>
+          <button className="btn btn-secondary" onClick={() => exportTableToExcel(data.table, reportType)}><i className="bi bi-file-earmark-excel  me-1"></i>Excel</button>
+          <button className="btn btn-secondary" onClick={() => exportTableToPDF(data.table, title, reportType)}><i className="bi bi-file-earmark-pdf  me-1"></i>PDF</button>
         </div>
       </div>
 

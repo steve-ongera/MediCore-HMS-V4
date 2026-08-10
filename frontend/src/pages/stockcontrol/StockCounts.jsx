@@ -95,7 +95,7 @@ export default function StockCounts() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadLocations(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function StockCounts() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function StockCounts() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Start New Count
+              <i className="bi bi-plus-circle  me-1"></i> Start New Count
             </h5>
           </div>
           <div className="card-body">
@@ -128,7 +128,7 @@ export default function StockCounts() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="button" className="btn btn-primary" onClick={startCount} disabled={!selectedLocation}>
-                  <i className="bi bi-plus-circle me-2"></i> Start Count
+                  <i className="bi bi-plus-circle  me-1"></i> Start Count
                 </button>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function StockCounts() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <div className="flex items-center gap-3 flex-wrap">
-              <i className="bi bi-clipboard-check me-1"></i>
+              <i className="bi bi-clipboard-check  me-1"></i>
               <h5 className="card-title" style={{ marginBottom: 0 }}>
                 Counting: {activeCount.location_name}
               </h5>
@@ -183,10 +183,10 @@ export default function StockCounts() {
           <div className="card-footer">
             <div className="flex gap-3">
               <button type="button" className="btn btn-success" onClick={submitCount}>
-                <i className="bi bi-check-circle me-2"></i> Submit Count
+                <i className="bi bi-check-circle  me-1"></i> Submit Count
               </button>
               <button type="button" className="btn btn-secondary" onClick={() => setActiveCount(null)}>
-                <i className="bi bi-x me-2"></i> Cancel
+                <i className="bi bi-x  me-1"></i> Cancel
               </button>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function StockCounts() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Count History</h5>
           </div>
           <div>
@@ -246,7 +246,7 @@ export default function StockCounts() {
                       <td className="cell-actions">
                         {(c.status === "SUBMITTED" || c.status === "VARIANCE_PENDING") && (
                           <button className="btn btn-success btn-sm" onClick={() => handleApprove(c.id)}>
-                            <i className="bi bi-check-circle me-1"></i> Approve
+                            <i className="bi bi-check-circle  me-1"></i> Approve
                           </button>
                         )}
                       </td>

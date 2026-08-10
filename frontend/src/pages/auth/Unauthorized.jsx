@@ -23,7 +23,7 @@ export default function Unauthorized() {
           Please contact your administrator if you believe this is an error.
         </p>
         <Link to="/dashboard" className="btn btn-primary">
-          <i className="bi bi-arrow-left me-2"></i>
+          <i className="bi bi-arrow-left  me-1"></i>
           Back to Dashboard
         </Link>
       </div>

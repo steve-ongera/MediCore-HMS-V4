@@ -67,13 +67,13 @@ export default function MOHReportBase({ title, subtitle, fetchFn, cardsConfig, c
             style={{ width: "160px" }}
           />
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <button className="btn btn-secondary" onClick={() => exportTableToExcel(buildExportRows(), exportFilename)}>
-            <i className="bi bi-file-earmark-excel me-2"></i> Excel
+            <i className="bi bi-file-earmark-excel  me-1"></i> Excel
           </button>
           <button className="btn btn-secondary" onClick={() => exportTableToPDF(buildExportRows(), title, exportFilename)}>
-            <i className="bi bi-file-earmark-pdf me-2"></i> PDF
+            <i className="bi bi-file-earmark-pdf  me-1"></i> PDF
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function MOHReportBase({ title, subtitle, fetchFn, cardsConfig, c
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -195,15 +195,15 @@ export default function MOHReportBase({ title, subtitle, fetchFn, cardsConfig, c
         <div className="card-body">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm text-muted">
-              <i className="bi bi-info-circle me-1"></i>
+              <i className="bi bi-info-circle  me-1"></i>
               Export this report data for further analysis.
             </span>
             <div className="flex gap-2">
               <button className="btn btn-secondary btn-sm" onClick={() => exportTableToExcel(buildExportRows(), exportFilename)}>
-                <i className="bi bi-file-earmark-excel me-1"></i> Excel
+                <i className="bi bi-file-earmark-excel  me-1"></i> Excel
               </button>
               <button className="btn btn-secondary btn-sm" onClick={() => exportTableToPDF(buildExportRows(), title, exportFilename)}>
-                <i className="bi bi-file-earmark-pdf me-1"></i> PDF
+                <i className="bi bi-file-earmark-pdf  me-1"></i> PDF
               </button>
             </div>
           </div>

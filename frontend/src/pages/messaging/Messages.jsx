@@ -52,10 +52,10 @@ export default function Messages() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/messages/directory" className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i> New Message
+            <i className="bi bi-plus-circle  me-1"></i> New Message
           </Link>
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function Messages() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function Messages() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-chat-left me-1"></i>
+            <i className="bi bi-chat-left  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Conversations</h5>
           </div>
           <div>
@@ -91,7 +91,7 @@ export default function Messages() {
               <h3 className="empty-state__title">No conversations yet</h3>
               <p className="empty-state__desc">Start a conversation from the Staff Directory.</p>
               <Link to="/messages/directory" className="btn btn-primary">
-                <i className="bi bi-person-plus me-2"></i> Find Staff
+                <i className="bi bi-person-plus  me-1"></i> Find Staff
               </Link>
             </div>
           ) : (

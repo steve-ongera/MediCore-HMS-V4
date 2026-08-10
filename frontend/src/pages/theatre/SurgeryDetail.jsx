@@ -156,10 +156,10 @@ export default function SurgeryDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/theatre")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Board
+            <i className="bi bi-arrow-left  me-1"></i> Back to Board
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function SurgeryDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function SurgeryDetail() {
               <div className="patient-header__name">{surgery.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-activity me-1"></i> {surgery.procedure_name}
+                  <i className="bi bi-activity  me-1"></i> {surgery.procedure_name}
                 </span>
                 <span>•</span>
                 <span>Theatre: {surgery.theatre_number}</span>
@@ -203,7 +203,7 @@ export default function SurgeryDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock me-1"></i> {surgery.duration_hours} hrs
+                <i className="bi bi-clock  me-1"></i> {surgery.duration_hours} hrs
               </span>
             </div>
           </div>
@@ -260,12 +260,12 @@ export default function SurgeryDetail() {
             <div className="flex gap-3 flex-wrap" style={{ marginTop: "var(--space-3)" }}>
               {!surgery.incision_at && (
                 <button className="btn btn-primary" onClick={handleMarkIncision}>
-                  <i className="bi bi-scissors me-2"></i> Mark Incision
+                  <i className="bi bi-scissors  me-1"></i> Mark Incision
                 </button>
               )}
               {surgery.incision_at && !surgery.closure_at && (
                 <button className="btn btn-warning" onClick={handleMarkClosure}>
-                  <i className="bi bi-check-circle me-2"></i> Mark Closure
+                  <i className="bi bi-check-circle  me-1"></i> Mark Closure
                 </button>
               )}
             </div>
@@ -277,7 +277,7 @@ export default function SurgeryDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-person-plus me-2"></i> Assign Team Member
+              <i className="bi bi-person-plus  me-1"></i> Assign Team Member
             </h5>
           </div>
           <div className="card-body">
@@ -313,7 +313,7 @@ export default function SurgeryDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-person-plus me-2"></i> Add to Team
+                    <i className="bi bi-person-plus  me-1"></i> Add to Team
                   </button>
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function SurgeryDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-people me-1"></i>
+            <i className="bi bi-people  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Surgical Team</h5>
           </div>
           <div>
@@ -368,7 +368,7 @@ export default function SurgeryDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Record Consumable Used
+              <i className="bi bi-plus-circle  me-1"></i> Record Consumable Used
             </h5>
           </div>
           <div className="card-body">
@@ -394,7 +394,7 @@ export default function SurgeryDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-plus-circle me-2"></i> Record Usage
+                    <i className="bi bi-plus-circle  me-1"></i> Record Usage
                   </button>
                 </div>
               </div>
@@ -406,7 +406,7 @@ export default function SurgeryDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-capsule me-1"></i>
+            <i className="bi bi-capsule  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Consumables Used</h5>
           </div>
           <div>
@@ -443,7 +443,7 @@ export default function SurgeryDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Add Post-Op Note
+              <i className="bi bi-plus-circle  me-1"></i> Add Post-Op Note
             </h5>
           </div>
           <div className="card-body">
@@ -522,7 +522,7 @@ export default function SurgeryDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-floppy me-2"></i> Save Note
+                <i className="bi bi-floppy  me-1"></i> Save Note
               </button>
             </form>
           </div>
@@ -532,7 +532,7 @@ export default function SurgeryDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Post-Op Notes History</h5>
           </div>
           <div>
@@ -585,7 +585,7 @@ export default function SurgeryDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-check-circle me-2"></i> Complete Surgery
+              <i className="bi bi-check-circle  me-1"></i> Complete Surgery
             </h5>
           </div>
           <div className="card-body">
@@ -627,7 +627,7 @@ export default function SurgeryDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-success">
-                <i className="bi bi-check-circle me-2"></i> Complete Surgery & Finalize Billing
+                <i className="bi bi-check-circle  me-1"></i> Complete Surgery & Finalize Billing
               </button>
             </form>
           </div>

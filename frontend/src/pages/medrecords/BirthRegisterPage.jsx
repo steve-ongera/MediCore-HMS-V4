@@ -84,7 +84,7 @@ export default function BirthRegisterPage() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function BirthRegisterPage() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function BirthRegisterPage() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Register Birth
+            <i className="bi bi-plus-circle  me-1"></i> Register Birth
           </h5>
         </div>
         <div className="card-body">
@@ -120,7 +120,7 @@ export default function BirthRegisterPage() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary">
-                  <i className="bi bi-search me-2"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function BirthRegisterPage() {
                             className="btn btn-primary btn-sm"
                             onClick={() => setSelectedMother(p)}
                           >
-                            <i className="bi bi-check me-1"></i> Select
+                            <i className="bi bi-check  me-1"></i> Select
                           </button>
                         </td>
                       </tr>
@@ -173,7 +173,7 @@ export default function BirthRegisterPage() {
                   </div>
                   <div>
                     <div className="text-sm text-success font-semibold">
-                      <i className="bi bi-check-circle me-1"></i> Selected Mother
+                      <i className="bi bi-check-circle  me-1"></i> Selected Mother
                     </div>
                     <div className="font-bold">{selectedMother.full_name}</div>
                     <div className="text-sm text-muted">
@@ -185,7 +185,7 @@ export default function BirthRegisterPage() {
                     className="btn btn-ghost btn-sm ml-auto"
                     onClick={() => setSelectedMother(null)}
                   >
-                    <i className="bi bi-x me-1"></i> Change
+                    <i className="bi bi-x  me-1"></i> Change
                   </button>
                 </div>
               </div>
@@ -283,7 +283,7 @@ export default function BirthRegisterPage() {
                 className="btn btn-primary"
                 disabled={!selectedMother}
               >
-                <i className="bi bi-plus-circle me-2"></i> Register Birth
+                <i className="bi bi-plus-circle  me-1"></i> Register Birth
               </button>
             </div>
           </form>

@@ -52,7 +52,7 @@ export default function AdmissionMedicineOrders() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function AdmissionMedicineOrders() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function AdmissionMedicineOrders() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-capsule me-1"></i>
+            <i className="bi bi-capsule  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Active Medication Orders</h5>
           </div>
           <div>
@@ -81,7 +81,7 @@ export default function AdmissionMedicineOrders() {
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Active medication orders across all admitted inpatients. Dosing windows are enforced by the
             backend — a dose already given cannot be given again until it is next due. Marking a dose
             "Given" deducts stock immediately (FEFO batch) and adds the charge to the patient's bill.
@@ -146,19 +146,19 @@ export default function AdmissionMedicineOrders() {
                               title={!canGive ? `Not due until ${o.next_due_at ? formatDateTime(o.next_due_at) : "later"}` : ""}
                             >
                               {!canGive ? (
-                                <><i className="bi bi-clock me-1"></i> Due Later</>
+                                <><i className="bi bi-clock  me-1"></i> Due Later</>
                               ) : administeringId === o.id ? (
                                 <>
                                   <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
                                   Giving...
                                 </>
                               ) : (
-                                <><i className="bi bi-check-circle me-1"></i> Give</>
+                                <><i className="bi bi-check-circle  me-1"></i> Give</>
                               )}
                             </button>
                             {o.admission && (
                               <Link to={`/inpatient/admissions/${o.admission}`} className="btn btn-secondary btn-sm">
-                                <i className="bi bi-eye me-1"></i> View
+                                <i className="bi bi-eye  me-1"></i> View
                               </Link>
                             )}
                           </div>

@@ -107,7 +107,7 @@ export default function FleetManagement() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadLogs(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function FleetManagement() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function FleetManagement() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Register Ambulance
+            <i className="bi bi-plus-circle  me-1"></i> Register Ambulance
           </h5>
         </div>
         <div className="card-body">
@@ -199,7 +199,7 @@ export default function FleetManagement() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-plus-circle me-2"></i> Register Ambulance
+                <i className="bi bi-plus-circle  me-1"></i> Register Ambulance
               </button>
             </div>
           </form>
@@ -209,7 +209,7 @@ export default function FleetManagement() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-truck me-1"></i>
+            <i className="bi bi-truck  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Fleet</h5>
           </div>
           <div>
@@ -300,7 +300,7 @@ export default function FleetManagement() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-tools me-2"></i> Log Maintenance
+            <i className="bi bi-tools  me-1"></i> Log Maintenance
           </h5>
         </div>
         <div className="card-body">
@@ -377,7 +377,7 @@ export default function FleetManagement() {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-plus-circle me-2"></i> Log Maintenance
+              <i className="bi bi-plus-circle  me-1"></i> Log Maintenance
             </button>
           </form>
         </div>
@@ -386,7 +386,7 @@ export default function FleetManagement() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Maintenance History</h5>
           </div>
           <div>

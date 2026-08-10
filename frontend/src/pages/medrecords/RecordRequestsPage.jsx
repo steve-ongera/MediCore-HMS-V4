@@ -111,7 +111,7 @@ export default function RecordRequestsPage() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function RecordRequestsPage() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -129,12 +129,12 @@ export default function RecordRequestsPage() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> New Request
+            <i className="bi bi-plus-circle  me-1"></i> New Request
           </h5>
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Anyone requesting a patient's medical records must file a request here. HIM reviews and approves/denies before it can be fulfilled.
           </div>
 
@@ -152,7 +152,7 @@ export default function RecordRequestsPage() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary">
-                  <i className="bi bi-search me-2"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function RecordRequestsPage() {
                             className="btn btn-primary btn-sm"
                             onClick={() => setSelectedPatient(p)}
                           >
-                            <i className="bi bi-check me-1"></i> Select
+                            <i className="bi bi-check  me-1"></i> Select
                           </button>
                         </td>
                       </tr>
@@ -205,7 +205,7 @@ export default function RecordRequestsPage() {
                   </div>
                   <div>
                     <div className="text-sm text-success font-semibold">
-                      <i className="bi bi-check-circle me-1"></i> Selected Patient
+                      <i className="bi bi-check-circle  me-1"></i> Selected Patient
                     </div>
                     <div className="font-bold">{selectedPatient.full_name}</div>
                     <div className="text-sm text-muted">
@@ -217,7 +217,7 @@ export default function RecordRequestsPage() {
                     className="btn btn-ghost btn-sm ml-auto"
                     onClick={() => setSelectedPatient(null)}
                   >
-                    <i className="bi bi-x me-1"></i> Change
+                    <i className="bi bi-x  me-1"></i> Change
                   </button>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function RecordRequestsPage() {
                 className="btn btn-primary"
                 disabled={!selectedPatient}
               >
-                <i className="bi bi-plus-circle me-2"></i> Submit Request
+                <i className="bi bi-plus-circle  me-1"></i> Submit Request
               </button>
             </div>
           </form>
@@ -264,7 +264,7 @@ export default function RecordRequestsPage() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -331,7 +331,7 @@ export default function RecordRequestsPage() {
                           {r.status === "PENDING" && (
                             <>
                               <button className="btn btn-success btn-sm" onClick={() => handleApprove(r.id)}>
-                                <i className="bi bi-check me-1"></i> Approve
+                                <i className="bi bi-check  me-1"></i> Approve
                               </button>
                               {denyingId === r.id ? (
                                 <>
@@ -344,7 +344,7 @@ export default function RecordRequestsPage() {
                                     style={{ width: "120px" }}
                                   />
                                   <button className="btn btn-danger btn-sm" onClick={() => submitDeny(r.id)}>
-                                    <i className="bi bi-check me-1"></i> Confirm
+                                    <i className="bi bi-check  me-1"></i> Confirm
                                   </button>
                                   <button className="btn btn-secondary btn-sm" onClick={() => setDenyingId(null)}>
                                     <i className="bi bi-x"></i>
@@ -352,14 +352,14 @@ export default function RecordRequestsPage() {
                                 </>
                               ) : (
                                 <button className="btn btn-danger btn-sm" onClick={() => setDenyingId(r.id)}>
-                                  <i className="bi bi-x me-1"></i> Deny
+                                  <i className="bi bi-x  me-1"></i> Deny
                                 </button>
                               )}
                             </>
                           )}
                           {r.status === "APPROVED" && (
                             <button className="btn btn-primary btn-sm" onClick={() => handleFulfill(r.id)}>
-                              <i className="bi bi-check-circle me-1"></i> Fulfill
+                              <i className="bi bi-check-circle  me-1"></i> Fulfill
                             </button>
                           )}
                         </div>

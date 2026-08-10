@@ -67,7 +67,7 @@ export default function StaffDirectory() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function StaffDirectory() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function StaffDirectory() {
                           disabled={!u.is_active}
                           title={!u.is_active ? "User is inactive" : "Start conversation"}
                         >
-                          <i className="bi bi-chat-left me-1"></i> Message
+                          <i className="bi bi-chat-left  me-1"></i> Message
                         </button>
                       </td>
                     </tr>

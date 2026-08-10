@@ -89,11 +89,11 @@ export default function PatientVisits() {
         </div>
         <div className="page-header__actions">
           <Link to={`/patients/${id}/edit`} className="btn btn-secondary">
-            <i className="bi bi-pencil me-2"></i>
+            <i className="bi bi-pencil  me-1"></i>
             Edit Patient
           </Link>
           <Link to="/visits/register" className="btn btn-primary">
-            <i className="bi bi-clipboard-plus me-2"></i>
+            <i className="bi bi-clipboard-plus  me-1"></i>
             Register Visit
           </Link>
         </div>

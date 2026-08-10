@@ -123,7 +123,7 @@ export default function JournalEntries() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function JournalEntries() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function JournalEntries() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> New Journal Entry
+            <i className="bi bi-plus-circle  me-1"></i> New Journal Entry
           </h5>
         </div>
         <div className="card-body">
@@ -191,7 +191,7 @@ export default function JournalEntries() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-list-ul me-1"></i> Lines
+              <i className="bi bi-list-ul  me-1"></i> Lines
             </h6>
             {lines.map((line, index) => (
               <div key={index} className="field-row" style={{ marginBottom: "var(--space-2)" }}>
@@ -236,7 +236,7 @@ export default function JournalEntries() {
               </div>
             ))}
             <button type="button" className="btn btn-secondary btn-sm" onClick={addLine}>
-              <i className="bi bi-plus-circle me-1"></i> Add Line
+              <i className="bi bi-plus-circle  me-1"></i> Add Line
             </button>
 
             <div className="info-grid" style={{ marginTop: "var(--space-3)" }}>
@@ -272,7 +272,7 @@ export default function JournalEntries() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Create Draft Entry
+                    <i className="bi bi-plus-circle  me-1"></i> Create Draft Entry
                   </>
                 )}
               </button>
@@ -284,7 +284,7 @@ export default function JournalEntries() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -351,12 +351,12 @@ export default function JournalEntries() {
                         <div className="flex gap-1 justify-end">
                           {e.status === "DRAFT" && (
                             <button className="btn btn-success btn-sm" onClick={() => handlePost(e.id)}>
-                              <i className="bi bi-check-circle me-1"></i> Post
+                              <i className="bi bi-check-circle  me-1"></i> Post
                             </button>
                           )}
                           {e.status === "POSTED" && (
                             <button className="btn btn-danger btn-sm" onClick={() => handleVoid(e.id)}>
-                              <i className="bi bi-x-circle me-1"></i> Void
+                              <i className="bi bi-x-circle  me-1"></i> Void
                             </button>
                           )}
                         </div>

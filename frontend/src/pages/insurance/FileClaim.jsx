@@ -123,7 +123,7 @@ export default function FileClaim() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/insurance/claims")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Claims
+            <i className="bi bi-arrow-left  me-1"></i> Back to Claims
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function FileClaim() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function FileClaim() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-search me-2"></i> Step 1: Find Patient
+              <i className="bi bi-search  me-1"></i> Step 1: Find Patient
             </h5>
           </div>
           <div className="card-body">
@@ -160,7 +160,7 @@ export default function FileClaim() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-search me-2"></i> Search
+                    <i className="bi bi-search  me-1"></i> Search
                   </button>
                 </div>
               </div>
@@ -193,7 +193,7 @@ export default function FileClaim() {
                               className="btn btn-primary btn-sm"
                               onClick={() => setSelectedPatient(p)}
                             >
-                              <i className="bi bi-check me-1"></i> Select
+                              <i className="bi bi-check  me-1"></i> Select
                             </button>
                           </td>
                         </tr>
@@ -217,7 +217,7 @@ export default function FileClaim() {
                 </div>
                 <div>
                   <div className="text-sm text-success font-semibold">
-                    <i className="bi bi-check-circle me-1"></i> Selected Patient
+                    <i className="bi bi-check-circle  me-1"></i> Selected Patient
                   </div>
                   <div className="font-bold">{selectedPatient.full_name}</div>
                   <div className="text-sm text-muted">
@@ -229,7 +229,7 @@ export default function FileClaim() {
                   className="btn btn-ghost btn-sm ml-auto"
                   onClick={() => { navigate("/insurance/claims/new"); setSelectedPatient(null); }}
                 >
-                  <i className="bi bi-x me-1"></i> Change Patient
+                  <i className="bi bi-x  me-1"></i> Change Patient
                 </button>
               </div>
             </div>
@@ -238,7 +238,7 @@ export default function FileClaim() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-file-earmark-text me-2"></i> Step 2: Select Policy
+                <i className="bi bi-file-earmark-text  me-1"></i> Step 2: Select Policy
               </h5>
             </div>
             <div className="card-body">
@@ -252,7 +252,7 @@ export default function FileClaim() {
                     This patient has no registered insurance policy yet.
                   </p>
                   <Link to="/insurance/policies" className="btn btn-primary">
-                    <i className="bi bi-plus-circle me-2"></i> Register Policy
+                    <i className="bi bi-plus-circle  me-1"></i> Register Policy
                   </Link>
                 </div>
               ) : (
@@ -280,7 +280,7 @@ export default function FileClaim() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <div className="flex items-center gap-3 flex-wrap">
-                <i className="bi bi-receipt me-1"></i>
+                <i className="bi bi-receipt  me-1"></i>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Step 3: Select Invoices to Claim</h5>
               </div>
               <div>
@@ -373,7 +373,7 @@ export default function FileClaim() {
           <div className="card">
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-file-check me-2"></i> Step 4: Submit Claim
+                <i className="bi bi-file-check  me-1"></i> Step 4: Submit Claim
               </h5>
             </div>
             <div className="card-body">
@@ -408,7 +408,7 @@ export default function FileClaim() {
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-file-check me-2"></i> File Claim
+                        <i className="bi bi-file-check  me-1"></i> File Claim
                       </>
                     )}
                   </button>

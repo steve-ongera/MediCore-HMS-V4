@@ -148,7 +148,7 @@ export default function Suppliers() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-primary" onClick={openCreateForm}>
-            <i className="bi bi-truck me-2"></i>
+            <i className="bi bi-truck  me-1"></i>
             Add Supplier
           </button>
         </div>

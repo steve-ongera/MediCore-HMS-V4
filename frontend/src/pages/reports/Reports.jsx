@@ -120,7 +120,7 @@ function PaginationFooter({ totalRows, currentPage, totalPages, startIdx, onPage
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
-          <i className="bi bi-chevron-left me-1"></i> Prev
+          <i className="bi bi-chevron-left  me-1"></i> Prev
         </button>
         <span className="text-2xs text-tertiary">Page {currentPage} of {totalPages}</span>
         <button
@@ -628,7 +628,7 @@ export default function Reports() {
           <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ width: "160px" }} />
           <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ width: "160px" }} />
           <button className="btn btn-secondary" onClick={() => { loadReport(); loadOverview(); loadDemographics(); loadTopDiseases(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -741,7 +741,7 @@ export default function Reports() {
         <div className="grid-4-8__sidebar">
           <div className="card" style={{ marginBottom: "var(--space-4)" }}>
             <div className="card-header">
-              <h5 className="card-title"><i className="bi bi-graph-up me-2"></i>Statistics</h5>
+              <h5 className="card-title"><i className="bi bi-graph-up  me-1"></i>Statistics</h5>
             </div>
             <div className="card-body">
               <div className="info-item" style={{ marginBottom: "var(--space-3)" }}>
@@ -821,7 +821,7 @@ export default function Reports() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-calendar-month me-2"></i>Last 12 Months</h5>
+            <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-calendar-month  me-1"></i>Last 12 Months</h5>
             <span className="text-2xs text-tertiary">Monthly revenue for the selected year — not affected by the date range above</span>
           </div>
           <div className="field" style={{ marginBottom: 0 }}>
@@ -858,7 +858,7 @@ export default function Reports() {
         <div className="grid-8-4__main">
           <div className="card">
             <div className="card-header">
-              <h5 className="card-title"><i className="bi bi-people me-2"></i>Patients by Age Group</h5>
+              <h5 className="card-title"><i className="bi bi-people  me-1"></i>Patients by Age Group</h5>
               <span className="text-2xs text-tertiary">Children, teenagers, youth, adults & seniors seen in the selected range</span>
             </div>
             <div className="card-body" style={{ height: "240px" }}>
@@ -887,7 +887,7 @@ export default function Reports() {
         <div className="grid-4-8__sidebar">
           <div className="card">
             <div className="card-header">
-              <h5 className="card-title"><i className="bi bi-gender-ambiguous me-2"></i>Patients by Gender</h5>
+              <h5 className="card-title"><i className="bi bi-gender-ambiguous  me-1"></i>Patients by Gender</h5>
             </div>
             <div className="card-body" style={{ height: "240px" }}>
               {demographicsLoading ? (
@@ -914,7 +914,7 @@ export default function Reports() {
       {/* Most Reported Diseases - Full width card with table */}
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
-          <h5 className="card-title"><i className="bi bi-heart-pulse me-2"></i>Most Reported Diseases — Last 12 Months</h5>
+          <h5 className="card-title"><i className="bi bi-heart-pulse  me-1"></i>Most Reported Diseases — Last 12 Months</h5>
           <span className="text-2xs text-tertiary">
             {diseasePeriod.start && diseasePeriod.end
               ? `${diseasePeriod.start} to ${diseasePeriod.end} — click a row to see monthly detail`
@@ -958,7 +958,7 @@ export default function Reports() {
             <div className="card">
               <div className="card-header">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-clipboard-data me-2"></i>Disease Detail</h5>
+                  <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-clipboard-data  me-1"></i>Disease Detail</h5>
                   <span className="text-2xs text-tertiary">{selectedDisease.name} — {MONTH_NAMES[drillMonth - 1]} {drillYear}</span>
                 </div>
                 <div className="flex gap-2">
@@ -1000,7 +1000,7 @@ export default function Reports() {
           <div className="grid-4-8__sidebar">
             <div className="card">
               <div className="card-header">
-                <h5 className="card-title"><i className="bi bi-gender-ambiguous me-2"></i>Cases by Gender</h5>
+                <h5 className="card-title"><i className="bi bi-gender-ambiguous  me-1"></i>Cases by Gender</h5>
               </div>
               <div className="card-body" style={{ height: "240px" }}>
                 {drillLoading ? (
@@ -1029,7 +1029,7 @@ export default function Reports() {
       <div className="card" style={{ marginBottom: "var(--space-4)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-table me-2"></i>Detail Report</h5>
+            <h5 className="card-title" style={{ marginBottom: 0 }}><i className="bi bi-table  me-1"></i>Detail Report</h5>
             <div className="field" style={{ marginBottom: 0, flex: 1, minWidth: "200px" }}>
               <select className="select" value={reportType} onChange={(e) => setReportType(e.target.value)}>
                 {reportTypes.map((rt) => <option key={rt.value} value={rt.value}>{rt.label}</option>)}
@@ -1038,10 +1038,10 @@ export default function Reports() {
           </div>
           <div className="flex gap-2">
             <button className="btn btn-secondary btn-sm" onClick={handleExportExcel}>
-              <i className="bi bi-file-earmark-excel me-1"></i> Excel
+              <i className="bi bi-file-earmark-excel  me-1"></i> Excel
             </button>
             <button className="btn btn-secondary btn-sm" onClick={handleExportPDF}>
-              <i className="bi bi-file-earmark-pdf me-1"></i> PDF
+              <i className="bi bi-file-earmark-pdf  me-1"></i> PDF
             </button>
           </div>
         </div>

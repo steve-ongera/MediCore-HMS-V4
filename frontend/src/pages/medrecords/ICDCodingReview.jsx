@@ -71,7 +71,7 @@ export default function ICDCodingReview() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function ICDCodingReview() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function ICDCodingReview() {
               className={`tabs__item ${tab === "unverified" ? "is-active" : ""}`}
               onClick={() => setTab("unverified")}
             >
-              <i className="bi bi-shield-check me-2"></i>
+              <i className="bi bi-shield-check  me-1"></i>
               Unverified
               <span className="pill-count">{diagnoses.length}</span>
             </button>
@@ -103,7 +103,7 @@ export default function ICDCodingReview() {
               className={`tabs__item ${tab === "uncoded" ? "is-active" : ""}`}
               onClick={() => setTab("uncoded")}
             >
-              <i className="bi bi-exclamation-triangle me-2"></i>
+              <i className="bi bi-exclamation-triangle  me-1"></i>
               Uncoded
               <span className="pill-count">{diagnoses.length}</span>
             </button>
@@ -111,7 +111,7 @@ export default function ICDCodingReview() {
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Quality assurance over diagnosis coding entered by doctors — verify correct codes, or correct miscoded diagnoses.
           </div>
 
@@ -163,7 +163,7 @@ export default function ICDCodingReview() {
                       <td className="cell-actions">
                         {tab === "unverified" && (
                           <button className="btn btn-success btn-sm" onClick={() => handleVerify(d.id)}>
-                            <i className="bi bi-check-circle me-1"></i> Verify
+                            <i className="bi bi-check-circle  me-1"></i> Verify
                           </button>
                         )}
                         {correctingId === d.id ? (
@@ -200,7 +200,7 @@ export default function ICDCodingReview() {
                               style={{ width: "140px" }}
                             />
                             <button className="btn btn-primary btn-sm" onClick={() => submitCorrection(d.id)}>
-                              <i className="bi bi-save me-1"></i> Save
+                              <i className="bi bi-save  me-1"></i> Save
                             </button>
                             <button className="btn btn-secondary btn-sm" onClick={() => setCorrectingId(null)}>
                               <i className="bi bi-x"></i>
@@ -208,7 +208,7 @@ export default function ICDCodingReview() {
                           </div>
                         ) : (
                           <button className="btn btn-warning btn-sm" onClick={() => setCorrectingId(d.id)}>
-                            <i className="bi bi-pencil me-1"></i> Correct
+                            <i className="bi bi-pencil  me-1"></i> Correct
                           </button>
                         )}
                       </td>

@@ -418,7 +418,7 @@ export default function Settings() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={reloadCurrentTab}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -430,7 +430,7 @@ export default function Settings() {
           className={`tabs__item ${activeTab === "users" ? "is-active" : ""}`}
           onClick={() => setActiveTab("users")}
         >
-          <i className="bi bi-people me-2"></i>
+          <i className="bi bi-people  me-1"></i>
           Users ({userCount})
         </button>
         <button
@@ -438,7 +438,7 @@ export default function Settings() {
           className={`tabs__item ${activeTab === "departments" ? "is-active" : ""}`}
           onClick={() => setActiveTab("departments")}
         >
-          <i className="bi bi-building me-2"></i>
+          <i className="bi bi-building  me-1"></i>
           Departments ({deptCount})
         </button>
       </div>
@@ -454,7 +454,7 @@ export default function Settings() {
               className="btn btn-primary btn-sm"
               onClick={() => openUserModal()}
             >
-              <i className="bi bi-person-plus me-1"></i>
+              <i className="bi bi-person-plus  me-1"></i>
               Add User
             </button>
           ) : (
@@ -463,7 +463,7 @@ export default function Settings() {
               className="btn btn-primary btn-sm"
               onClick={() => openDeptModal()}
             >
-              <i className="bi bi-building-add me-1"></i>
+              <i className="bi bi-building-add  me-1"></i>
               Add Department
             </button>
           )}
@@ -515,7 +515,7 @@ export default function Settings() {
                   className="btn btn-secondary btn-sm"
                   onClick={clearUserFilters}
                 >
-                  <i className="bi bi-x-lg me-1"></i>
+                  <i className="bi bi-x-lg  me-1"></i>
                   Clear
                 </button>
               )}
@@ -552,7 +552,7 @@ export default function Settings() {
                 disabled={currentPage <= 1 || loading}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
-                <i className="bi bi-chevron-left me-1"></i>
+                <i className="bi bi-chevron-left  me-1"></i>
                 Prev
               </button>
               <span className="text-2xs text-tertiary">

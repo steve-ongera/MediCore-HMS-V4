@@ -32,7 +32,7 @@ export default function RaiseTicket() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/tickets")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Tickets
+            <i className="bi bi-arrow-left  me-1"></i> Back to Tickets
           </button>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function RaiseTicket() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function RaiseTicket() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Ticket Details
+            <i className="bi bi-plus-circle  me-1"></i> Ticket Details
           </h5>
         </div>
         <div className="card-body">
@@ -134,7 +134,7 @@ export default function RaiseTicket() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-send me-2"></i> Submit Ticket
+                    <i className="bi bi-send  me-1"></i> Submit Ticket
                   </>
                 )}
               </button>

@@ -154,10 +154,10 @@ export default function AssetDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/assets")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Register
+            <i className="bi bi-arrow-left  me-1"></i> Back to Register
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -166,7 +166,7 @@ export default function AssetDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function AssetDetail() {
               <div className="patient-header__name">{asset.name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-tag me-1"></i> {asset.asset_tag}
+                  <i className="bi bi-tag  me-1"></i> {asset.asset_tag}
                 </span>
                 <span>•</span>
                 <span>{asset.category_name}</span>
@@ -200,7 +200,7 @@ export default function AssetDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-currency-dollar me-1"></i> {formatCurrency(asset.current_value)}
+                <i className="bi bi-currency-dollar  me-1"></i> {formatCurrency(asset.current_value)}
               </span>
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function AssetDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-arrow-left-right me-2"></i> Transfer Asset
+              <i className="bi bi-arrow-left-right  me-1"></i> Transfer Asset
             </h5>
           </div>
           <div className="card-body">
@@ -306,7 +306,7 @@ export default function AssetDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-arrow-left-right me-2"></i> Transfer Asset
+                <i className="bi bi-arrow-left-right  me-1"></i> Transfer Asset
               </button>
             </form>
           </div>
@@ -316,7 +316,7 @@ export default function AssetDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Transfer History</h5>
           </div>
           <div>
@@ -369,7 +369,7 @@ export default function AssetDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-tools me-2"></i> Log Maintenance
+              <i className="bi bi-tools  me-1"></i> Log Maintenance
             </h5>
           </div>
           <div className="card-body">
@@ -427,7 +427,7 @@ export default function AssetDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-plus-circle me-2"></i> Log Maintenance
+                <i className="bi bi-plus-circle  me-1"></i> Log Maintenance
               </button>
             </form>
           </div>
@@ -437,7 +437,7 @@ export default function AssetDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clipboard me-1"></i>
+            <i className="bi bi-clipboard  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Maintenance History</h5>
           </div>
           <div>
@@ -486,7 +486,7 @@ export default function AssetDetail() {
                       <td className="cell-actions">
                         {(m.status === "SCHEDULED" || m.status === "IN_PROGRESS") && (
                           <button className="btn btn-success btn-sm" onClick={() => handleCompleteMaintenance(m.id)}>
-                            <i className="bi bi-check me-1"></i> Complete
+                            <i className="bi bi-check  me-1"></i> Complete
                           </button>
                         )}
                       </td>
@@ -503,7 +503,7 @@ export default function AssetDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-trash me-2"></i> Dispose Asset
+              <i className="bi bi-trash  me-1"></i> Dispose Asset
             </h5>
           </div>
           <div className="card-body">
@@ -554,7 +554,7 @@ export default function AssetDetail() {
                 </div>
               </div>
               <button type="submit" className="btn btn-danger">
-                <i className="bi bi-trash me-2"></i> Dispose Asset
+                <i className="bi bi-trash  me-1"></i> Dispose Asset
               </button>
             </form>
           </div>
@@ -563,7 +563,7 @@ export default function AssetDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-file-text me-2"></i> Disposal Record
+              <i className="bi bi-file-text  me-1"></i> Disposal Record
             </h5>
           </div>
           <div className="card-body">

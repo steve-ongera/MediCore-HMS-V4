@@ -218,7 +218,7 @@ export default function Payments() {
               setShowReceiptModal(true);
             }}
           >
-            <i className="bi bi-receipt me-1"></i>
+            <i className="bi bi-receipt  me-1"></i>
             Receipt
           </button>
         </div>
@@ -253,11 +253,11 @@ export default function Payments() {
           )}
           <div className="d-flex gap-2 justify-content-center mt-2">
             <Link to="/billing/till" className="btn btn-primary">
-              <i className="bi bi-safe2 me-2"></i>
+              <i className="bi bi-safe2  me-1"></i>
               Open Cash Till
             </Link>
             <button type="button" className="btn btn-outline-secondary" onClick={checkTill}>
-              <i className="bi bi-arrow-clockwise me-2"></i>
+              <i className="bi bi-arrow-clockwise  me-1"></i>
               Re-check
             </button>
           </div>
@@ -280,7 +280,7 @@ export default function Payments() {
             className="btn btn-primary"
             onClick={() => setShowModal(true)}
           >
-            <i className="bi bi-cash-stack me-2"></i>
+            <i className="bi bi-cash-stack  me-1"></i>
             New Payment
           </button>
         </div>
@@ -348,12 +348,12 @@ export default function Payments() {
             >
               {submitting ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" />
+                  <span className="spinner-border spinner-border-sm  me-1" role="status" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <i className="bi bi-check-lg me-2"></i>
+                  <i className="bi bi-check-lg  me-1"></i>
                   Process Payment
                 </>
               )}

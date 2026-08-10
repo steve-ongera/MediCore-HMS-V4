@@ -164,7 +164,7 @@ export default function NurseDashboard() {
         </div>
         <div className="page-header__actions">
           <button type="button" className="btn btn-secondary" onClick={loadQueue}>
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -344,7 +344,7 @@ export default function NurseDashboard() {
                       className="btn btn-primary btn-sm"
                       onClick={() => openVitalsModal(entry)}
                     >
-                      <i className="bi bi-clipboard2-pulse me-1"></i>
+                      <i className="bi bi-clipboard2-pulse  me-1"></i>
                       Record Vitals
                     </button>
                   </div>
@@ -368,7 +368,7 @@ export default function NurseDashboard() {
                     window.location.href = "/queue";
                   }}
                 >
-                  <i className="bi bi-hourglass-split me-2"></i>
+                  <i className="bi bi-hourglass-split  me-1"></i>
                   View Full Queue
                 </button>
                 <button
@@ -376,7 +376,7 @@ export default function NurseDashboard() {
                   className="btn btn-secondary btn-block"
                   onClick={loadQueue}
                 >
-                  <i className="bi bi-arrow-clockwise me-2"></i>
+                  <i className="bi bi-arrow-clockwise  me-1"></i>
                   Refresh Queue
                 </button>
               </div>
@@ -428,12 +428,12 @@ export default function NurseDashboard() {
             >
               {submitting ? (
                 <>
-                  <span className="spinner spinner-inverse me-2" style={{ width: 16, height: 16 }} />
+                  <span className="spinner spinner-inverse  me-1" style={{ width: 16, height: 16 }} />
                   Saving...
                 </>
               ) : (
                 <>
-                  <i className="bi bi-check2-circle me-2"></i>
+                  <i className="bi bi-check2-circle  me-1"></i>
                   Save Vitals
                 </>
               )}

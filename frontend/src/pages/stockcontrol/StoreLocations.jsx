@@ -150,7 +150,7 @@ export default function StoreLocations() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadUsers(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default function StoreLocations() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function StoreLocations() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--success)", background: "var(--success-soft)" }}>
           <div className="card-body">
             <div className="text-success">
-              <i className="bi bi-check-circle me-2"></i> {success}
+              <i className="bi bi-check-circle  me-1"></i> {success}
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function StoreLocations() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Add Location
+            <i className="bi bi-plus-circle  me-1"></i> Add Location
           </h5>
         </div>
         <div className="card-body">
@@ -216,7 +216,7 @@ export default function StoreLocations() {
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-primary">
-                <i className="bi bi-plus-circle me-2"></i> Add Location
+                <i className="bi bi-plus-circle  me-1"></i> Add Location
               </button>
             </div>
           </form>
@@ -226,7 +226,7 @@ export default function StoreLocations() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-grid me-1"></i>
+            <i className="bi bi-grid  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Locations</h5>
           </div>
           <div>
@@ -268,7 +268,7 @@ export default function StoreLocations() {
                       <td>{l.custodian_name}</td>
                       <td className="cell-actions">
                         <button className="btn btn-secondary btn-sm" onClick={() => viewStock(l)}>
-                          <i className="bi bi-box-seam me-1"></i> Manage Stock
+                          <i className="bi bi-box-seam  me-1"></i> Manage Stock
                         </button>
                       </td>
                     </tr>
@@ -311,23 +311,23 @@ export default function StoreLocations() {
         <div className="card">
           <div className="card-header">
             <div className="flex items-center gap-3 flex-wrap">
-              <i className="bi bi-box-seam me-1"></i>
+              <i className="bi bi-box-seam  me-1"></i>
               <h5 className="card-title" style={{ marginBottom: 0 }}>
                 Managing Stock: {selectedLocation.name}
               </h5>
             </div>
             <div>
               <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedLocation(null); }}>
-                <i className="bi bi-x me-1"></i> Close
+                <i className="bi bi-x  me-1"></i> Close
               </button>
             </div>
           </div>
           <div className="card-body">
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
-              <i className="bi bi-plus-circle me-1"></i> Set / Add Medicine to This Location
+              <i className="bi bi-plus-circle  me-1"></i> Set / Add Medicine to This Location
             </h6>
             <div className="text-sm text-muted" style={{ marginBottom: "var(--space-2)" }}>
-              <i className="bi bi-info-circle me-1"></i>
+              <i className="bi bi-info-circle  me-1"></i>
               Search for a real medicine from the pharmacy catalog — this keeps location stock tied to the actual inventory.
             </div>
             <form onSubmit={submitSetStock}>
@@ -411,7 +411,7 @@ export default function StoreLocations() {
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-save me-2"></i> Save Stock Level
+                          <i className="bi bi-save  me-1"></i> Save Stock Level
                         </>
                       )}
                     </button>
@@ -421,7 +421,7 @@ export default function StoreLocations() {
             </form>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-list-ul me-1"></i> Current Stock at {selectedLocation.name}
+              <i className="bi bi-list-ul  me-1"></i> Current Stock at {selectedLocation.name}
             </h6>
             <div className="table-scroll">
               <table className="data-table">
@@ -448,7 +448,7 @@ export default function StoreLocations() {
             )}
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-clock-history me-1"></i> Adjustment History
+              <i className="bi bi-clock-history  me-1"></i> Adjustment History
             </h6>
             <div className="table-scroll">
               <table className="data-table">

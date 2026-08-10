@@ -94,7 +94,7 @@ export default function SparePartsInventory() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadLowStock(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function SparePartsInventory() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function SparePartsInventory() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-exclamation-triangle me-1"></i>
+            <i className="bi bi-exclamation-triangle  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Low Stock Alerts ({lowStock.length})</h5>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function SparePartsInventory() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Add Spare Part
+            <i className="bi bi-plus-circle  me-1"></i> Add Spare Part
           </h5>
         </div>
         <div className="card-body">
@@ -235,7 +235,7 @@ export default function SparePartsInventory() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Add Part
+                    <i className="bi bi-plus-circle  me-1"></i> Add Part
                   </>
                 )}
               </button>
@@ -247,7 +247,7 @@ export default function SparePartsInventory() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Spare Parts</h5>
           </div>
           <div>
@@ -289,10 +289,10 @@ export default function SparePartsInventory() {
                       <td className="cell-actions">
                         <div className="flex gap-1 justify-end">
                           <button className="btn btn-success btn-sm" onClick={() => adjustStock(p, 1)}>
-                            <i className="bi bi-plus me-1"></i> +1
+                            <i className="bi bi-plus  me-1"></i> +1
                           </button>
                           <button className="btn btn-danger btn-sm" onClick={() => adjustStock(p, -1)} disabled={p.quantity_in_stock <= 0}>
-                            <i className="bi bi-dash me-1"></i> -1
+                            <i className="bi bi-dash  me-1"></i> -1
                           </button>
                         </div>
                       </td>

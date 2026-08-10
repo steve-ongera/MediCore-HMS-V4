@@ -83,7 +83,7 @@ export default function AdmissionList() {
         </div>
         <div className="page-header__actions">
           <Link to="/inpatient/admit" className="btn btn-primary">
-            <i className="bi bi-person-plus me-2"></i>
+            <i className="bi bi-person-plus  me-1"></i>
             Admit Patient
           </Link>
         </div>
@@ -122,7 +122,7 @@ export default function AdmissionList() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
-                  <i className="bi bi-search me-2"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function AdmissionList() {
           </div>
           <div>
             <button className="btn btn-secondary btn-sm" onClick={() => { setPage(1); loadAdmissions(); }}>
-              <i className="bi bi-arrow-clockwise me-1"></i> Refresh
+              <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
             </button>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function AdmissionList() {
                         to={`/inpatient/admissions/${a.id}`}
                         className="btn btn-secondary btn-sm"
                       >
-                        <i className="bi bi-eye me-1"></i> View
+                        <i className="bi bi-eye  me-1"></i> View
                       </Link>
                     </td>
                   </tr>
@@ -217,12 +217,12 @@ export default function AdmissionList() {
                   setStatusFilter("");
                   setPage(1);
                 }}>
-                  <i className="bi bi-x-circle me-1"></i> Clear filters
+                  <i className="bi bi-x-circle  me-1"></i> Clear filters
                 </button>
               ) : (
                 <Link to="/inpatient/admit">
                   <button className="btn btn-primary">
-                    <i className="bi bi-person-plus me-2"></i> Admit Patient
+                    <i className="bi bi-person-plus  me-1"></i> Admit Patient
                   </button>
                 </Link>
               )}

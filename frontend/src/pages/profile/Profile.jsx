@@ -181,7 +181,7 @@ export default function Profile() {
               className={`tabs__item ${activeTab === "profile" ? "is-active" : ""}`}
               onClick={() => setActiveTab("profile")}
             >
-              <i className="bi bi-person me-2" style={{ marginRight: "4px" }}></i>
+              <i className="bi bi-person  me-1" style={{ marginRight: "4px" }}></i>
               Profile Information
             </button>
             <button
@@ -189,7 +189,7 @@ export default function Profile() {
               className={`tabs__item ${activeTab === "password" ? "is-active" : ""}`}
               onClick={() => setActiveTab("password")}
             >
-              <i className="bi bi-key me-2" style={{ marginRight: "4px" }}></i>
+              <i className="bi bi-key  me-1" style={{ marginRight: "4px" }}></i>
               Change Password
             </button>
           </div>
@@ -303,7 +303,7 @@ export default function Profile() {
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-save me-2"></i>
+                          <i className="bi bi-save  me-1"></i>
                           Save Changes
                         </>
                       )}
@@ -379,7 +379,7 @@ export default function Profile() {
                   <div className="card" style={{ background: "var(--info-soft)", borderColor: "var(--info-strong)", marginBottom: "var(--space-3)" }}>
                     <div className="card-body" style={{ padding: "var(--space-3)" }}>
                       <div className="text-sm">
-                        <i className="bi bi-info-circle me-2" style={{ color: "var(--info-strong)" }}></i>
+                        <i className="bi bi-info-circle  me-1" style={{ color: "var(--info-strong)" }}></i>
                         Password must be at least 8 characters long and contain a mix of letters, numbers, and special characters.
                       </div>
                     </div>
@@ -398,7 +398,7 @@ export default function Profile() {
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-key me-2"></i>
+                          <i className="bi bi-key  me-1"></i>
                           Change Password
                         </>
                       )}

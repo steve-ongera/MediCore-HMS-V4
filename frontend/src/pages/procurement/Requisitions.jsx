@@ -182,7 +182,7 @@ export default function Requisitions() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function Requisitions() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function Requisitions() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> New Requisition
+            <i className="bi bi-plus-circle  me-1"></i> New Requisition
           </h5>
         </div>
         <div className="card-body">
@@ -269,7 +269,7 @@ export default function Requisitions() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-list-ul me-1"></i> Items
+              <i className="bi bi-list-ul  me-1"></i> Items
             </h6>
             {items.map((item, index) => (
               <div key={index} className="field-row" style={{ marginBottom: "var(--space-2)" }}>
@@ -326,7 +326,7 @@ export default function Requisitions() {
               </div>
             ))}
             <button type="button" className="btn btn-secondary btn-sm" onClick={addItemRow}>
-              <i className="bi bi-plus-circle me-1"></i> Add Item
+              <i className="bi bi-plus-circle  me-1"></i> Add Item
             </button>
 
             <div className="form-actions" style={{ marginTop: "var(--space-3)" }}>
@@ -338,7 +338,7 @@ export default function Requisitions() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-send me-2"></i> Submit Requisition
+                    <i className="bi bi-send  me-1"></i> Submit Requisition
                   </>
                 )}
               </button>
@@ -350,7 +350,7 @@ export default function Requisitions() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -429,7 +429,7 @@ export default function Requisitions() {
                         {r.status === "PENDING_HOD_APPROVAL" && (
                           <div className="flex gap-1 justify-end">
                             <button className="btn btn-success btn-sm" onClick={() => handleApprove(r.id)}>
-                              <i className="bi bi-check me-1"></i> Approve
+                              <i className="bi bi-check  me-1"></i> Approve
                             </button>
                             {rejectingId === r.id ? (
                               <>
@@ -442,7 +442,7 @@ export default function Requisitions() {
                                   style={{ width: "120px" }}
                                 />
                                 <button className="btn btn-danger btn-sm" onClick={() => submitRejection(r.id)}>
-                                  <i className="bi bi-check me-1"></i> Confirm
+                                  <i className="bi bi-check  me-1"></i> Confirm
                                 </button>
                                 <button className="btn btn-secondary btn-sm" onClick={() => setRejectingId(null)}>
                                   <i className="bi bi-x"></i>
@@ -450,14 +450,14 @@ export default function Requisitions() {
                               </>
                             ) : (
                               <button className="btn btn-danger btn-sm" onClick={() => setRejectingId(r.id)}>
-                                <i className="bi bi-x me-1"></i> Reject
+                                <i className="bi bi-x  me-1"></i> Reject
                               </button>
                             )}
                           </div>
                         )}
                         {r.status === "HOD_APPROVED" && (
                           <Link to={`/procurement/orders?requisition=${r.id}`} className="btn btn-primary btn-sm">
-                            <i className="bi bi-file-earmark-plus me-1"></i> Create PO
+                            <i className="bi bi-file-earmark-plus  me-1"></i> Create PO
                           </Link>
                         )}
                       </td>

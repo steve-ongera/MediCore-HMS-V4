@@ -71,10 +71,10 @@ export default function AmbulanceDispatchBoard() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/ambulance/request" className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i> Request Dispatch
+            <i className="bi bi-plus-circle  me-1"></i> Request Dispatch
           </Link>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function AmbulanceDispatchBoard() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function AmbulanceDispatchBoard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-truck me-1"></i>
+            <i className="bi bi-truck  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Fleet Status</h5>
           </div>
           <div>
@@ -137,7 +137,7 @@ export default function AmbulanceDispatchBoard() {
                       <td>
                         {a.active_dispatch ? (
                           <Link to={`/ambulance/${a.active_dispatch.dispatch_id}`} className="btn btn-secondary btn-sm">
-                            <i className="bi bi-eye me-1"></i>
+                            <i className="bi bi-eye  me-1"></i>
                             {a.active_dispatch.dispatch_number} - {a.active_dispatch.patient_name}
                           </Link>
                         ) : "—"}
@@ -181,7 +181,7 @@ export default function AmbulanceDispatchBoard() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Active Dispatches</h5>
           </div>
           <div>
@@ -233,7 +233,7 @@ export default function AmbulanceDispatchBoard() {
                       <td>{new Date(d.requested_at).toLocaleString()}</td>
                       <td className="cell-actions">
                         <Link to={`/ambulance/${d.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>

@@ -126,10 +126,10 @@ export default function MortuaryCaseDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/mortuary")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Register
+            <i className="bi bi-arrow-left  me-1"></i> Back to Register
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function MortuaryCaseDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function MortuaryCaseDetail() {
               <div className="patient-header__name">{mortuaryCase.deceased_display_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {mortuaryCase.case_number}
+                  <i className="bi bi-hash  me-1"></i> {mortuaryCase.case_number}
                 </span>
                 <span>•</span>
                 <span>{mortuaryCase.gender}</span>
@@ -169,7 +169,7 @@ export default function MortuaryCaseDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock me-1"></i> {mortuaryCase.days_in_storage} days
+                <i className="bi bi-clock  me-1"></i> {mortuaryCase.days_in_storage} days
               </span>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function MortuaryCaseDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-currency-dollar me-2"></i> Billing
+            <i className="bi bi-currency-dollar  me-1"></i> Billing
           </h5>
         </div>
         <div className="card-body">
@@ -293,7 +293,7 @@ export default function MortuaryCaseDetail() {
                     className="btn btn-primary"
                     onClick={() => navigate(`/billing/payments?invoice=${billing.invoices.find((i) => Number(i.balance) > 0)?.id ?? ""}`)}
                   >
-                    <i className="bi bi-credit-card me-2"></i> Go to Billing / Take Payment
+                    <i className="bi bi-credit-card  me-1"></i> Go to Billing / Take Payment
                   </button>
                 </div>
               )}
@@ -325,7 +325,7 @@ export default function MortuaryCaseDetail() {
                   </div>
                   <div className="field" style={{ marginBottom: 0 }}>
                     <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                      <i className="bi bi-plus-circle me-2"></i> Add Charge
+                      <i className="bi bi-plus-circle  me-1"></i> Add Charge
                     </button>
                   </div>
                 </div>
@@ -339,7 +339,7 @@ export default function MortuaryCaseDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Order Service
+              <i className="bi bi-plus-circle  me-1"></i> Order Service
             </h5>
           </div>
           <div className="card-body">
@@ -362,7 +362,7 @@ export default function MortuaryCaseDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-plus-circle me-2"></i> Order Service
+                    <i className="bi bi-plus-circle  me-1"></i> Order Service
                   </button>
                 </div>
               </div>
@@ -374,7 +374,7 @@ export default function MortuaryCaseDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Services</h5>
           </div>
           <div>
@@ -426,7 +426,7 @@ export default function MortuaryCaseDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-door-open me-2"></i> Release Body
+              <i className="bi bi-door-open  me-1"></i> Release Body
             </h5>
           </div>
           <div className="card-body">
@@ -512,7 +512,7 @@ export default function MortuaryCaseDetail() {
               </div>
 
               <button type="submit" className="btn btn-danger">
-                <i className="bi bi-door-open me-2"></i> Release Body
+                <i className="bi bi-door-open  me-1"></i> Release Body
               </button>
             </form>
           </div>
@@ -522,7 +522,7 @@ export default function MortuaryCaseDetail() {
           <div className="card">
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-file-text me-2"></i> Release Record
+                <i className="bi bi-file-text  me-1"></i> Release Record
               </h5>
             </div>
             <div className="card-body">

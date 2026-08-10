@@ -79,10 +79,10 @@ export default function TheatreBoard() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/theatre/book" className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i> Book Surgery
+            <i className="bi bi-plus-circle  me-1"></i> Book Surgery
           </Link>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function TheatreBoard() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function TheatreBoard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-building me-1"></i>
+            <i className="bi bi-building  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Theatres</h5>
           </div>
           <div>
@@ -143,7 +143,7 @@ export default function TheatreBoard() {
                       <td>
                         {t.active_surgery ? (
                           <Link to={`/theatre/${t.active_surgery.surgery_id}`} className="btn btn-secondary btn-sm">
-                            <i className="bi bi-eye me-1"></i>
+                            <i className="bi bi-eye  me-1"></i>
                             {t.active_surgery.patient_name} - {t.active_surgery.procedure}
                           </Link>
                         ) : "—"}
@@ -183,7 +183,7 @@ export default function TheatreBoard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>In-Progress Surgeries</h5>
           </div>
           <div>
@@ -222,7 +222,7 @@ export default function TheatreBoard() {
                       <td className="cell-numeric">{s.duration_hours} hrs</td>
                       <td className="cell-actions">
                         <Link to={`/theatre/${s.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>
@@ -244,7 +244,7 @@ export default function TheatreBoard() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-calendar-check me-1"></i>
+            <i className="bi bi-calendar-check  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Upcoming Bookings</h5>
           </div>
           <div>
@@ -297,7 +297,7 @@ export default function TheatreBoard() {
                       </td>
                       <td className="cell-actions">
                         <Link to={`/theatre/booking/${b.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> Details
+                          <i className="bi bi-eye  me-1"></i> Details
                         </Link>
                       </td>
                     </tr>

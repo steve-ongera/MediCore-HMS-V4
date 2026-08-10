@@ -88,7 +88,7 @@ export default function ServiceContracts() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadExpiring(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function ServiceContracts() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function ServiceContracts() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-exclamation-triangle me-1"></i>
+            <i className="bi bi-exclamation-triangle  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Expiring Soon ({expiring.length})</h5>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function ServiceContracts() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Add Service Contract
+            <i className="bi bi-plus-circle  me-1"></i> Add Service Contract
           </h5>
         </div>
         <div className="card-body">
@@ -232,7 +232,7 @@ export default function ServiceContracts() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
-              <i className="bi bi-tools me-1"></i> Covered Equipment
+              <i className="bi bi-tools  me-1"></i> Covered Equipment
             </h6>
             <div className="card" style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid var(--border-color)" }}>
               <div className="card-body" style={{ padding: "var(--space-2)" }}>
@@ -263,7 +263,7 @@ export default function ServiceContracts() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Add Contract
+                    <i className="bi bi-plus-circle  me-1"></i> Add Contract
                   </>
                 )}
               </button>
@@ -275,7 +275,7 @@ export default function ServiceContracts() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Contracts</h5>
           </div>
           <div>

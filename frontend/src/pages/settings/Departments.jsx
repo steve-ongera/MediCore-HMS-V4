@@ -217,7 +217,7 @@ export default function Departments() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-primary" onClick={openCreateForm}>
-            <i className="bi bi-building-add me-2"></i>
+            <i className="bi bi-building-add  me-1"></i>
             Add Department
           </button>
         </div>

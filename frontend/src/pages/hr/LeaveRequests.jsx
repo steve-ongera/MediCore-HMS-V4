@@ -66,7 +66,7 @@ export default function LeaveRequests() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function LeaveRequests() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function LeaveRequests() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -154,7 +154,7 @@ export default function LeaveRequests() {
                         {r.status === "PENDING" && (
                           <div className="flex gap-1 justify-end">
                             <button className="btn btn-success btn-sm" onClick={() => handleApprove(r.id)}>
-                              <i className="bi bi-check me-1"></i> Approve
+                              <i className="bi bi-check  me-1"></i> Approve
                             </button>
                             {rejectingId === r.id ? (
                               <>
@@ -167,7 +167,7 @@ export default function LeaveRequests() {
                                   style={{ width: "120px" }}
                                 />
                                 <button className="btn btn-danger btn-sm" onClick={() => submitRejection(r.id)}>
-                                  <i className="bi bi-check me-1"></i> Confirm
+                                  <i className="bi bi-check  me-1"></i> Confirm
                                 </button>
                                 <button className="btn btn-secondary btn-sm" onClick={() => setRejectingId(null)}>
                                   <i className="bi bi-x"></i>
@@ -175,7 +175,7 @@ export default function LeaveRequests() {
                               </>
                             ) : (
                               <button className="btn btn-danger btn-sm" onClick={() => setRejectingId(r.id)}>
-                                <i className="bi bi-x me-1"></i> Reject
+                                <i className="bi bi-x  me-1"></i> Reject
                               </button>
                             )}
                           </div>

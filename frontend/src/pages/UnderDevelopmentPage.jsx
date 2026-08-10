@@ -15,7 +15,7 @@ export default function UnderDevelopment() {
 
         <div className="page-header__actions">
           <Link to="/dashboard" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back to Dashboard
           </Link>
         </div>
@@ -84,7 +84,7 @@ export default function UnderDevelopment() {
 
           <div className="mt-5">
             <Link to="/dashboard" className="btn btn-primary px-4">
-              <i className="bi bi-house-door me-2"></i>
+              <i className="bi bi-house-door  me-1"></i>
               Return to Dashboard
             </Link>
           </div>

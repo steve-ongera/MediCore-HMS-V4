@@ -71,7 +71,7 @@ export default function Budgets() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadDepartments(); loadPeriods(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function Budgets() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -89,12 +89,12 @@ export default function Budgets() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Allocate Budget
+            <i className="bi bi-plus-circle  me-1"></i> Allocate Budget
           </h5>
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Real-time utilization shows what's already spent plus what's currently committed by HOD-approved or converted requisitions — so "Available Now" reflects money that's genuinely still free to requisition against.
           </div>
 
@@ -142,7 +142,7 @@ export default function Budgets() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary">
-                <i className="bi bi-plus-circle me-2"></i> Allocate Budget
+                <i className="bi bi-plus-circle  me-1"></i> Allocate Budget
               </button>
             </div>
           </form>
@@ -152,7 +152,7 @@ export default function Budgets() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-grid me-1"></i>
+            <i className="bi bi-grid  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Budget Lines</h5>
           </div>
           <div>

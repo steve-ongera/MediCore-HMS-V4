@@ -52,7 +52,7 @@ export default function EmergencyMedicineOrders() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function EmergencyMedicineOrders() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function EmergencyMedicineOrders() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-capsule me-1"></i>
+            <i className="bi bi-capsule  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Active Emergency Medication Orders</h5>
           </div>
           <div>
@@ -81,7 +81,7 @@ export default function EmergencyMedicineOrders() {
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Active medication orders across all patients currently in the Emergency Department. The backend
             blocks re-administering the same dose within a short safety window. Marking "Given" deducts stock
             immediately and bills the patient's account — no payment status check, since emergency care cannot wait.
@@ -136,19 +136,19 @@ export default function EmergencyMedicineOrders() {
                               disabled={administeringId === o.id || !canGive}
                             >
                               {!canGive ? (
-                                <><i className="bi bi-clock me-1"></i> Given</>
+                                <><i className="bi bi-clock  me-1"></i> Given</>
                               ) : administeringId === o.id ? (
                                 <>
                                   <span className="spinner spinner-sm" style={{ display: "inline-block", width: "12px", height: "12px", marginRight: "var(--space-1)" }}></span>
                                   Giving...
                                 </>
                               ) : (
-                                <><i className="bi bi-check-circle me-1"></i> Give</>
+                                <><i className="bi bi-check-circle  me-1"></i> Give</>
                               )}
                             </button>
                             {o.emergency_visit && (
                               <Link to={`/emergency/${o.emergency_visit}`} className="btn btn-secondary btn-sm">
-                                <i className="bi bi-eye me-1"></i> View
+                                <i className="bi bi-eye  me-1"></i> View
                               </Link>
                             )}
                           </div>

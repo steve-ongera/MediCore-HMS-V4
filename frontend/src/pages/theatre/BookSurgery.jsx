@@ -108,7 +108,7 @@ export default function BookSurgery() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/theatre")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Board
+            <i className="bi bi-arrow-left  me-1"></i> Back to Board
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function BookSurgery() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function BookSurgery() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-search me-2"></i> Step 1: Find Patient
+            <i className="bi bi-search  me-1"></i> Step 1: Find Patient
           </h5>
         </div>
         <div className="card-body">
@@ -144,7 +144,7 @@ export default function BookSurgery() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                  <i className="bi bi-search me-2"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
               </div>
             </div>
@@ -177,7 +177,7 @@ export default function BookSurgery() {
                             className="btn btn-primary btn-sm"
                             onClick={() => setSelectedPatient(p)}
                           >
-                            <i className="bi bi-check me-1"></i> Select
+                            <i className="bi bi-check  me-1"></i> Select
                           </button>
                         </td>
                       </tr>
@@ -197,7 +197,7 @@ export default function BookSurgery() {
                   </div>
                   <div>
                     <div className="text-sm text-success font-semibold">
-                      <i className="bi bi-check-circle me-1"></i> Selected Patient
+                      <i className="bi bi-check-circle  me-1"></i> Selected Patient
                     </div>
                     <div className="font-bold">{selectedPatient.full_name}</div>
                     <div className="text-sm text-muted">
@@ -209,7 +209,7 @@ export default function BookSurgery() {
                     className="btn btn-ghost btn-sm ml-auto"
                     onClick={() => setSelectedPatient(null)}
                   >
-                    <i className="bi bi-x me-1"></i> Change
+                    <i className="bi bi-x  me-1"></i> Change
                   </button>
                 </div>
               </div>
@@ -221,7 +221,7 @@ export default function BookSurgery() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-clipboard-plus me-2"></i> Step 2: Booking Details
+            <i className="bi bi-clipboard-plus  me-1"></i> Step 2: Booking Details
           </h5>
         </div>
         <div className="card-body">
@@ -315,7 +315,7 @@ export default function BookSurgery() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Book Surgery
+                    <i className="bi bi-plus-circle  me-1"></i> Book Surgery
                   </>
                 )}
               </button>

@@ -62,10 +62,10 @@ export default function ClaimsList() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/insurance/claims/new" className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i> File Claim
+            <i className="bi bi-plus-circle  me-1"></i> File Claim
           </Link>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function ClaimsList() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function ClaimsList() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -124,7 +124,7 @@ export default function ClaimsList() {
               </p>
               {!statusFilter && (
                 <Link to="/insurance/claims/new" className="btn btn-primary">
-                  <i className="bi bi-plus-circle me-2"></i> File Claim
+                  <i className="bi bi-plus-circle  me-1"></i> File Claim
                 </Link>
               )}
             </div>
@@ -159,7 +159,7 @@ export default function ClaimsList() {
                         <td className="cell-numeric">KES {c.total_approved}</td>
                         <td className="cell-actions">
                           <Link to={`/insurance/claims/${c.id}`} className="btn btn-secondary btn-sm">
-                            <i className="bi bi-eye me-1"></i> View
+                            <i className="bi bi-eye  me-1"></i> View
                           </Link>
                         </td>
                       </tr>

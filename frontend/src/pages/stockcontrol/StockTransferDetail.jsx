@@ -75,10 +75,10 @@ export default function StockTransferDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/stockcontrol/transfers")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Transfers
+            <i className="bi bi-arrow-left  me-1"></i> Back to Transfers
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function StockTransferDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function StockTransferDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger" style={{ fontWeight: "bold" }}>
-              <i className="bi bi-exclamation-triangle me-2"></i>
+              <i className="bi bi-exclamation-triangle  me-1"></i>
               DISCREPANCY — dispatched and received quantities do not match. Investigate immediately.
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function StockTransferDetail() {
               <div className="patient-header__name">{transfer.transfer_number}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-arrow-right me-1"></i> {transfer.from_location_name} → {transfer.to_location_name}
+                  <i className="bi bi-arrow-right  me-1"></i> {transfer.from_location_name} → {transfer.to_location_name}
                 </span>
                 <span>•</span>
                 <span className={`badge ${getStatusBadge(transfer.status)}`}>
@@ -125,7 +125,7 @@ export default function StockTransferDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-person me-1"></i> {transfer.requested_by_name}
+                <i className="bi bi-person  me-1"></i> {transfer.requested_by_name}
               </span>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function StockTransferDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Transfer Items</h5>
           </div>
           <div>
@@ -241,7 +241,7 @@ export default function StockTransferDetail() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-arrow-right-circle me-2"></i> Actions
+            <i className="bi bi-arrow-right-circle  me-1"></i> Actions
           </h5>
         </div>
         <div className="card-body">
@@ -255,7 +255,7 @@ export default function StockTransferDetail() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-check-circle me-2"></i> Approve Transfer
+                    <i className="bi bi-check-circle  me-1"></i> Approve Transfer
                   </>
                 )}
               </button>
@@ -269,7 +269,7 @@ export default function StockTransferDetail() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-truck me-2"></i> Confirm Dispatch (what actually left)
+                    <i className="bi bi-truck  me-1"></i> Confirm Dispatch (what actually left)
                   </>
                 )}
               </button>
@@ -283,7 +283,7 @@ export default function StockTransferDetail() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-box-seam me-2"></i> Confirm Receipt (what actually arrived)
+                    <i className="bi bi-box-seam  me-1"></i> Confirm Receipt (what actually arrived)
                   </>
                 )}
               </button>

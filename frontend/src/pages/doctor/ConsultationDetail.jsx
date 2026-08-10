@@ -377,7 +377,7 @@ export default function ConsultationDetail() {
               <span className="spinner-border spinner-border-sm" />
             ) : (
               <>
-                <i className="bi bi-file-earmark-pdf me-2"></i>
+                <i className="bi bi-file-earmark-pdf  me-1"></i>
                 Download PDF
               </>
             )}
@@ -385,7 +385,7 @@ export default function ConsultationDetail() {
           {!isEditing ? (
             <>
               <button type="button" className="btn btn-primary" onClick={() => setEditMode(true)}>
-                <i className="bi bi-pencil me-2"></i>
+                <i className="bi bi-pencil  me-1"></i>
                 Edit
               </button>
               <button
@@ -394,7 +394,7 @@ export default function ConsultationDetail() {
                 onClick={() => setShowConfirm(true)}
                 disabled={deleting}
               >
-                <i className="bi bi-trash me-2"></i>
+                <i className="bi bi-trash  me-1"></i>
                 Delete
               </button>
             </>
@@ -408,7 +408,7 @@ export default function ConsultationDetail() {
                   <span className="spinner-border spinner-border-sm" />
                 ) : (
                   <>
-                    <i className="bi bi-save me-2"></i>
+                    <i className="bi bi-save  me-1"></i>
                     Save Changes
                   </>
                 )}
@@ -416,7 +416,7 @@ export default function ConsultationDetail() {
             </>
           )}
           <Link to="/doctor/consultations" className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back to List
           </Link>
         </div>
@@ -486,7 +486,7 @@ export default function ConsultationDetail() {
                 className={`tabs__item ${activeTab === tab.id ? "is-active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <i className={`bi ${tab.icon} me-2`}></i>
+                <i className={`bi ${tab.icon}  me-1`}></i>
                 {tab.label}
               </button>
             ))}

@@ -134,10 +134,10 @@ export default function EquipmentDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/biomed/equipment")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Register
+            <i className="bi bi-arrow-left  me-1"></i> Back to Register
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function EquipmentDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function EquipmentDetail() {
               <div className="patient-header__name">{equipment.name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-tag me-1"></i> {equipment.asset_tag}
+                  <i className="bi bi-tag  me-1"></i> {equipment.asset_tag}
                 </span>
                 <span>•</span>
                 <span className={`badge ${getCategoryBadge(equipment.category)}`}>
@@ -183,7 +183,7 @@ export default function EquipmentDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> PM Interval: {equipment.preventive_maintenance_interval_days} days
+                <i className="bi bi-calendar  me-1"></i> PM Interval: {equipment.preventive_maintenance_interval_days} days
               </span>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function EquipmentDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clipboard me-1"></i>
+            <i className="bi bi-clipboard  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Service Request History</h5>
           </div>
           <div>
@@ -326,7 +326,7 @@ export default function EquipmentDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-wrench me-1"></i>
+            <i className="bi bi-wrench  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Maintenance History</h5>
           </div>
           <div>
@@ -384,7 +384,7 @@ export default function EquipmentDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-rulers me-1"></i>
+            <i className="bi bi-rulers  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Calibration History</h5>
           </div>
           <div>

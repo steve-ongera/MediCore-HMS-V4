@@ -250,10 +250,10 @@ export default function ANCProfileDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/mch/antenatal")}>
-            <i className="bi bi-arrow-left me-2"></i> Back
+            <i className="bi bi-arrow-left  me-1"></i> Back
           </button>
           <button className="btn btn-secondary" onClick={() => { load(); loadBilling(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -262,7 +262,7 @@ export default function ANCProfileDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -278,7 +278,7 @@ export default function ANCProfileDetail() {
               <div className="patient-header__name">{profile.mother_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {profile.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {profile.hospital_number}
                 </span>
                 <span>•</span>
                 <span>Gravida/Para: {profile.gravida}/{profile.para}</span>
@@ -291,7 +291,7 @@ export default function ANCProfileDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> EDD: {profile.edd || "—"}
+                <i className="bi bi-calendar  me-1"></i> EDD: {profile.edd || "—"}
               </span>
             </div>
           </div>
@@ -344,11 +344,11 @@ export default function ANCProfileDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-currency-dollar me-1"></i>
+            <i className="bi bi-currency-dollar  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Billing</h5>
           </div>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowChargeModal(true)}>
-            <i className="bi bi-plus-circle me-1"></i> Add Charge
+            <i className="bi bi-plus-circle  me-1"></i> Add Charge
           </button>
         </div>
         <div className="card-body">
@@ -359,7 +359,7 @@ export default function ANCProfileDetail() {
             </div>
           ) : !billing ? (
             <div className="text-sm text-muted text-center" style={{ padding: "var(--space-6)" }}>
-              <i className="bi bi-info-circle me-1"></i> No billing data yet.
+              <i className="bi bi-info-circle  me-1"></i> No billing data yet.
             </div>
           ) : (
             <div>
@@ -438,7 +438,7 @@ export default function ANCProfileDetail() {
                   onClick={goToBillingPayment}
                   disabled={!billing.invoices.length || Number(billing.balance) <= 0}
                 >
-                  <i className="bi bi-credit-card me-2"></i> Go to Billing / Take Payment
+                  <i className="bi bi-credit-card  me-1"></i> Go to Billing / Take Payment
                 </button>
               </div>
             </div>
@@ -450,7 +450,7 @@ export default function ANCProfileDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Record ANC Visit
+              <i className="bi bi-plus-circle  me-1"></i> Record ANC Visit
             </h5>
           </div>
           <div className="card-body">
@@ -577,7 +577,7 @@ export default function ANCProfileDetail() {
               </div>
 
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-floppy me-2"></i> Save ANC Visit
+                <i className="bi bi-floppy  me-1"></i> Save ANC Visit
               </button>
             </form>
           </div>
@@ -587,7 +587,7 @@ export default function ANCProfileDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clipboard me-1"></i>
+            <i className="bi bi-clipboard  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>ANC Visit History</h5>
           </div>
           <div>
@@ -642,7 +642,7 @@ export default function ANCProfileDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Record Delivery
+              <i className="bi bi-plus-circle  me-1"></i> Record Delivery
             </h5>
           </div>
           <div className="card-body">
@@ -783,7 +783,7 @@ export default function ANCProfileDetail() {
               )}
 
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-plus-circle me-2"></i> Record Delivery
+                <i className="bi bi-plus-circle  me-1"></i> Record Delivery
               </button>
             </form>
           </div>
@@ -793,7 +793,7 @@ export default function ANCProfileDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-baby me-1"></i>
+            <i className="bi bi-baby  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Delivery History</h5>
           </div>
           <div>
@@ -844,7 +844,7 @@ export default function ANCProfileDetail() {
                             className="btn btn-secondary btn-sm"
                             onClick={() => openDeliveryChargeModal(d)}
                           >
-                            <i className="bi bi-currency-dollar me-1"></i> Bill Delivery
+                            <i className="bi bi-currency-dollar  me-1"></i> Bill Delivery
                           </button>
                         </td>
                       </tr>
@@ -897,7 +897,7 @@ export default function ANCProfileDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Record Postnatal Visit
+              <i className="bi bi-plus-circle  me-1"></i> Record Postnatal Visit
             </h5>
           </div>
           <div className="card-body">
@@ -1003,7 +1003,7 @@ export default function ANCProfileDetail() {
               </div>
 
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-floppy me-2"></i> Save PNC Visit
+                <i className="bi bi-floppy  me-1"></i> Save PNC Visit
               </button>
             </form>
           </div>
@@ -1013,7 +1013,7 @@ export default function ANCProfileDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-file-text me-1"></i>
+            <i className="bi bi-file-text  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Postnatal Visit History</h5>
           </div>
           <div>
@@ -1090,12 +1090,12 @@ export default function ANCProfileDetail() {
             >
               {chargeSubmitting ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" />
+                  <span className="spinner-border spinner-border-sm  me-1" role="status" />
                   Adding...
                 </>
               ) : (
                 <>
-                  <i className="bi bi-check-lg me-2"></i>
+                  <i className="bi bi-check-lg  me-1"></i>
                   Add Charge
                 </>
               )}
@@ -1170,12 +1170,12 @@ export default function ANCProfileDetail() {
             >
               {deliveryChargeSubmitting ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" />
+                  <span className="spinner-border spinner-border-sm  me-1" role="status" />
                   Adding...
                 </>
               ) : (
                 <>
-                  <i className="bi bi-check-lg me-2"></i>
+                  <i className="bi bi-check-lg  me-1"></i>
                   Add Charge
                 </>
               )}

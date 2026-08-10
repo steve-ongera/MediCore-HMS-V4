@@ -159,7 +159,7 @@ export default function PatientList() {
         </div>
         <div className="page-header__actions">
           <Link to="/patients/register" className="btn btn-primary">
-            <i className="bi bi-person-plus me-2"></i>
+            <i className="bi bi-person-plus  me-1"></i>
             Register Patient
           </Link>
         </div>

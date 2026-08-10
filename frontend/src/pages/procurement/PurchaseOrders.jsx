@@ -167,7 +167,7 @@ export default function PurchaseOrders() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function PurchaseOrders() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function PurchaseOrders() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Create Purchase Order
+            <i className="bi bi-plus-circle  me-1"></i> Create Purchase Order
           </h5>
         </div>
         <div className="card-body">
@@ -234,7 +234,7 @@ export default function PurchaseOrders() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-list-ul me-1"></i> Items
+              <i className="bi bi-list-ul  me-1"></i> Items
             </h6>
             {items.map((item, index) => (
               <div key={index} className="field-row" style={{ marginBottom: "var(--space-2)" }}>
@@ -292,7 +292,7 @@ export default function PurchaseOrders() {
               </div>
             ))}
             <button type="button" className="btn btn-secondary btn-sm" onClick={addItemRow}>
-              <i className="bi bi-plus-circle me-1"></i> Add Item
+              <i className="bi bi-plus-circle  me-1"></i> Add Item
             </button>
 
             <div className="form-actions" style={{ marginTop: "var(--space-3)" }}>
@@ -304,7 +304,7 @@ export default function PurchaseOrders() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Create Purchase Order
+                    <i className="bi bi-plus-circle  me-1"></i> Create Purchase Order
                   </>
                 )}
               </button>
@@ -316,7 +316,7 @@ export default function PurchaseOrders() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -380,7 +380,7 @@ export default function PurchaseOrders() {
                       <td className="cell-numeric">{formatCurrency(o.total_amount)}</td>
                       <td className="cell-actions">
                         <Link to={`/procurement/orders/${o.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>

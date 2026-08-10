@@ -119,7 +119,7 @@ export default function BloodDonors() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadUnits(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function BloodDonors() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function BloodDonors() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-person-plus me-2"></i> Register Donor
+            <i className="bi bi-person-plus  me-1"></i> Register Donor
           </h5>
         </div>
         <div className="card-body">
@@ -196,7 +196,7 @@ export default function BloodDonors() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-person-plus me-2"></i> Register Donor
+                <i className="bi bi-person-plus  me-1"></i> Register Donor
               </button>
             </div>
           </form>
@@ -206,7 +206,7 @@ export default function BloodDonors() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-droplet me-2"></i> Record Donation
+            <i className="bi bi-droplet  me-1"></i> Record Donation
           </h5>
         </div>
         <div className="card-body">
@@ -256,12 +256,12 @@ export default function BloodDonors() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-droplet me-2"></i> Record Donation
+                <i className="bi bi-droplet  me-1"></i> Record Donation
               </button>
             </div>
           </form>
           <div className="text-sm text-muted" style={{ marginTop: "var(--space-2)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Recording a donation automatically creates a quarantined blood unit awaiting screening below.
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function BloodDonors() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Units Pending Screening</h5>
           </div>
           <div>
@@ -346,7 +346,7 @@ export default function BloodDonors() {
                       </td>
                       <td className="cell-actions">
                         <button className="btn btn-primary btn-sm" onClick={() => submitScreening(u.id)}>
-                          <i className="bi bi-check me-1"></i> Submit
+                          <i className="bi bi-check  me-1"></i> Submit
                         </button>
                       </td>
                     </tr>
@@ -361,7 +361,7 @@ export default function BloodDonors() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-people me-1"></i>
+            <i className="bi bi-people  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Donors</h5>
           </div>
           <div>

@@ -113,10 +113,10 @@ export default function DialysisPatientDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/dialysis/patients")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Patients
+            <i className="bi bi-arrow-left  me-1"></i> Back to Patients
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function DialysisPatientDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function DialysisPatientDetail() {
               <div className="patient-header__name">{profile.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {profile.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {profile.hospital_number}
                 </span>
                 <span>•</span>
                 <span>
@@ -159,7 +159,7 @@ export default function DialysisPatientDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> Started: {profile.started_on}
+                <i className="bi bi-calendar  me-1"></i> Started: {profile.started_on}
               </span>
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function DialysisPatientDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Schedule Session
+            <i className="bi bi-plus-circle  me-1"></i> Schedule Session
           </h5>
         </div>
         <div className="card-body">
@@ -229,7 +229,7 @@ export default function DialysisPatientDetail() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                  <i className="bi bi-plus-circle me-2"></i> Schedule
+                  <i className="bi bi-plus-circle  me-1"></i> Schedule
                 </button>
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function DialysisPatientDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Session History</h5>
           </div>
           <div>
@@ -284,7 +284,7 @@ export default function DialysisPatientDetail() {
                       </td>
                       <td className="cell-actions">
                         <Link to={`/dialysis/sessions/${s.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>
@@ -299,7 +299,7 @@ export default function DialysisPatientDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Vascular Access Check
+            <i className="bi bi-plus-circle  me-1"></i> Vascular Access Check
           </h5>
         </div>
         <div className="card-body">
@@ -379,7 +379,7 @@ export default function DialysisPatientDetail() {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-save me-2"></i> Save Access Check
+              <i className="bi bi-save  me-1"></i> Save Access Check
             </button>
           </form>
         </div>
@@ -388,7 +388,7 @@ export default function DialysisPatientDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Access Check History</h5>
           </div>
           <div>

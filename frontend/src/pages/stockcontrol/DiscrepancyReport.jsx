@@ -42,7 +42,7 @@ export default function DiscrepancyReport() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -51,7 +51,7 @@ export default function DiscrepancyReport() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function DiscrepancyReport() {
       <div className="card" style={{ marginBottom: "var(--space-4)" }}>
         <div className="card-body">
           <div className="text-sm text-muted">
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Every flagged transfer mismatch and every stock count variance, system-wide. Use this as your primary theft/loss early-warning view.
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function DiscrepancyReport() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-exclamation-triangle me-1"></i>
+            <i className="bi bi-exclamation-triangle  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>
               Transfer Discrepancies ({transferDiscrepancies.length})
             </h5>
@@ -108,7 +108,7 @@ export default function DiscrepancyReport() {
                       <td>{t.to_location_name}</td>
                       <td className="cell-actions">
                         <Link to={`/stockcontrol/transfers/${t.id}`} className="btn btn-danger btn-sm">
-                          <i className="bi bi-exclamation-triangle me-1"></i> Investigate
+                          <i className="bi bi-exclamation-triangle  me-1"></i> Investigate
                         </Link>
                       </td>
                     </tr>
@@ -130,7 +130,7 @@ export default function DiscrepancyReport() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clipboard-check me-1"></i>
+            <i className="bi bi-clipboard-check  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>
               Stock Count Variances Pending Approval ({countVariances.length})
             </h5>

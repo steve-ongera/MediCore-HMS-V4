@@ -35,7 +35,7 @@ export default function GoodsReceipts() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function GoodsReceipts() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function GoodsReceipts() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-box-seam me-1"></i>
+            <i className="bi bi-box-seam  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Goods Receipts</h5>
           </div>
           <div>
@@ -114,7 +114,7 @@ export default function GoodsReceipts() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-list-ul me-2"></i> Receipt Details
+              <i className="bi bi-list-ul  me-1"></i> Receipt Details
             </h5>
           </div>
           <div className="card-body">
@@ -123,7 +123,7 @@ export default function GoodsReceipts() {
                 <div className="card-header" style={{ backgroundColor: "var(--bg-secondary)", borderBottom: "1px solid var(--border-color)" }}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <h6 className="card-title" style={{ marginBottom: 0 }}>
-                      <i className="bi bi-receipt me-1"></i> {r.grn_number}
+                      <i className="bi bi-receipt  me-1"></i> {r.grn_number}
                     </h6>
                     <span className="text-2xs text-tertiary">
                       PO: {r.po_number} • Supplier: {r.supplier_name}

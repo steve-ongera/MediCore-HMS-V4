@@ -132,7 +132,7 @@ export default function MOHDataTable({
             onClick={handleDownload} 
             disabled={downloading}
           >
-            <i className={`bi ${downloading ? "bi-hourglass-split" : "bi-download"} me-1`}></i>
+            <i className={`bi ${downloading ? "bi-hourglass-split" : "bi-download"}  me-1`}></i>
             {downloading ? "Preparing..." : "Download CSV"}
           </button>
         </div>
@@ -143,7 +143,7 @@ export default function MOHDataTable({
         {error && (
           <div className="p-4">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i>{error}
+              <i className="bi bi-exclamation-circle  me-1"></i>{error}
             </div>
           </div>
         )}

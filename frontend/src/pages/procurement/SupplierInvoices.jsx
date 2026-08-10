@@ -74,7 +74,7 @@ export default function SupplierInvoices() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function SupplierInvoices() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function SupplierInvoices() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -198,7 +198,7 @@ export default function SupplierInvoices() {
                                 style={{ width: "120px" }}
                               />
                               <button className="btn btn-success btn-sm" onClick={() => submitPayment(inv.id)}>
-                                <i className="bi bi-check me-1"></i> Confirm
+                                <i className="bi bi-check  me-1"></i> Confirm
                               </button>
                               <button className="btn btn-secondary btn-sm" onClick={() => setPayingId(null)}>
                                 <i className="bi bi-x"></i>
@@ -206,7 +206,7 @@ export default function SupplierInvoices() {
                             </div>
                           ) : (
                             <button className="btn btn-primary btn-sm" onClick={() => openPaymentForm(inv)}>
-                              <i className="bi bi-cash me-1"></i> Pay
+                              <i className="bi bi-cash  me-1"></i> Pay
                             </button>
                           )
                         )}

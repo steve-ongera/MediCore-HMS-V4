@@ -316,10 +316,10 @@ export default function EmergencyVisitDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/emergency")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to ED Board
+            <i className="bi bi-arrow-left  me-1"></i> Back to ED Board
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -328,7 +328,7 @@ export default function EmergencyVisitDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -344,7 +344,7 @@ export default function EmergencyVisitDetail() {
               <div className="patient-header__name">{ed.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {ed.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {ed.hospital_number}
                 </span>
                 <span>•</span>
                 <span>Bay: {ed.bay_number || "—"}</span>
@@ -357,7 +357,7 @@ export default function EmergencyVisitDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock me-1"></i> {durationHours.toFixed(1)} hrs
+                <i className="bi bi-clock  me-1"></i> {durationHours.toFixed(1)} hrs
               </span>
             </div>
           </div>
@@ -406,7 +406,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-currency-dollar me-2"></i> Billing
+            <i className="bi bi-currency-dollar  me-1"></i> Billing
           </h5>
         </div>
         <div className="card-body">
@@ -484,7 +484,7 @@ export default function EmergencyVisitDetail() {
                   onClick={goToBillingPayment}
                   disabled={Number(billing.balance) <= 0}
                 >
-                  <i className="bi bi-credit-card me-2"></i> Go to Billing / Take Payment
+                  <i className="bi bi-credit-card  me-1"></i> Go to Billing / Take Payment
                 </button>
               </div>
 
@@ -517,7 +517,7 @@ export default function EmergencyVisitDetail() {
                       </div>
                       <div className="field" style={{ marginBottom: 0 }}>
                         <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                          <i className="bi bi-plus-circle me-2"></i> Add Charge
+                          <i className="bi bi-plus-circle  me-1"></i> Add Charge
                         </button>
                       </div>
                     </div>
@@ -533,7 +533,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-heart-pulse me-2"></i> Triage Vitals
+            <i className="bi bi-heart-pulse  me-1"></i> Triage Vitals
           </h5>
         </div>
         <div className="card-body">
@@ -578,7 +578,7 @@ export default function EmergencyVisitDetail() {
                 </div>
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-floppy me-2"></i> Save Vitals
+                <i className="bi bi-floppy  me-1"></i> Save Vitals
               </button>
             </form>
           )}
@@ -623,7 +623,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-file-text me-2"></i> Notes
+            <i className="bi bi-file-text  me-1"></i> Notes
           </h5>
         </div>
         <div className="card-body">
@@ -639,7 +639,7 @@ export default function EmergencyVisitDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-plus-circle me-2"></i> Add Note
+                <i className="bi bi-plus-circle  me-1"></i> Add Note
               </button>
             </form>
           )}
@@ -666,7 +666,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-scissors me-2"></i> Procedures
+            <i className="bi bi-scissors  me-1"></i> Procedures
           </h5>
         </div>
         <div className="card-body">
@@ -692,7 +692,7 @@ export default function EmergencyVisitDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-plus-circle me-2"></i> Order
+                    <i className="bi bi-plus-circle  me-1"></i> Order
                   </button>
                 </div>
               </div>
@@ -717,7 +717,7 @@ export default function EmergencyVisitDetail() {
                     </span>
                     {isActive && p.status === "ORDERED" && (
                       <button className="btn btn-success btn-sm" onClick={() => handleCompleteProcedure(p.id)}>
-                        <i className="bi bi-check me-1"></i> Complete
+                        <i className="bi bi-check  me-1"></i> Complete
                       </button>
                     )}
                   </div>
@@ -732,7 +732,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-capsule me-2"></i> Medications
+            <i className="bi bi-capsule  me-1"></i> Medications
           </h5>
         </div>
         <div className="card-body">
@@ -779,7 +779,7 @@ export default function EmergencyVisitDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-plus-circle me-2"></i> Order
+                    <i className="bi bi-plus-circle  me-1"></i> Order
                   </button>
                 </div>
               </div>
@@ -806,7 +806,7 @@ export default function EmergencyVisitDetail() {
                     </span>
                     {isActive && m.is_active && (
                       <button className="btn btn-success btn-sm" onClick={() => handleAdministerMed(m.id)}>
-                        <i className="bi bi-check me-1"></i> Give
+                        <i className="bi bi-check  me-1"></i> Give
                       </button>
                     )}
                   </div>
@@ -822,7 +822,7 @@ export default function EmergencyVisitDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-door-open me-2"></i> Disposition
+              <i className="bi bi-door-open  me-1"></i> Disposition
             </h5>
           </div>
           <div className="card-body">
@@ -838,13 +838,13 @@ export default function EmergencyVisitDetail() {
 
             <div className="flex gap-3 flex-wrap" style={{ marginBottom: "var(--space-4)" }}>
               <button className="btn btn-success" onClick={handleDischargeHome}>
-                <i className="bi bi-house me-2"></i> Discharge Home
+                <i className="bi bi-house  me-1"></i> Discharge Home
               </button>
               <button className="btn btn-warning" onClick={handleLama}>
-                <i className="bi bi-exclamation-triangle me-2"></i> Left Against Medical Advice
+                <i className="bi bi-exclamation-triangle  me-1"></i> Left Against Medical Advice
               </button>
               <button className="btn btn-danger" onClick={handleDeceased}>
-                <i className="bi bi-heart me-2"></i> Deceased
+                <i className="bi bi-heart  me-1"></i> Deceased
               </button>
             </div>
 
@@ -887,7 +887,7 @@ export default function EmergencyVisitDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-arrow-right me-2"></i> Transfer to Admission
+                <i className="bi bi-arrow-right  me-1"></i> Transfer to Admission
               </button>
             </form>
           </div>

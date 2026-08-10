@@ -77,10 +77,10 @@ export default function ChildDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/mch/children")}>
-            <i className="bi bi-arrow-left me-2"></i> Back
+            <i className="bi bi-arrow-left  me-1"></i> Back
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function ChildDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function ChildDetail() {
               <div className="patient-header__name">{child.full_name || "Not yet named"}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {child.child_number}
+                  <i className="bi bi-hash  me-1"></i> {child.child_number}
                 </span>
                 <span>•</span>
                 <span>Mother: {child.mother_name} ({child.mother_hospital_number})</span>
@@ -118,7 +118,7 @@ export default function ChildDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> DOB: {new Date(child.date_of_birth).toLocaleDateString()}
+                <i className="bi bi-calendar  me-1"></i> DOB: {new Date(child.date_of_birth).toLocaleDateString()}
               </span>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function ChildDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-syringe me-2"></i> Immunization Schedule
+            <i className="bi bi-syringe  me-1"></i> Immunization Schedule
           </h5>
         </div>
         <div className="card-body p-0">
@@ -204,7 +204,7 @@ export default function ChildDetail() {
                           className="btn btn-success btn-sm"
                           onClick={() => handleAdminister(imm.id)}
                         >
-                          <i className="bi bi-check me-1"></i> Mark Given
+                          <i className="bi bi-check  me-1"></i> Mark Given
                         </button>
                       )}
                     </td>
@@ -228,7 +228,7 @@ export default function ChildDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Record Growth
+            <i className="bi bi-plus-circle  me-1"></i> Record Growth
           </h5>
         </div>
         <div className="card-body">
@@ -294,7 +294,7 @@ export default function ChildDetail() {
               </div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-floppy me-2"></i> Save Growth Record
+              <i className="bi bi-floppy  me-1"></i> Save Growth Record
             </button>
           </form>
         </div>
@@ -303,7 +303,7 @@ export default function ChildDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-bar-chart me-1"></i>
+            <i className="bi bi-bar-chart  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Growth History</h5>
           </div>
           <div>

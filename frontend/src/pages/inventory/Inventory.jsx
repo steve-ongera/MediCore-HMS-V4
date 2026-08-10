@@ -364,7 +364,7 @@ export default function Inventory() {
               loadSuppliers(supPage);
             }}
           >
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -436,7 +436,7 @@ export default function Inventory() {
               className="btn btn-sm btn-primary"
               onClick={() => setShowMedicineModal(true)}
             >
-              <i className="bi bi-plus-lg me-1"></i>
+              <i className="bi bi-plus-lg  me-1"></i>
               Add Medicine
             </button>
           )}
@@ -446,7 +446,7 @@ export default function Inventory() {
               className="btn btn-sm btn-primary"
               onClick={() => setShowBatchModal(true)}
             >
-              <i className="bi bi-plus-lg me-1"></i>
+              <i className="bi bi-plus-lg  me-1"></i>
               Add Batch
             </button>
           )}
@@ -456,7 +456,7 @@ export default function Inventory() {
               className="btn btn-sm btn-primary"
               onClick={() => setShowSupplierModal(true)}
             >
-              <i className="bi bi-plus-lg me-1"></i>
+              <i className="bi bi-plus-lg  me-1"></i>
               Add Supplier
             </button>
           )}

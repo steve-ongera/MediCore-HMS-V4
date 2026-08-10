@@ -92,7 +92,7 @@ export default function AssetForm() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/assets")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Register
+            <i className="bi bi-arrow-left  me-1"></i> Back to Register
           </button>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function AssetForm() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function AssetForm() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Asset Details
+            <i className="bi bi-plus-circle  me-1"></i> Asset Details
           </h5>
         </div>
         <div className="card-body">
@@ -314,7 +314,7 @@ export default function AssetForm() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Register Asset
+                    <i className="bi bi-plus-circle  me-1"></i> Register Asset
                   </>
                 )}
               </button>

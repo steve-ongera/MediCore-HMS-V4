@@ -76,10 +76,10 @@ export default function MyTickets() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/tickets/raise" className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i> Raise Ticket
+            <i className="bi bi-plus-circle  me-1"></i> Raise Ticket
           </Link>
         </div>
       </div>
@@ -88,7 +88,7 @@ export default function MyTickets() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function MyTickets() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-ticket me-1"></i>
+            <i className="bi bi-ticket  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Your Tickets</h5>
           </div>
           <div>
@@ -115,7 +115,7 @@ export default function MyTickets() {
               <h3 className="empty-state__title">No tickets raised</h3>
               <p className="empty-state__desc">You haven't raised any support tickets yet.</p>
               <Link to="/tickets/raise" className="btn btn-primary">
-                <i className="bi bi-plus-circle me-2"></i> Raise Ticket
+                <i className="bi bi-plus-circle  me-1"></i> Raise Ticket
               </Link>
             </div>
           ) : (
@@ -156,7 +156,7 @@ export default function MyTickets() {
                       </td>
                       <td className="cell-actions">
                         <Link to={`/tickets/${t.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>

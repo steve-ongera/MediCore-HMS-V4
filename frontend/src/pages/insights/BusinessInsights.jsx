@@ -95,7 +95,7 @@ export default function BusinessInsights() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <button className="btn btn-primary" onClick={handleGenerate} disabled={generating}>
             {generating ? (
@@ -105,7 +105,7 @@ export default function BusinessInsights() {
               </>
             ) : (
               <>
-                <i className="bi bi-magic me-2"></i> Generate New Insights
+                <i className="bi bi-magic  me-1"></i> Generate New Insights
               </>
             )}
           </button>
@@ -116,7 +116,7 @@ export default function BusinessInsights() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function BusinessInsights() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Category</label>
               <select
@@ -203,7 +203,7 @@ export default function BusinessInsights() {
 
                     <div className="flex items-center gap-3 flex-wrap" style={{ marginTop: "var(--space-2)" }}>
                       <span className="text-2xs text-tertiary">
-                        <i className="bi bi-clock me-1"></i>
+                        <i className="bi bi-clock  me-1"></i>
                         {formatDateTime(i.generated_at)}
                       </span>
 
@@ -213,11 +213,11 @@ export default function BusinessInsights() {
                             className="btn btn-primary btn-sm"
                             onClick={() => handleAcknowledge(i.id)}
                           >
-                            <i className="bi bi-check-circle me-1"></i> Acknowledge
+                            <i className="bi bi-check-circle  me-1"></i> Acknowledge
                           </button>
                         ) : (
                           <span className="text-sm text-success">
-                            <i className="bi bi-check-circle me-1"></i>
+                            <i className="bi bi-check-circle  me-1"></i>
                             Acknowledged by {i.acknowledged_by_name}
                           </span>
                         )}

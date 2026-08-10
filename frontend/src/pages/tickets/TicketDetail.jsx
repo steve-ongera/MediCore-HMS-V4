@@ -122,10 +122,10 @@ export default function TicketDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-            <i className="bi bi-arrow-left me-2"></i> Back
+            <i className="bi bi-arrow-left  me-1"></i> Back
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function TicketDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function TicketDetail() {
               <div className="patient-header__name">{ticket.ticket_number}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-person me-1"></i> {ticket.raised_by_name}
+                  <i className="bi bi-person  me-1"></i> {ticket.raised_by_name}
                 </span>
                 <span>•</span>
                 <span>{ticket.raised_by_role}</span>
@@ -173,7 +173,7 @@ export default function TicketDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock me-1"></i> Created {formatDateTime(ticket.created_at)}
+                <i className="bi bi-clock  me-1"></i> Created {formatDateTime(ticket.created_at)}
               </span>
             </div>
           </div>
@@ -220,12 +220,12 @@ export default function TicketDetail() {
           <div className="flex gap-3 flex-wrap" style={{ marginTop: "var(--space-3)" }}>
             {isIT && ticket.status === "OPEN" && (
               <button className="btn btn-primary" onClick={handleAssign}>
-                <i className="bi bi-person-check me-2"></i> Assign to Me
+                <i className="bi bi-person-check  me-1"></i> Assign to Me
               </button>
             )}
             {isIT && ticket.status === "ASSIGNED" && (
               <button className="btn btn-primary" onClick={handleStart}>
-                <i className="bi bi-play-circle me-2"></i> Start Working
+                <i className="bi bi-play-circle  me-1"></i> Start Working
               </button>
             )}
             {isIT && (ticket.status === "ASSIGNED" || ticket.status === "IN_PROGRESS") && (
@@ -238,7 +238,7 @@ export default function TicketDetail() {
                   style={{ flex: 1, minWidth: "200px" }}
                 />
                 <button className="btn btn-success" onClick={handleResolve}>
-                  <i className="bi bi-check-circle me-2"></i> Mark Resolved
+                  <i className="bi bi-check-circle  me-1"></i> Mark Resolved
                 </button>
               </div>
             )}
@@ -258,13 +258,13 @@ export default function TicketDetail() {
                   <option value="1">1 - Very Poor</option>
                 </select>
                 <button className="btn btn-primary" onClick={handleClose}>
-                  <i className="bi bi-check-circle me-2"></i> Confirm & Close
+                  <i className="bi bi-check-circle  me-1"></i> Confirm & Close
                 </button>
               </div>
             )}
             {(isOwner || isIT) && (ticket.status === "RESOLVED" || ticket.status === "CLOSED") && (
               <button className="btn btn-warning" onClick={handleReopen}>
-                <i className="bi bi-arrow-repeat me-2"></i> Reopen — Issue Not Fixed
+                <i className="bi bi-arrow-repeat  me-1"></i> Reopen — Issue Not Fixed
               </button>
             )}
           </div>
@@ -275,7 +275,7 @@ export default function TicketDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-chat-dots me-1"></i>
+            <i className="bi bi-chat-dots  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Comments</h5>
           </div>
           <div>
@@ -325,7 +325,7 @@ export default function TicketDetail() {
               style={{ flex: 1 }}
             />
             <button type="submit" className="btn btn-primary">
-              <i className="bi bi-send me-2"></i> Post
+              <i className="bi bi-send  me-1"></i> Post
             </button>
           </form>
         </div>

@@ -74,10 +74,10 @@ export default function MortuaryRegister() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadUnits(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <Link to="/mortuary/admit" className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i> Admit Deceased
+            <i className="bi bi-plus-circle  me-1"></i> Admit Deceased
           </Link>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function MortuaryRegister() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function MortuaryRegister() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-grid me-1"></i>
+            <i className="bi bi-grid  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Compartment Status</h5>
           </div>
           <div>
@@ -138,7 +138,7 @@ export default function MortuaryRegister() {
                       <td>
                         {u.current_case ? (
                           <Link to={`/mortuary/${u.current_case.case_id}`} className="btn btn-secondary btn-sm">
-                            <i className="bi bi-eye me-1"></i>
+                            <i className="bi bi-eye  me-1"></i>
                             {u.current_case.case_number} - {u.current_case.deceased_name}
                           </Link>
                         ) : "—"}
@@ -231,7 +231,7 @@ export default function MortuaryRegister() {
               </p>
               {!search && !statusFilter && (
                 <Link to="/mortuary/admit" className="btn btn-primary">
-                  <i className="bi bi-plus-circle me-2"></i> Admit Deceased
+                  <i className="bi bi-plus-circle  me-1"></i> Admit Deceased
                 </Link>
               )}
             </div>
@@ -267,7 +267,7 @@ export default function MortuaryRegister() {
                       <td className="cell-numeric">{c.days_in_storage}</td>
                       <td className="cell-actions">
                         <Link to={`/mortuary/${c.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>

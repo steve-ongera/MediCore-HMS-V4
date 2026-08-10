@@ -167,7 +167,7 @@ export default function ConsultationList() {
         </div>
         <div className="page-header__actions">
           <Link to="/doctor" className="btn btn-secondary">
-            <i className="bi bi-clipboard2-pulse me-2"></i>
+            <i className="bi bi-clipboard2-pulse  me-1"></i>
             My Queue
           </Link>
         </div>

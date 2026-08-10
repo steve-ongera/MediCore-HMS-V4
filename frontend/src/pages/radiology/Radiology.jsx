@@ -119,7 +119,7 @@ export default function Radiology() {
                 setShowReportModal(true);
               }}
             >
-              <i className="bi bi-upload me-1"></i>
+              <i className="bi bi-upload  me-1"></i>
               Report
             </button>
           )}
@@ -128,7 +128,7 @@ export default function Radiology() {
           )}
           {row.status === "REPORTED" && (
             <span className="text-success text-sm">
-              <i className="bi bi-check-circle me-1"></i>
+              <i className="bi bi-check-circle  me-1"></i>
               Reported
             </span>
           )}
@@ -153,7 +153,7 @@ export default function Radiology() {
             className="btn btn-secondary"
             onClick={loadData}
           >
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -222,7 +222,7 @@ export default function Radiology() {
                 <span className="spinner-border spinner-border-sm" />
               ) : (
                 <>
-                  <i className="bi bi-upload me-2"></i>
+                  <i className="bi bi-upload  me-1"></i>
                   Upload Report
                 </>
               )}

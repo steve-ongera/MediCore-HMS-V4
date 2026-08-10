@@ -356,7 +356,7 @@ export default function ReceiptModal({ paymentId, show, onClose }) {
               Close
             </button>
             <button type="button" className="btn btn-outline-primary" onClick={handlePrint}>
-              <i className="bi bi-printer me-2"></i>
+              <i className="bi bi-printer  me-1"></i>
               Print
             </button>
             <button
@@ -366,9 +366,9 @@ export default function ReceiptModal({ paymentId, show, onClose }) {
               disabled={downloading}
             >
               {downloading ? (
-                <span className="spinner-border spinner-border-sm me-2" role="status" />
+                <span className="spinner-border spinner-border-sm  me-1" role="status" />
               ) : (
-                <i className="bi bi-download me-2"></i>
+                <i className="bi bi-download  me-1"></i>
               )}
               Download PDF
             </button>

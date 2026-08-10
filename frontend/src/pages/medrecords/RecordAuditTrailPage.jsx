@@ -68,7 +68,7 @@ export default function RecordAuditTrailPage() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function RecordAuditTrailPage() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function RecordAuditTrailPage() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Action</label>
               <select
@@ -115,7 +115,7 @@ export default function RecordAuditTrailPage() {
                   style={{ flex: 1 }}
                 />
                 <button type="submit" className="btn btn-primary btn-sm">
-                  <i className="bi bi-search me-1"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
                 {selectedPatient && (
                   <button
@@ -123,7 +123,7 @@ export default function RecordAuditTrailPage() {
                     className="btn btn-secondary btn-sm"
                     onClick={() => { setSelectedPatient(null); setPatientQuery(""); }}
                   >
-                    <i className="bi bi-x me-1"></i> Clear
+                    <i className="bi bi-x  me-1"></i> Clear
                   </button>
                 )}
               </form>
@@ -161,7 +161,7 @@ export default function RecordAuditTrailPage() {
                             className="btn btn-primary btn-sm"
                             onClick={() => { setSelectedPatient(p); setPatientResults([]); }}
                           >
-                            <i className="bi bi-check me-1"></i> Select
+                            <i className="bi bi-check  me-1"></i> Select
                           </button>
                         </td>
                       </tr>
@@ -186,7 +186,7 @@ export default function RecordAuditTrailPage() {
           )}
 
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Immutable log of every access to a patient's medical record — view, export, print, upload, file checkout/return.
           </div>
 

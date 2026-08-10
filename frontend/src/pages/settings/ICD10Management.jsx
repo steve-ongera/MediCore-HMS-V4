@@ -110,10 +110,10 @@ export default function ICD10Management() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <button className="btn btn-primary" onClick={openAddForm}>
-            <i className="bi bi-plus-circle me-2"></i> Add ICD-10 Code
+            <i className="bi bi-plus-circle  me-1"></i> Add ICD-10 Code
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function ICD10Management() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function ICD10Management() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--success)", background: "var(--success-soft)" }}>
           <div className="card-body">
             <div className="text-success">
-              <i className="bi bi-check-circle me-2"></i> {success}
+              <i className="bi bi-check-circle  me-1"></i> {success}
             </div>
           </div>
         </div>
@@ -200,10 +200,10 @@ export default function ICD10Management() {
                       <td className="cell-actions">
                         <div className="flex gap-1 justify-end">
                           <button className="btn btn-secondary btn-sm" onClick={() => openEditForm(c)}>
-                            <i className="bi bi-pencil me-1"></i> Edit
+                            <i className="bi bi-pencil  me-1"></i> Edit
                           </button>
                           <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c)}>
-                            <i className="bi bi-trash me-1"></i> Delete
+                            <i className="bi bi-trash  me-1"></i> Delete
                           </button>
                         </div>
                       </td>
@@ -228,7 +228,7 @@ export default function ICD10Management() {
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
               >
-                <i className="bi bi-chevron-left me-1"></i> Previous
+                <i className="bi bi-chevron-left  me-1"></i> Previous
               </button>
               <span className="text-2xs text-tertiary">Page {page} of {totalPages}</span>
               <button

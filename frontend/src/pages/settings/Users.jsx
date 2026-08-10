@@ -253,7 +253,7 @@ export default function Users() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-primary" onClick={openCreateForm}>
-            <i className="bi bi-person-plus me-2"></i>
+            <i className="bi bi-person-plus  me-1"></i>
             Add Staff
           </button>
         </div>

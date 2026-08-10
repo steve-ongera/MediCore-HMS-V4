@@ -112,7 +112,7 @@ export default function DoctorDashboard() {
         </div>
         <div className="page-header__actions">
           <button type="button" className="btn btn-secondary" onClick={loadQueue}>
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -334,7 +334,7 @@ export default function DoctorDashboard() {
                           <span className="spinner spinner-inverse" style={{ width: 16, height: 16 }} />
                         ) : (
                           <>
-                            <i className="bi bi-play-circle me-1"></i>
+                            <i className="bi bi-play-circle  me-1"></i>
                             Start Consultation
                           </>
                         )}
@@ -345,7 +345,7 @@ export default function DoctorDashboard() {
                         className="btn btn-success btn-sm"
                         onClick={() => handleContinueConsultation(entry)}
                       >
-                        <i className="bi bi-clipboard2-pulse me-1"></i>
+                        <i className="bi bi-clipboard2-pulse  me-1"></i>
                         Continue
                       </button>
                     ) : entry.status === "PAUSED" ? (
@@ -354,7 +354,7 @@ export default function DoctorDashboard() {
                         className="btn btn-warning btn-sm"
                         onClick={() => handleContinueConsultation(entry)}
                       >
-                        <i className="bi bi-play-circle me-1"></i>
+                        <i className="bi bi-play-circle  me-1"></i>
                         Continue (Paused)
                       </button>
                     ) : (

@@ -108,7 +108,7 @@ export default function RegisterPatient() {
             className="btn btn-secondary"
             onClick={() => navigate("/patients")}
           >
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back to Patients
           </button>
         </div>
@@ -241,7 +241,7 @@ export default function RegisterPatient() {
                 marginBottom: 'var(--space-5)'
               }}>
                 <h6 className="mb-2">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <i className="bi bi-exclamation-triangle  me-1"></i>
                   Potential Duplicate Patients Found
                 </h6>
                 <ul className="mb-0" style={{ paddingLeft: 'var(--space-4)' }}>
@@ -381,7 +381,7 @@ export default function RegisterPatient() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-person-plus me-2"></i>
+                    <i className="bi bi-person-plus  me-1"></i>
                     Register Patient
                   </>
                 )}

@@ -201,7 +201,7 @@ export default function BulkPaymentReceipt() {
         <div className="text-danger font-semibold">Error loading receipt</div>
         <p className="text-sm text-muted" style={{ marginTop: "var(--space-2)" }}>{error}</p>
         <button className="btn btn-primary mt-4" onClick={load}>
-          <i className="bi bi-arrow-clockwise me-2"></i> Retry
+          <i className="bi bi-arrow-clockwise  me-1"></i> Retry
         </button>
       </div>
     );
@@ -220,16 +220,16 @@ export default function BulkPaymentReceipt() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/billing/bulk-payment")}>
-            <i className="bi bi-arrow-left me-2"></i> Back
+            <i className="bi bi-arrow-left  me-1"></i> Back
           </button>
           <button className="btn btn-outline-primary" onClick={handlePrint}>
-            <i className="bi bi-printer me-2"></i> Print
+            <i className="bi bi-printer  me-1"></i> Print
           </button>
           <button className="btn btn-primary" onClick={handleDownloadPdf} disabled={downloading}>
             {downloading ? (
-              <span className="spinner-border spinner-border-sm me-2" role="status" />
+              <span className="spinner-border spinner-border-sm  me-1" role="status" />
             ) : (
-              <i className="bi bi-download me-2"></i>
+              <i className="bi bi-download  me-1"></i>
             )}
             Download PDF
           </button>
@@ -240,7 +240,7 @@ export default function BulkPaymentReceipt() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -257,7 +257,7 @@ export default function BulkPaymentReceipt() {
                 <div className="patient-header__name">{receipt.patient_name}</div>
                 <div className="patient-header__sub">
                   <span className="patient-header__id">
-                    <i className="bi bi-hash me-1"></i> {receipt.hospital_number}
+                    <i className="bi bi-hash  me-1"></i> {receipt.hospital_number}
                   </span>
                   <span>•</span>
                   <span>{receipt.receipt_number}</span>
@@ -297,7 +297,7 @@ export default function BulkPaymentReceipt() {
         <div className="card">
           <div className="card-header">
             <div className="flex items-center gap-3 flex-wrap">
-              <i className="bi bi-list-ul me-1"></i>
+              <i className="bi bi-list-ul  me-1"></i>
               <h5 className="card-title" style={{ marginBottom: 0 }}>Invoices Covered</h5>
             </div>
             <div>

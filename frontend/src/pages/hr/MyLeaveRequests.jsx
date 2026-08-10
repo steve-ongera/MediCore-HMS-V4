@@ -142,7 +142,7 @@ export default function MyLeaveRequests() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function MyLeaveRequests() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function MyLeaveRequests() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--success)", background: "var(--success-soft)" }}>
           <div className="card-body">
             <div className="text-success">
-              <i className="bi bi-check-circle me-2"></i> {success}
+              <i className="bi bi-check-circle  me-1"></i> {success}
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function MyLeaveRequests() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Request Leave
+            <i className="bi bi-plus-circle  me-1"></i> Request Leave
           </h5>
         </div>
         <div className="card-body">
@@ -214,7 +214,7 @@ export default function MyLeaveRequests() {
               <div className="card" style={{ marginBottom: "var(--space-3)", background: "var(--primary-soft)", borderColor: "var(--primary)" }}>
                 <div className="card-body" style={{ padding: "var(--space-2) var(--space-3)" }}>
                   <div className="text-sm">
-                    <i className="bi bi-calendar-check me-1" style={{ color: "var(--primary)" }}></i>
+                    <i className="bi bi-calendar-check  me-1" style={{ color: "var(--primary)" }}></i>
                     Days requested: <strong>{days}</strong>
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export default function MyLeaveRequests() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-send me-2"></i> Submit Leave Request
+                    <i className="bi bi-send  me-1"></i> Submit Leave Request
                   </>
                 )}
               </button>
@@ -252,7 +252,7 @@ export default function MyLeaveRequests() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>My Leave History</h5>
           </div>
           <div>

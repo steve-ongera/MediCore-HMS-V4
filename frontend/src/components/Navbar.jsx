@@ -63,7 +63,7 @@ export default function Navbar({ onToggleSidebar }) {
           browsers won't let us re-enter fullscreen without a click */}
       {wantsFullscreen && !isFullscreen && (
         <div className="fullscreen-resume-banner" onClick={enter}>
-          <i className="bi bi-arrows-fullscreen me-2" aria-hidden="true" />
+          <i className="bi bi-arrows-fullscreen  me-1" aria-hidden="true" />
           Click to resume fullscreen
         </div>
       )}

@@ -145,10 +145,10 @@ export default function EyeVisitDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/eyeclinic")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Visits
+            <i className="bi bi-arrow-left  me-1"></i> Back to Visits
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function EyeVisitDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function EyeVisitDetail() {
               <div className="patient-header__name">{visit.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {visit.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {visit.hospital_number}
                 </span>
                 <span>•</span>
                 <span>Ophthalmologist: {visit.ophthalmologist_name || "—"}</span>
@@ -181,7 +181,7 @@ export default function EyeVisitDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> {new Date(visit.visit_date).toLocaleString()}
+                <i className="bi bi-calendar  me-1"></i> {new Date(visit.visit_date).toLocaleString()}
               </span>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function EyeVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-clipboard-check me-2"></i> Examination
+            <i className="bi bi-clipboard-check  me-1"></i> Examination
           </h5>
         </div>
         <div className="card-body">
@@ -352,7 +352,7 @@ export default function EyeVisitDetail() {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-save me-2"></i> Save Examination
+              <i className="bi bi-save  me-1"></i> Save Examination
             </button>
           </form>
         </div>
@@ -361,7 +361,7 @@ export default function EyeVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-eyeglasses me-2"></i> Prescribe Spectacles
+            <i className="bi bi-eyeglasses  me-1"></i> Prescribe Spectacles
           </h5>
         </div>
         <div className="card-body">
@@ -508,7 +508,7 @@ export default function EyeVisitDetail() {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-plus-circle me-2"></i> Save Prescription
+              <i className="bi bi-plus-circle  me-1"></i> Save Prescription
             </button>
           </form>
         </div>
@@ -517,7 +517,7 @@ export default function EyeVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-eyeglasses me-1"></i>
+            <i className="bi bi-eyeglasses  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Spectacle Prescriptions</h5>
           </div>
           <div>
@@ -567,7 +567,7 @@ export default function EyeVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Add Treatment Plan Item
+            <i className="bi bi-plus-circle  me-1"></i> Add Treatment Plan Item
           </h5>
         </div>
         <div className="card-body">
@@ -600,7 +600,7 @@ export default function EyeVisitDetail() {
               </div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-plus-circle me-2"></i> Add to Plan
+              <i className="bi bi-plus-circle  me-1"></i> Add to Plan
             </button>
           </form>
         </div>
@@ -609,7 +609,7 @@ export default function EyeVisitDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Treatment Plan</h5>
           </div>
           <div>
@@ -655,10 +655,10 @@ export default function EyeVisitDetail() {
                         {p.status === "PLANNED" && (
                           <div className="flex gap-1 justify-end">
                             <button className="btn btn-success btn-sm" onClick={() => handlePerform(p.id)}>
-                              <i className="bi bi-check-circle me-1"></i> Perform & Bill
+                              <i className="bi bi-check-circle  me-1"></i> Perform & Bill
                             </button>
                             <button className="btn btn-danger btn-sm" onClick={() => handleCancelPlan(p.id)}>
-                              <i className="bi bi-x-circle me-1"></i> Cancel
+                              <i className="bi bi-x-circle  me-1"></i> Cancel
                             </button>
                           </div>
                         )}

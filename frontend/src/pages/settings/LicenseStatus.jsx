@@ -43,7 +43,7 @@ export default function LicenseStatus() {
         <div className="card" style={{ borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function LicenseStatus() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function LicenseStatus() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger" style={{ fontWeight: "bold" }}>
-              <i className="bi bi-exclamation-triangle me-2"></i>
+              <i className="bi bi-exclamation-triangle  me-1"></i>
               This license has expired. Contact MediCore to renew.
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function LicenseStatus() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             This page is read-only. To change your package, bed limit, or user limit, please contact the
             MediCore support team — these changes can only be made by MediCore directly.
           </div>
@@ -130,7 +130,7 @@ export default function LicenseStatus() {
               <div className="patient-header__name">{license.package}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-building me-1"></i> {license.licensed_to || "—"}
+                  <i className="bi bi-building  me-1"></i> {license.licensed_to || "—"}
                 </span>
                 <span>•</span>
                 <span className={`badge ${isExpired ? "badge-danger" : "badge-success"}`}>
@@ -141,7 +141,7 @@ export default function LicenseStatus() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-calendar me-1"></i> Valid until {license.valid_until || "—"}
+                <i className="bi bi-calendar  me-1"></i> Valid until {license.valid_until || "—"}
               </span>
             </div>
           </div>
@@ -213,20 +213,20 @@ export default function LicenseStatus() {
               </div>
               {bedPct >= 85 && bedPct < 100 && (
                 <div className="text-sm text-warning" style={{ marginTop: "var(--space-2)" }}>
-                  <i className="bi bi-exclamation-triangle me-1"></i>
+                  <i className="bi bi-exclamation-triangle  me-1"></i>
                   Approaching your bed limit — consider contacting MediCore about upgrading your package.
                 </div>
               )}
               {bedPct >= 100 && (
                 <div className="text-sm text-danger" style={{ marginTop: "var(--space-2)" }}>
-                  <i className="bi bi-exclamation-circle me-1"></i>
+                  <i className="bi bi-exclamation-circle  me-1"></i>
                   Bed limit reached — new beds cannot be added until you upgrade. Contact MediCore.
                 </div>
               )}
             </>
           ) : (
             <div className="text-sm text-muted" style={{ marginTop: "var(--space-2)" }}>
-              <i className="bi bi-info-circle me-1"></i>
+              <i className="bi bi-info-circle  me-1"></i>
               Bed count is not yet available for this deployment. Contact support if this persists.
             </div>
           )}
@@ -262,13 +262,13 @@ export default function LicenseStatus() {
           </div>
           {userPct >= 85 && userPct < 100 && (
             <div className="text-sm text-warning" style={{ marginTop: "var(--space-2)" }}>
-              <i className="bi bi-exclamation-triangle me-1"></i>
+              <i className="bi bi-exclamation-triangle  me-1"></i>
               Approaching your user limit — consider contacting MediCore about upgrading your package.
             </div>
           )}
           {userPct >= 100 && (
             <div className="text-sm text-danger" style={{ marginTop: "var(--space-2)" }}>
-              <i className="bi bi-exclamation-circle me-1"></i>
+              <i className="bi bi-exclamation-circle  me-1"></i>
               User limit reached — new staff accounts cannot be added until you upgrade. Contact MediCore.
             </div>
           )}
@@ -278,7 +278,7 @@ export default function LicenseStatus() {
       <div className="card">
         <div className="card-body">
           <div className="text-sm text-muted" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-            <i className="bi bi-headset me-1"></i>
+            <i className="bi bi-headset  me-1"></i>
             To upgrade your package or adjust limits, contact MediCore support at{' '}
             <a href="mailto:support@medicorehmis.co.ke" style={{ color: "var(--primary)", textDecoration: "none" }}>
               support@medicorehmis.co.ke

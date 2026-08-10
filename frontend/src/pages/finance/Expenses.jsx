@@ -108,7 +108,7 @@ export default function Expenses() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function Expenses() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function Expenses() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Submit Expense
+            <i className="bi bi-plus-circle  me-1"></i> Submit Expense
           </h5>
         </div>
         <div className="card-body">
@@ -195,7 +195,7 @@ export default function Expenses() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-plus-circle me-2"></i> Submit Expense
+                <i className="bi bi-plus-circle  me-1"></i> Submit Expense
               </button>
             </div>
           </form>
@@ -205,7 +205,7 @@ export default function Expenses() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -274,7 +274,7 @@ export default function Expenses() {
                           {e.status === "PENDING_APPROVAL" && (
                             <>
                               <button className="btn btn-success btn-sm" onClick={() => handleApprove(e.id)}>
-                                <i className="bi bi-check me-1"></i> Approve
+                                <i className="bi bi-check  me-1"></i> Approve
                               </button>
                               {rejectingId === e.id ? (
                                 <>
@@ -287,7 +287,7 @@ export default function Expenses() {
                                     style={{ width: "120px" }}
                                   />
                                   <button className="btn btn-danger btn-sm" onClick={() => submitRejection(e.id)}>
-                                    <i className="bi bi-check me-1"></i> Confirm
+                                    <i className="bi bi-check  me-1"></i> Confirm
                                   </button>
                                   <button className="btn btn-secondary btn-sm" onClick={() => setRejectingId(null)}>
                                     <i className="bi bi-x"></i>
@@ -295,14 +295,14 @@ export default function Expenses() {
                                 </>
                               ) : (
                                 <button className="btn btn-danger btn-sm" onClick={() => setRejectingId(e.id)}>
-                                  <i className="bi bi-x me-1"></i> Reject
+                                  <i className="bi bi-x  me-1"></i> Reject
                                 </button>
                               )}
                             </>
                           )}
                           {e.status === "APPROVED" && (
                             <button className="btn btn-primary btn-sm" onClick={() => handleMarkPaid(e.id)}>
-                              <i className="bi bi-cash me-1"></i> Mark Paid
+                              <i className="bi bi-cash  me-1"></i> Mark Paid
                             </button>
                           )}
                         </div>

@@ -520,7 +520,7 @@ export default function Consultation() {
                 onClick={() => setShowPauseModal(true)}
                 disabled={submitting}
               >
-                <i className="bi bi-pause-circle me-2"></i>
+                <i className="bi bi-pause-circle  me-1"></i>
                 Pause
               </button>
               <button
@@ -529,7 +529,7 @@ export default function Consultation() {
                 onClick={handleComplete}
                 disabled={submitting}
               >
-                <i className="bi bi-check2-circle me-2"></i>
+                <i className="bi bi-check2-circle  me-1"></i>
                 Complete
               </button>
             </>
@@ -541,7 +541,7 @@ export default function Consultation() {
               onClick={handleResume}
               disabled={submitting}
             >
-              <i className="bi bi-play-circle me-2"></i>
+              <i className="bi bi-play-circle  me-1"></i>
               Resume
             </button>
           )}
@@ -550,7 +550,7 @@ export default function Consultation() {
             className="btn btn-secondary"
             onClick={handleBack}
           >
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back
           </button>
         </div>
@@ -651,7 +651,7 @@ export default function Consultation() {
                 onClick={() => handleTabChange(tab.key)}
                 title={activeTab === "notes" && isDirty && tab.key !== "notes" ? "Save your clinical notes first" : undefined}
               >
-                <i className={`bi ${tab.icon} me-2`}></i>
+                <i className={`bi ${tab.icon}  me-1`}></i>
                 {tab.label}
                 {tab.key === "diagnoses" && diagnosesCount > 0 && (
                   <span className="pill-count" style={{ marginLeft: "var(--space-1)" }}>{diagnosesCount}</span>
@@ -683,7 +683,7 @@ export default function Consultation() {
                   {submitting ? (
                     <span className="spinner-border spinner-border-sm" />
                   ) : (
-                    <i className="bi bi-save me-1"></i>
+                    <i className="bi bi-save  me-1"></i>
                   )}
                   Save
                 </button>
@@ -777,7 +777,7 @@ export default function Consultation() {
                   className="btn btn-primary btn-sm"
                   onClick={() => setShowDiagnosisModal(true)}
                 >
-                  <i className="bi bi-plus-lg me-1"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Add Diagnosis
                 </button>
               </div>
@@ -817,7 +817,7 @@ export default function Consultation() {
                   className="btn btn-primary btn-sm"
                   onClick={() => setShowPrescriptionModal(true)}
                 >
-                  <i className="bi bi-plus-lg me-1"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Prescribe
                 </button>
               </div>
@@ -872,7 +872,7 @@ export default function Consultation() {
                   className="btn btn-primary btn-sm"
                   onClick={() => setShowProcedureModal(true)}
                 >
-                  <i className="bi bi-plus-lg me-1"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Add Procedure
                 </button>
               </div>
@@ -926,7 +926,7 @@ export default function Consultation() {
                     className="btn btn-primary btn-sm"
                     onClick={() => setShowLabModal(true)}
                   >
-                    <i className="bi bi-plus-lg me-1"></i>
+                    <i className="bi bi-plus-lg  me-1"></i>
                     Order Lab
                   </button>
                 </div>
@@ -1003,7 +1003,7 @@ export default function Consultation() {
                     className="btn btn-primary btn-sm"
                     onClick={() => setShowRadiologyModal(true)}
                   >
-                    <i className="bi bi-plus-lg me-1"></i>
+                    <i className="bi bi-plus-lg  me-1"></i>
                     Order Radiology
                   </button>
                 </div>
@@ -1116,7 +1116,7 @@ export default function Consultation() {
               onClick={addDiagnosisToConsultation}
               disabled={!selectedDiagnosis}
             >
-              <i className="bi bi-plus-lg me-2"></i>
+              <i className="bi bi-plus-lg  me-1"></i>
               Add Diagnosis
             </button>
           </>
@@ -1189,7 +1189,7 @@ export default function Consultation() {
                 <span className="spinner-border spinner-border-sm" />
               ) : (
                 <>
-                  <i className="bi bi-plus-lg me-2"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Prescribe
                 </>
               )}
@@ -1336,7 +1336,7 @@ export default function Consultation() {
                 <span className="spinner-border spinner-border-sm" />
               ) : (
                 <>
-                  <i className="bi bi-plus-lg me-2"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Add & Bill Procedure
                 </>
               )}
@@ -1399,7 +1399,7 @@ export default function Consultation() {
                 <span className="spinner-border spinner-border-sm" />
               ) : (
                 <>
-                  <i className="bi bi-plus-lg me-2"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Order Lab Test
                 </>
               )}
@@ -1463,7 +1463,7 @@ export default function Consultation() {
                 <span className="spinner-border spinner-border-sm" />
               ) : (
                 <>
-                  <i className="bi bi-plus-lg me-2"></i>
+                  <i className="bi bi-plus-lg  me-1"></i>
                   Order Radiology
                 </>
               )}
@@ -1524,7 +1524,7 @@ export default function Consultation() {
                 <span className="spinner-border spinner-border-sm" />
               ) : (
                 <>
-                  <i className="bi bi-pause-circle me-2"></i>
+                  <i className="bi bi-pause-circle  me-1"></i>
                   Pause
                 </>
               )}

@@ -136,10 +136,10 @@ export default function DispatchDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/ambulance")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Board
+            <i className="bi bi-arrow-left  me-1"></i> Back to Board
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -148,7 +148,7 @@ export default function DispatchDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function DispatchDetail() {
               <div className="patient-header__name">{dispatch.dispatch_number}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-person me-1"></i> {dispatch.patient_display_name}
+                  <i className="bi bi-person  me-1"></i> {dispatch.patient_display_name}
                 </span>
                 <span>•</span>
                 <span className={`badge ${getStatusBadge(dispatch.status)}`}>
@@ -251,7 +251,7 @@ export default function DispatchDetail() {
           {isActive && (
             <div style={{ marginTop: "var(--space-3)" }}>
               <button className="btn btn-danger" onClick={handleCancel}>
-                <i className="bi bi-x-circle me-2"></i> Cancel Dispatch
+                <i className="bi bi-x-circle  me-1"></i> Cancel Dispatch
               </button>
             </div>
           )}
@@ -262,7 +262,7 @@ export default function DispatchDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-truck me-2"></i> Assign Ambulance
+              <i className="bi bi-truck  me-1"></i> Assign Ambulance
             </h5>
           </div>
           <div className="card-body">
@@ -279,7 +279,7 @@ export default function DispatchDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-truck me-2"></i> Assign & Dispatch
+                    <i className="bi bi-truck  me-1"></i> Assign & Dispatch
                   </button>
                 </div>
               </div>
@@ -292,7 +292,7 @@ export default function DispatchDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-people me-2"></i> Assign Crew
+              <i className="bi bi-people  me-1"></i> Assign Crew
             </h5>
           </div>
           <div className="card-body">
@@ -315,7 +315,7 @@ export default function DispatchDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-person-plus me-2"></i> Add Crew Member
+                    <i className="bi bi-person-plus  me-1"></i> Add Crew Member
                   </button>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export default function DispatchDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-people me-1"></i>
+            <i className="bi bi-people  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Crew on this Dispatch</h5>
           </div>
           <div>
@@ -364,12 +364,12 @@ export default function DispatchDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-person-walking me-2"></i> Mark Patient Onboard
+              <i className="bi bi-person-walking  me-1"></i> Mark Patient Onboard
             </h5>
           </div>
           <div className="card-body">
             <button className="btn btn-primary" onClick={handleMarkOnboard}>
-              <i className="bi bi-check-circle me-2"></i> Mark Patient Onboard
+              <i className="bi bi-check-circle  me-1"></i> Mark Patient Onboard
             </button>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function DispatchDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-check-circle me-2"></i> Complete Dispatch
+              <i className="bi bi-check-circle  me-1"></i> Complete Dispatch
             </h5>
           </div>
           <div className="card-body">
@@ -407,7 +407,7 @@ export default function DispatchDetail() {
                 </div>
               </div>
               <button type="submit" className="btn btn-success">
-                <i className="bi bi-check-circle me-2"></i> Complete & Invoice
+                <i className="bi bi-check-circle  me-1"></i> Complete & Invoice
               </button>
             </form>
           </div>
@@ -418,12 +418,12 @@ export default function DispatchDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-receipt me-2"></i> Billing
+              <i className="bi bi-receipt  me-1"></i> Billing
             </h5>
           </div>
           <div className="card-body">
             <div className="text-sm text-muted">
-              <i className="bi bi-info-circle me-1"></i> Invoice created — view under Billing → Invoices.
+              <i className="bi bi-info-circle  me-1"></i> Invoice created — view under Billing → Invoices.
             </div>
           </div>
         </div>

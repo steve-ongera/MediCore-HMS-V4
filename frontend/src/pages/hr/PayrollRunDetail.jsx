@@ -99,10 +99,10 @@ export default function PayrollRunDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/hr/payroll")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Payroll
+            <i className="bi bi-arrow-left  me-1"></i> Back to Payroll
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function PayrollRunDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function PayrollRunDetail() {
               <div className="patient-header__name">{MONTHS[run.period_month - 1]} {run.period_year}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-people me-1"></i> {run.employee_count} employees
+                  <i className="bi bi-people  me-1"></i> {run.employee_count} employees
                 </span>
                 <span>•</span>
                 <span className={`badge ${getStatusBadge(run.status)}`}>
@@ -164,12 +164,12 @@ export default function PayrollRunDetail() {
           <div className="flex gap-3 flex-wrap" style={{ marginTop: "var(--space-3)" }}>
             {run.status === "DRAFT" && (
               <button className="btn btn-primary" onClick={handleProcess}>
-                <i className="bi bi-check-circle me-2"></i> Process Payroll
+                <i className="bi bi-check-circle  me-1"></i> Process Payroll
               </button>
             )}
             {run.status === "PROCESSED" && (
               <button className="btn btn-success" onClick={handleMarkPaid}>
-                <i className="bi bi-cash-stack me-2"></i> Mark as Paid
+                <i className="bi bi-cash-stack  me-1"></i> Mark as Paid
               </button>
             )}
           </div>
@@ -179,7 +179,7 @@ export default function PayrollRunDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Payslips</h5>
           </div>
           <div>
@@ -298,7 +298,7 @@ export default function PayrollRunDetail() {
                     {isDraft && (
                       <td className="cell-actions">
                         <button className="btn btn-primary btn-sm" onClick={() => saveRow(p.id)}>
-                          <i className="bi bi-floppy me-1"></i> Save
+                          <i className="bi bi-floppy  me-1"></i> Save
                         </button>
                       </td>
                     )}

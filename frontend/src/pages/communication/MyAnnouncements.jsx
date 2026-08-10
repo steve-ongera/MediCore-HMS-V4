@@ -56,7 +56,7 @@ export default function MyAnnouncements() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function MyAnnouncements() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function MyAnnouncements() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-megaphone me-1"></i>
+            <i className="bi bi-megaphone  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Announcements</h5>
           </div>
           <div>
@@ -109,21 +109,21 @@ export default function MyAnnouncements() {
                       </span>
                     </div>
                     <span className="announcement-card__time">
-                      <i className="bi bi-clock me-1"></i>
+                      <i className="bi bi-clock  me-1"></i>
                       {formatDateTime(a.created_at_display)}
                     </span>
                   </div>
 
                   <div className="announcement-card__meta">
                     <span className="text-2xs text-tertiary">
-                      <i className="bi bi-person me-1"></i>
+                      <i className="bi bi-person  me-1"></i>
                       From: {a.created_by_name}
                     </span>
                   </div>
 
                   {a.event_date && (
                     <div className="announcement-card__event">
-                      <i className="bi bi-calendar-event me-1"></i>
+                      <i className="bi bi-calendar-event  me-1"></i>
                       <strong>Event:</strong> {formatDateTime(a.event_date)}
                     </div>
                   )}

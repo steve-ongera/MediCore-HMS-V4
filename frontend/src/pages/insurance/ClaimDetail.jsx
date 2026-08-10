@@ -106,10 +106,10 @@ export default function ClaimDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/insurance/claims")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Claims
+            <i className="bi bi-arrow-left  me-1"></i> Back to Claims
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function ClaimDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function ClaimDetail() {
               <div className="patient-header__name">{claim.claim_number}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-person me-1"></i> {claim.patient_name}
+                  <i className="bi bi-person  me-1"></i> {claim.patient_name}
                 </span>
                 <span>•</span>
                 <span>{claim.hospital_number}</span>
@@ -147,7 +147,7 @@ export default function ClaimDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-building me-1"></i> {claim.insurer_name}
+                <i className="bi bi-building  me-1"></i> {claim.insurer_name}
               </span>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function ClaimDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Claim Items</h5>
           </div>
           <div>
@@ -241,16 +241,16 @@ export default function ClaimDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-send me-2"></i> Actions
+              <i className="bi bi-send  me-1"></i> Actions
             </h5>
           </div>
           <div className="card-body">
             <div className="flex gap-3 flex-wrap">
               <button className="btn btn-primary" onClick={handleSubmitClaim}>
-                <i className="bi bi-send me-2"></i> Submit Claim
+                <i className="bi bi-send  me-1"></i> Submit Claim
               </button>
               <button className="btn btn-danger" onClick={handleCancel}>
-                <i className="bi bi-x-circle me-2"></i> Cancel Claim
+                <i className="bi bi-x-circle  me-1"></i> Cancel Claim
               </button>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function ClaimDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-pencil-square me-2"></i> Record Insurer Response
+              <i className="bi bi-pencil-square  me-1"></i> Record Insurer Response
             </h5>
           </div>
           <div className="card-body">
@@ -344,10 +344,10 @@ export default function ClaimDetail() {
 
               <div className="form-actions">
                 <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                  <i className="bi bi-check-circle me-2"></i> Record Response
+                  <i className="bi bi-check-circle  me-1"></i> Record Response
                 </button>
                 <button type="button" className="btn btn-danger" onClick={handleCancel}>
-                  <i className="bi bi-x-circle me-2"></i> Cancel Claim
+                  <i className="bi bi-x-circle  me-1"></i> Cancel Claim
                 </button>
               </div>
             </form>
@@ -359,13 +359,13 @@ export default function ClaimDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-cash-stack me-2"></i> Settlement
+              <i className="bi bi-cash-stack  me-1"></i> Settlement
             </h5>
           </div>
           <div className="card-body">
             <div className="flex gap-3 flex-wrap">
               <button className="btn btn-success" onClick={handleSettle}>
-                <i className="bi bi-cash-stack me-2"></i> Settle Claim (Create Payments)
+                <i className="bi bi-cash-stack  me-1"></i> Settle Claim (Create Payments)
               </button>
             </div>
           </div>

@@ -17,7 +17,7 @@ function PaginationFooter({ totalRows, currentPage, totalPages, startIdx, onPage
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
-          <i className="bi bi-chevron-left me-1"></i> Prev
+          <i className="bi bi-chevron-left  me-1"></i> Prev
         </button>
         <span className="text-2xs text-tertiary">Page {currentPage} of {totalPages}</span>
         <button
@@ -82,7 +82,7 @@ export default function FinancialSummary() {
           <input type="date" className="input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ width: "160px" }} />
           <input type="date" className="input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ width: "160px" }} />
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function FinancialSummary() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function FinancialSummary() {
           <div className="card">
             <div className="card-header">
               <div className="flex items-center gap-3 flex-wrap">
-                <i className="bi bi-list-ul me-1"></i>
+                <i className="bi bi-list-ul  me-1"></i>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Chart of Accounts Balances</h5>
               </div>
               <div>

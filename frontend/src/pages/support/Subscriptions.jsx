@@ -265,7 +265,7 @@ export default function Subscriptions() {
             for your hospital size and requirements.
           </p>
           <Link to="/contact-us" className="btn btn-primary">
-            <i className="bi bi-chat-dots me-2"></i>
+            <i className="bi bi-chat-dots  me-1"></i>
             Talk to Our Team
           </Link>
         </div>

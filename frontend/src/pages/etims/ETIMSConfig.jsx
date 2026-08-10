@@ -113,7 +113,7 @@ export default function ETIMSConfig() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={loadConfig}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function ETIMSConfig() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function ETIMSConfig() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--success)", background: "var(--success-soft)" }}>
           <div className="card-body">
             <div className="text-success">
-              <i className="bi bi-check-circle me-2"></i> {success}
+              <i className="bi bi-check-circle  me-1"></i> {success}
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function ETIMSConfig() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-gear me-2"></i> 
+            <i className="bi bi-gear  me-1"></i> 
             {config ? "Update eTIMS Configuration" : "Create eTIMS Configuration"}
           </h5>
           {config && (
@@ -248,7 +248,7 @@ export default function ETIMSConfig() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-save me-2"></i>
+                    <i className="bi bi-save  me-1"></i>
                     {config ? "Update Configuration" : "Create Configuration"}
                   </>
                 )}
@@ -262,7 +262,7 @@ export default function ETIMSConfig() {
         <div className="card" style={{ marginTop: "var(--space-6)" }}>
           <div className="card-header">
             <div className="flex items-center gap-3 flex-wrap">
-              <i className="bi bi-info-circle me-1"></i>
+              <i className="bi bi-info-circle  me-1"></i>
               <h5 className="card-title" style={{ marginBottom: 0 }}>Current Configuration Details</h5>
             </div>
           </div>

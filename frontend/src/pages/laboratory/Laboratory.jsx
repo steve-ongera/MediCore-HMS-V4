@@ -186,7 +186,7 @@ export default function Laboratory() {
               className="btn btn-primary btn-sm"
               onClick={() => handleCollect(row.id)}
             >
-              <i className="bi bi-box-seam me-1"></i>
+              <i className="bi bi-box-seam  me-1"></i>
               Collect
             </button>
           )}
@@ -199,7 +199,7 @@ export default function Laboratory() {
                 setShowResultModal(true);
               }}
             >
-              <i className="bi bi-upload me-1"></i>
+              <i className="bi bi-upload  me-1"></i>
               Results
             </button>
           )}
@@ -267,7 +267,7 @@ export default function Laboratory() {
         </div>
         <div className="page-header__actions">
           <button type="button" className="btn btn-secondary" onClick={loadData}>
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -360,7 +360,7 @@ export default function Laboratory() {
                 <span className="spinner spinner-inverse" style={{ width: 16, height: 16 }} />
               ) : (
                 <>
-                  <i className="bi bi-upload me-2"></i>
+                  <i className="bi bi-upload  me-1"></i>
                   Upload Results
                 </>
               )}

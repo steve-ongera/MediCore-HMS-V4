@@ -66,7 +66,7 @@ export default function RevenueLeakageDashboard() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
           <button className="btn btn-primary" onClick={handleScanNow} disabled={scanning}>
             {scanning ? (
@@ -76,7 +76,7 @@ export default function RevenueLeakageDashboard() {
               </>
             ) : (
               <>
-                <i className="bi bi-search me-2"></i> Scan Now
+                <i className="bi bi-search  me-1"></i> Scan Now
               </>
             )}
           </button>
@@ -87,7 +87,7 @@ export default function RevenueLeakageDashboard() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function RevenueLeakageDashboard() {
         <div className="card" style={{ marginBottom: "var(--space-4)" }}>
           <div className="card-body">
             <div className="text-sm text-muted">
-              <i className="bi bi-clock-history me-1"></i>
+              <i className="bi bi-clock-history  me-1"></i>
               Last scan: {new Date(data.last_scan.started_at).toLocaleString()} — found <strong>{data.last_scan.new_leaks_found}</strong> new leak(s)
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function RevenueLeakageDashboard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-building me-1"></i>
+            <i className="bi bi-building  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Missing Bills by Source (Today)</h5>
           </div>
           <div>
@@ -217,7 +217,7 @@ export default function RevenueLeakageDashboard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-graph-up me-1"></i>
+            <i className="bi bi-graph-up  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Last 7 Days Trend</h5>
           </div>
           <div>
@@ -271,7 +271,7 @@ export default function RevenueLeakageDashboard() {
       <div className="card">
         <div className="card-body text-center">
           <Link to="/leakage/records" className="btn btn-primary">
-            <i className="bi bi-list-ul me-2"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             View & Resolve Individual Leaks
           </Link>
         </div>

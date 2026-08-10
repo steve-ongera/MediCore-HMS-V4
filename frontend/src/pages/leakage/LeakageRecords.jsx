@@ -76,7 +76,7 @@ export default function LeakageRecords() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function LeakageRecords() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function LeakageRecords() {
             <div className="card" style={{ marginBottom: "var(--space-3)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
               <div className="card-body" style={{ padding: "var(--space-2) var(--space-3)" }}>
                 <div className="text-danger" style={{ fontWeight: 600 }}>
-                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <i className="bi bi-exclamation-triangle  me-1"></i>
                   Total Open in View: {formatCurrency(totalOpenAmount)}
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function LeakageRecords() {
                         {r.status === "OPEN" && (
                           <div className="flex gap-1 justify-end" style={{ flexWrap: "wrap" }}>
                             <button className="btn btn-success btn-sm" onClick={() => handleResolve(r.id)}>
-                              <i className="bi bi-cash-stack me-1"></i> Bill Now
+                              <i className="bi bi-cash-stack  me-1"></i> Bill Now
                             </button>
                             {writeOffId === r.id ? (
                               <>
@@ -233,7 +233,7 @@ export default function LeakageRecords() {
                                   style={{ width: "120px" }}
                                 />
                                 <button className="btn btn-danger btn-sm" onClick={() => submitWriteOff(r.id)}>
-                                  <i className="bi bi-check me-1"></i> Confirm
+                                  <i className="bi bi-check  me-1"></i> Confirm
                                 </button>
                                 <button className="btn btn-secondary btn-sm" onClick={() => setWriteOffId(null)}>
                                   <i className="bi bi-x"></i>
@@ -241,7 +241,7 @@ export default function LeakageRecords() {
                               </>
                             ) : (
                               <button className="btn btn-neutral btn-sm" onClick={() => setWriteOffId(r.id)}>
-                                <i className="bi bi-pencil me-1"></i> Write Off
+                                <i className="bi bi-pencil  me-1"></i> Write Off
                               </button>
                             )}
                           </div>

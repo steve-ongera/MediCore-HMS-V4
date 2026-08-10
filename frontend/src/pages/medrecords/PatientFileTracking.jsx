@@ -119,7 +119,7 @@ export default function PatientFileTracking() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadOverdue(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function PatientFileTracking() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function PatientFileTracking() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Register New File
+            <i className="bi bi-plus-circle  me-1"></i> Register New File
           </h5>
         </div>
         <div className="card-body">
@@ -155,7 +155,7 @@ export default function PatientFileTracking() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary">
-                  <i className="bi bi-search me-2"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function PatientFileTracking() {
                             className="btn btn-primary btn-sm"
                             onClick={() => setSelectedPatient(p)}
                           >
-                            <i className="bi bi-check me-1"></i> Select
+                            <i className="bi bi-check  me-1"></i> Select
                           </button>
                         </td>
                       </tr>
@@ -208,7 +208,7 @@ export default function PatientFileTracking() {
                   </div>
                   <div>
                     <div className="text-sm text-success font-semibold">
-                      <i className="bi bi-check-circle me-1"></i> Selected Patient
+                      <i className="bi bi-check-circle  me-1"></i> Selected Patient
                     </div>
                     <div className="font-bold">{selectedPatient.full_name}</div>
                     <div className="text-sm text-muted">
@@ -220,7 +220,7 @@ export default function PatientFileTracking() {
                     className="btn btn-ghost btn-sm ml-auto"
                     onClick={() => setSelectedPatient(null)}
                   >
-                    <i className="bi bi-x me-1"></i> Change
+                    <i className="bi bi-x  me-1"></i> Change
                   </button>
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function PatientFileTracking() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="button" className="btn btn-primary" onClick={createFile}>
-                  <i className="bi bi-plus-circle me-2"></i> Create File Record
+                  <i className="bi bi-plus-circle  me-1"></i> Create File Record
                 </button>
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function PatientFileTracking() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-exclamation-triangle me-1"></i>
+            <i className="bi bi-exclamation-triangle  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Overdue Files ({overdue.length})</h5>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function PatientFileTracking() {
                       <td className="cell-actions">
                         {f.status === "CHECKED_OUT" ? (
                           <button className="btn btn-success btn-sm" onClick={() => handleReturn(f.id)}>
-                            <i className="bi bi-arrow-return-left me-1"></i> Return
+                            <i className="bi bi-arrow-return-left  me-1"></i> Return
                           </button>
                         ) : (
                           checkoutId === f.id ? (
@@ -409,7 +409,7 @@ export default function PatientFileTracking() {
                                 style={{ width: "170px" }}
                               />
                               <button className="btn btn-primary btn-sm" onClick={submitCheckout}>
-                                <i className="bi bi-check me-1"></i> Confirm
+                                <i className="bi bi-check  me-1"></i> Confirm
                               </button>
                               <button className="btn btn-secondary btn-sm" onClick={() => setCheckoutId(null)}>
                                 <i className="bi bi-x"></i>
@@ -417,7 +417,7 @@ export default function PatientFileTracking() {
                             </div>
                           ) : (
                             <button className="btn btn-primary btn-sm" onClick={() => openCheckout(f.id)}>
-                              <i className="bi bi-box-arrow-right me-1"></i> Check Out
+                              <i className="bi bi-box-arrow-right  me-1"></i> Check Out
                             </button>
                           )
                         )}

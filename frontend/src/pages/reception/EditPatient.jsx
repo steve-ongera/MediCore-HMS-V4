@@ -120,7 +120,7 @@ export default function EditPatient() {
         </div>
         <div className="page-header__actions">
           <Link to={`/patients/${id}/visits`} className="btn btn-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back to Visits
           </Link>
         </div>
@@ -309,7 +309,7 @@ export default function EditPatient() {
               <span className="spinner spinner-inverse" style={{ width: 16, height: 16 }} />
             ) : (
               <>
-                <i className="bi bi-check2-circle me-2"></i>
+                <i className="bi bi-check2-circle  me-1"></i>
                 Save Changes
               </>
             )}

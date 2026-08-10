@@ -123,7 +123,7 @@ export default function RequestRefund() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { loadMyRequests(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function RequestRefund() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function RequestRefund() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--success)", background: "var(--success-soft)" }}>
           <div className="card-body">
             <div className="text-success">
-              <i className="bi bi-check-circle me-2"></i> {success}
+              <i className="bi bi-check-circle  me-1"></i> {success}
             </div>
           </div>
         </div>
@@ -151,12 +151,12 @@ export default function RequestRefund() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-search me-2"></i> Step 1: Find the Payment
+            <i className="bi bi-search  me-1"></i> Step 1: Find the Payment
           </h5>
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Search for the original payment by receipt number, invoice number, or patient name.
           </div>
           <form onSubmit={handleSearch}>
@@ -173,7 +173,7 @@ export default function RequestRefund() {
               </div>
               <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                 <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                  <i className="bi bi-search me-2"></i> Search
+                  <i className="bi bi-search  me-1"></i> Search
                 </button>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function RequestRefund() {
                         <td>{formatDateTime(p.paid_at)}</td>
                         <td className="cell-actions">
                           <button className="btn btn-primary btn-sm" onClick={() => selectPayment(p)}>
-                            <i className="bi bi-check me-1"></i> Select
+                            <i className="bi bi-check  me-1"></i> Select
                           </button>
                         </td>
                       </tr>
@@ -227,7 +227,7 @@ export default function RequestRefund() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-clipboard-plus me-2"></i> Step 2: Refund Details
+              <i className="bi bi-clipboard-plus  me-1"></i> Step 2: Refund Details
             </h5>
           </div>
           <div className="card-body">
@@ -239,7 +239,7 @@ export default function RequestRefund() {
                   </div>
                   <div>
                     <div className="text-sm text-primary font-semibold">
-                      <i className="bi bi-check-circle me-1"></i> Selected Payment
+                      <i className="bi bi-check-circle  me-1"></i> Selected Payment
                     </div>
                     <div className="font-bold">{selectedPayment.receipt_number}</div>
                     <div className="text-sm text-muted">
@@ -251,7 +251,7 @@ export default function RequestRefund() {
                     className="btn btn-ghost btn-sm ml-auto"
                     onClick={() => setSelectedPayment(null)}
                   >
-                    <i className="bi bi-x me-1"></i> Change
+                    <i className="bi bi-x  me-1"></i> Change
                   </button>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export default function RequestRefund() {
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-send me-2"></i> Submit Refund Request
+                      <i className="bi bi-send  me-1"></i> Submit Refund Request
                     </>
                   )}
                 </button>
@@ -318,7 +318,7 @@ export default function RequestRefund() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>My Refund Requests</h5>
           </div>
           <div>

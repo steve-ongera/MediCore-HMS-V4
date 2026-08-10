@@ -101,7 +101,7 @@ export default function HODApprovals() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function HODApprovals() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function HODApprovals() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clipboard-check me-1"></i>
+            <i className="bi bi-clipboard-check  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Pending Approval</h5>
           </div>
           <div>
@@ -130,7 +130,7 @@ export default function HODApprovals() {
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             As Head of Department, requisitions raised by your team wait here for your sign-off before going to Procurement.
           </div>
 
@@ -182,7 +182,7 @@ export default function HODApprovals() {
                               onClick={() => handleApprove(r.id)}
                               disabled={submitting}
                             >
-                              <i className="bi bi-check me-1"></i> Approve
+                              <i className="bi bi-check  me-1"></i> Approve
                             </button>
                             {rejectingId === r.id ? (
                               <>
@@ -199,7 +199,7 @@ export default function HODApprovals() {
                                   onClick={() => submitReject(r.id)}
                                   disabled={submitting}
                                 >
-                                  <i className="bi bi-check me-1"></i> Confirm
+                                  <i className="bi bi-check  me-1"></i> Confirm
                                 </button>
                                 <button 
                                   className="btn btn-secondary btn-sm" 
@@ -213,7 +213,7 @@ export default function HODApprovals() {
                                 className="btn btn-danger btn-sm" 
                                 onClick={() => setRejectingId(r.id)}
                               >
-                                <i className="bi bi-x me-1"></i> Reject
+                                <i className="bi bi-x  me-1"></i> Reject
                               </button>
                             )}
                           </div>

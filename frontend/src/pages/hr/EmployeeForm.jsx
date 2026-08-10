@@ -75,7 +75,7 @@ export default function EmployeeForm() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/hr/employees")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Employees
+            <i className="bi bi-arrow-left  me-1"></i> Back to Employees
           </button>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function EmployeeForm() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -93,14 +93,14 @@ export default function EmployeeForm() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-person-plus me-2"></i> Employee Information
+            <i className="bi bi-person-plus  me-1"></i> Employee Information
           </h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
             {/* Personal Details */}
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
-              <i className="bi bi-person me-1"></i> Personal Details
+              <i className="bi bi-person  me-1"></i> Personal Details
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 2 }}>
@@ -180,7 +180,7 @@ export default function EmployeeForm() {
 
             {/* Employment Details */}
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-briefcase me-1"></i> Employment Details
+              <i className="bi bi-briefcase  me-1"></i> Employment Details
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -249,7 +249,7 @@ export default function EmployeeForm() {
 
             {/* Banking Details */}
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-bank me-1"></i> Banking Details
+              <i className="bi bi-bank  me-1"></i> Banking Details
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -276,7 +276,7 @@ export default function EmployeeForm() {
 
             {/* Next of Kin */}
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-people me-1"></i> Next of Kin
+              <i className="bi bi-people  me-1"></i> Next of Kin
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -331,7 +331,7 @@ export default function EmployeeForm() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-person-plus me-2"></i> Register Employee
+                    <i className="bi bi-person-plus  me-1"></i> Register Employee
                   </>
                 )}
               </button>

@@ -110,7 +110,7 @@ export default function CashTillDashboard() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function CashTillDashboard() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -129,12 +129,12 @@ export default function CashTillDashboard() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Open Till
+              <i className="bi bi-plus-circle  me-1"></i> Open Till
             </h5>
           </div>
           <div className="card-body">
             <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-              <i className="bi bi-info-circle me-1"></i>
+              <i className="bi bi-info-circle  me-1"></i>
               Count your starting cash float before beginning your shift and enter it here.
             </div>
             <form onSubmit={handleOpen}>
@@ -159,7 +159,7 @@ export default function CashTillDashboard() {
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-cash-coin me-2"></i> Open Till
+                        <i className="bi bi-cash-coin  me-1"></i> Open Till
                       </>
                     )}
                   </button>
@@ -173,7 +173,7 @@ export default function CashTillDashboard() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <div className="flex items-center gap-3 flex-wrap">
-                <i className="bi bi-cash-stack me-1"></i>
+                <i className="bi bi-cash-stack  me-1"></i>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Current Shift</h5>
               </div>
               <div>
@@ -204,12 +204,12 @@ export default function CashTillDashboard() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-arrow-up-circle me-2"></i> Cash Drops
+                <i className="bi bi-arrow-up-circle  me-1"></i> Cash Drops
               </h5>
             </div>
             <div className="card-body">
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-                <i className="bi bi-info-circle me-1"></i>
+                <i className="bi bi-info-circle  me-1"></i>
                 Record mid-shift cash removal to the safe.
               </div>
               <form onSubmit={handleDrop} style={{ marginBottom: "var(--space-4)" }}>
@@ -244,7 +244,7 @@ export default function CashTillDashboard() {
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-arrow-up-circle me-2"></i> Record Drop
+                          <i className="bi bi-arrow-up-circle  me-1"></i> Record Drop
                         </>
                       )}
                     </button>
@@ -288,12 +288,12 @@ export default function CashTillDashboard() {
           <div className="card">
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-x-circle me-2"></i> Close Till
+                <i className="bi bi-x-circle  me-1"></i> Close Till
               </h5>
             </div>
             <div className="card-body">
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-                <i className="bi bi-info-circle me-1"></i>
+                <i className="bi bi-info-circle  me-1"></i>
                 Counted Cash is pre-filled with what the system expects based on today's payments — physically count
                 your drawer and adjust the amount if it differs.
               </div>
@@ -349,7 +349,7 @@ export default function CashTillDashboard() {
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-x-circle me-2"></i> Close Till
+                          <i className="bi bi-x-circle  me-1"></i> Close Till
                         </>
                       )}
                     </button>
@@ -364,7 +364,7 @@ export default function CashTillDashboard() {
       <div className="card" style={{ marginTop: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Shift History</h5>
           </div>
           <div>

@@ -64,7 +64,7 @@ export default function DeviceSessionMonitoring() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -73,7 +73,7 @@ export default function DeviceSessionMonitoring() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function DeviceSessionMonitoring() {
               className={`tabs__item ${tab === "active" ? "is-active" : ""}`}
               onClick={() => setTab("active")}
             >
-              <i className="bi bi-wifi me-1"></i>
+              <i className="bi bi-wifi  me-1"></i>
               Active Sessions
               {activeSessions.length > 0 && <span className="pill-count">{activeSessions.length}</span>}
             </button>
@@ -96,7 +96,7 @@ export default function DeviceSessionMonitoring() {
               className={`tabs__item ${tab === "locked" ? "is-active" : ""}`}
               onClick={() => setTab("locked")}
             >
-              <i className="bi bi-lock me-1"></i>
+              <i className="bi bi-lock  me-1"></i>
               Locked Accounts
               {lockedAccounts.length > 0 && <span className="pill-count">{lockedAccounts.length}</span>}
             </button>
@@ -105,7 +105,7 @@ export default function DeviceSessionMonitoring() {
               className={`tabs__item ${tab === "history" ? "is-active" : ""}`}
               onClick={() => setTab("history")}
             >
-              <i className="bi bi-clock-history me-1"></i>
+              <i className="bi bi-clock-history  me-1"></i>
               Session History
             </button>
           </div>
@@ -166,7 +166,7 @@ export default function DeviceSessionMonitoring() {
                 Locked Accounts
               </h5>
               <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-                <i className="bi bi-info-circle me-1"></i>
+                <i className="bi bi-info-circle  me-1"></i>
                 Accounts are locked automatically after 3 consecutive failed login attempts. Unlocking resets the failed-attempt counter.
               </div>
               {lockedAccounts.length === 0 ? (
@@ -204,7 +204,7 @@ export default function DeviceSessionMonitoring() {
                           <td>{l.locked_at ? formatDateTime(l.locked_at) : "—"}</td>
                           <td className="cell-actions">
                             <button className="btn btn-success btn-sm" onClick={() => handleUnlock(l.id)}>
-                              <i className="bi bi-unlock me-1"></i> Unlock Account
+                              <i className="bi bi-unlock  me-1"></i> Unlock Account
                             </button>
                           </td>
                         </tr>

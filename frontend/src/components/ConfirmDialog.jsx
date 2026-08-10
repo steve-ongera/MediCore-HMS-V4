@@ -37,7 +37,7 @@ export default function ConfirmDialog({
       >
         {loading ? (
           <>
-            <span className="spinner-border spinner-border-sm me-2" role="status" />
+            <span className="spinner-border spinner-border-sm  me-1" role="status" />
             Processing...
           </>
         ) : (

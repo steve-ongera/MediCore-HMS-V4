@@ -103,10 +103,10 @@ export default function BloodRequestDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/bloodbank/requests")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Requests
+            <i className="bi bi-arrow-left  me-1"></i> Back to Requests
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function BloodRequestDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function BloodRequestDetail() {
               <div className="patient-header__name">{request.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {request.hospital_number}
+                  <i className="bi bi-hash  me-1"></i> {request.hospital_number}
                 </span>
                 <span>•</span>
                 <span>
@@ -154,7 +154,7 @@ export default function BloodRequestDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-box me-1"></i> {request.units_requested} unit{request.units_requested !== 1 ? "s" : ""}
+                <i className="bi bi-box  me-1"></i> {request.units_requested} unit{request.units_requested !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function BloodRequestDetail() {
           {canIssue && (
             <div style={{ marginTop: "var(--space-3)" }}>
               <button className="btn btn-danger" onClick={handleCancel}>
-                <i className="bi bi-x-circle me-2"></i> Cancel Request
+                <i className="bi bi-x-circle  me-1"></i> Cancel Request
               </button>
             </div>
           )}
@@ -214,7 +214,7 @@ export default function BloodRequestDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <div className="flex items-center gap-3 flex-wrap">
-              <i className="bi bi-box me-1"></i>
+              <i className="bi bi-box  me-1"></i>
               <h5 className="card-title" style={{ marginBottom: 0 }}>Compatible Available Units</h5>
             </div>
             <div>
@@ -260,7 +260,7 @@ export default function BloodRequestDetail() {
                         <td className="cell-numeric">{formatCurrency(u.unit_price)}</td>
                         <td className="cell-actions">
                           <button className="btn btn-success btn-sm" onClick={() => handleIssue(u.id)}>
-                            <i className="bi bi-check-circle me-1"></i> Issue This Unit
+                            <i className="bi bi-check-circle  me-1"></i> Issue This Unit
                           </button>
                         </td>
                       </tr>
@@ -276,7 +276,7 @@ export default function BloodRequestDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-clock-history me-1"></i>
+            <i className="bi bi-clock-history  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Units Issued</h5>
           </div>
           <div>

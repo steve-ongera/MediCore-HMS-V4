@@ -12,7 +12,7 @@ export default function NotFound() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <Link to="/dashboard" className="btn btn-primary">
-          <i className="bi bi-house me-2"></i>
+          <i className="bi bi-house  me-1"></i>
           Go Home
         </Link>
       </div>

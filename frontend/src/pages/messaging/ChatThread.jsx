@@ -98,10 +98,10 @@ export default function ChatThread() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/messages")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Messages
+            <i className="bi bi-arrow-left  me-1"></i> Back to Messages
           </button>
           <button className="btn btn-secondary" onClick={loadMessages}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function ChatThread() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function ChatThread() {
               className="btn btn-primary"
               disabled={!text.trim()}
             >
-              <i className="bi bi-send me-2"></i> Send
+              <i className="bi bi-send  me-1"></i> Send
             </button>
           </form>
         </div>

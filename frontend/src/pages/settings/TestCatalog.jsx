@@ -178,7 +178,7 @@ export default function TestCatalog() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-primary" onClick={openCreateForm}>
-            <i className="bi bi-plus-lg me-2"></i>
+            <i className="bi bi-plus-lg  me-1"></i>
             Add Test
           </button>
         </div>

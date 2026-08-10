@@ -112,7 +112,7 @@ export default function RegisterVisit() {
             className="btn btn-secondary"
             onClick={() => navigate("/queue")}
           >
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left  me-1"></i>
             Back to Queue
           </button>
         </div>
@@ -303,7 +303,7 @@ export default function RegisterVisit() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-clipboard-plus me-2"></i>
+                    <i className="bi bi-clipboard-plus  me-1"></i>
                     Register Visit
                   </>
                 )}

@@ -84,7 +84,7 @@ export default function DischargeSummaries() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function DischargeSummaries() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function DischargeSummaries() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-exclamation-triangle me-1"></i>
+            <i className="bi bi-exclamation-triangle  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Incomplete Summaries ({incomplete.length})</h5>
           </div>
           <div>
@@ -114,7 +114,7 @@ export default function DischargeSummaries() {
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             These summaries need to be completed before the patient's file can be fully archived.
           </div>
           {incomplete.length === 0 ? (
@@ -150,10 +150,10 @@ export default function DischargeSummaries() {
                       <td className="cell-actions">
                         <div className="flex gap-1 justify-end">
                           <button className="btn btn-primary btn-sm" onClick={() => openEdit(s)}>
-                            <i className="bi bi-pencil me-1"></i> Edit
+                            <i className="bi bi-pencil  me-1"></i> Edit
                           </button>
                           <button className="btn btn-success btn-sm" onClick={() => handleComplete(s.id)}>
-                            <i className="bi bi-check-circle me-1"></i> Complete
+                            <i className="bi bi-check-circle  me-1"></i> Complete
                           </button>
                         </div>
                       </td>
@@ -169,7 +169,7 @@ export default function DischargeSummaries() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>All Discharge Summaries</h5>
           </div>
           <div>
@@ -212,11 +212,11 @@ export default function DischargeSummaries() {
                       <td className="cell-actions">
                         <div className="flex gap-1 justify-end">
                           <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)}>
-                            <i className="bi bi-pencil me-1"></i> Edit
+                            <i className="bi bi-pencil  me-1"></i> Edit
                           </button>
                           {!s.is_complete && (
                             <button className="btn btn-success btn-sm" onClick={() => handleComplete(s.id)}>
-                              <i className="bi bi-check-circle me-1"></i> Complete
+                              <i className="bi bi-check-circle  me-1"></i> Complete
                             </button>
                           )}
                         </div>
@@ -337,7 +337,7 @@ export default function DischargeSummaries() {
                   <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
                 ) : (
                   <>
-                    <i className="bi bi-save me-2"></i> Save
+                    <i className="bi bi-save  me-1"></i> Save
                   </>
                 )}
               </button>

@@ -71,7 +71,7 @@ export default function EquipmentForm() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/biomed/equipment")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Register
+            <i className="bi bi-arrow-left  me-1"></i> Back to Register
           </button>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function EquipmentForm() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -89,13 +89,13 @@ export default function EquipmentForm() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Equipment Details
+            <i className="bi bi-plus-circle  me-1"></i> Equipment Details
           </h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)" }}>
-              <i className="bi bi-info-circle me-1"></i> Basic Information
+              <i className="bi bi-info-circle  me-1"></i> Basic Information
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1.5 }}>
@@ -168,7 +168,7 @@ export default function EquipmentForm() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-shield-check me-1"></i> Classification
+              <i className="bi bi-shield-check  me-1"></i> Classification
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -189,7 +189,7 @@ export default function EquipmentForm() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-calendar me-1"></i> Purchase & Warranty
+              <i className="bi bi-calendar  me-1"></i> Purchase & Warranty
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -225,7 +225,7 @@ export default function EquipmentForm() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-tools me-1"></i> Maintenance Schedule
+              <i className="bi bi-tools  me-1"></i> Maintenance Schedule
             </h6>
             <div className="field-row">
               <div className="field" style={{ marginBottom: 0, flex: 1 }}>
@@ -271,7 +271,7 @@ export default function EquipmentForm() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-plus-circle me-2"></i> Register Equipment
+                    <i className="bi bi-plus-circle  me-1"></i> Register Equipment
                   </>
                 )}
               </button>

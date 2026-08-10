@@ -205,7 +205,7 @@ export default function ContactUs() {
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-send me-2"></i>
+                        <i className="bi bi-send  me-1"></i>
                         Send Message
                       </>
                     )}

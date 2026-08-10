@@ -100,7 +100,7 @@ export default function BulkPayment() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/billing/payments")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Payments
+            <i className="bi bi-arrow-left  me-1"></i> Back to Payments
           </button>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function BulkPayment() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function BulkPayment() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-search me-2"></i> Step 1: Find Patient
+              <i className="bi bi-search  me-1"></i> Step 1: Find Patient
             </h5>
           </div>
           <div className="card-body">
@@ -137,7 +137,7 @@ export default function BulkPayment() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-search me-2"></i> Search
+                    <i className="bi bi-search  me-1"></i> Search
                   </button>
                 </div>
               </div>
@@ -170,7 +170,7 @@ export default function BulkPayment() {
                               className="btn btn-primary btn-sm"
                               onClick={() => selectPatient(p)}
                             >
-                              <i className="bi bi-check me-1"></i> Select
+                              <i className="bi bi-check  me-1"></i> Select
                             </button>
                           </td>
                         </tr>
@@ -194,7 +194,7 @@ export default function BulkPayment() {
                 </div>
                 <div>
                   <div className="text-sm text-success font-semibold">
-                    <i className="bi bi-check-circle me-1"></i> Selected Patient
+                    <i className="bi bi-check-circle  me-1"></i> Selected Patient
                   </div>
                   <div className="font-bold">{selectedPatient.full_name}</div>
                   <div className="text-sm text-muted">
@@ -206,7 +206,7 @@ export default function BulkPayment() {
                   className="btn btn-ghost btn-sm ml-auto"
                   onClick={() => { setSelectedPatient(null); setInvoices([]); setSelectedInvoiceIds([]); }}
                 >
-                  <i className="bi bi-x me-1"></i> Change Patient
+                  <i className="bi bi-x  me-1"></i> Change Patient
                 </button>
               </div>
             </div>
@@ -215,7 +215,7 @@ export default function BulkPayment() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <div className="flex items-center gap-3 flex-wrap">
-                <i className="bi bi-receipt me-1"></i>
+                <i className="bi bi-receipt  me-1"></i>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Step 2: Select Invoices to Pay</h5>
               </div>
               <div>
@@ -242,10 +242,10 @@ export default function BulkPayment() {
                 <>
                   <div className="flex gap-2" style={{ marginBottom: "var(--space-3)" }}>
                     <button className="btn btn-secondary btn-sm" onClick={selectAll}>
-                      <i className="bi bi-check-all me-1"></i> Select All
+                      <i className="bi bi-check-all  me-1"></i> Select All
                     </button>
                     <button className="btn btn-secondary btn-sm" onClick={clearAll}>
-                      <i className="bi bi-x-circle me-1"></i> Clear Selection
+                      <i className="bi bi-x-circle  me-1"></i> Clear Selection
                     </button>
                   </div>
 
@@ -315,7 +315,7 @@ export default function BulkPayment() {
             <div className="card">
               <div className="card-header">
                 <h5 className="card-title">
-                  <i className="bi bi-cash-stack me-2"></i> Step 3: Payment
+                  <i className="bi bi-cash-stack  me-1"></i> Step 3: Payment
                 </h5>
               </div>
               <div className="card-body">
@@ -387,7 +387,7 @@ export default function BulkPayment() {
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-cash-stack me-2"></i> Process Payment
+                          <i className="bi bi-cash-stack  me-1"></i> Process Payment
                         </>
                       )}
                     </button>
@@ -403,7 +403,7 @@ export default function BulkPayment() {
         <div className="card" style={{ borderColor: "var(--success)", background: "var(--success-soft)", marginTop: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-check-circle me-2" style={{ color: "var(--success-strong)" }}></i>
+              <i className="bi bi-check-circle  me-1" style={{ color: "var(--success-strong)" }}></i>
               Payment Processed Successfully
             </h5>
           </div>
@@ -448,14 +448,14 @@ export default function BulkPayment() {
                 className="btn btn-secondary"
                 onClick={() => setResult(null)}
               >
-                <i className="bi bi-arrow-left me-2"></i> Back
+                <i className="bi bi-arrow-left  me-1"></i> Back
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={() => navigate(`/billing/bulk-payment/${result.id}/receipt`)}
               >
-                <i className="bi bi-receipt me-2"></i> View Full Combined Receipt
+                <i className="bi bi-receipt  me-1"></i> View Full Combined Receipt
               </button>
             </div>
           </div>

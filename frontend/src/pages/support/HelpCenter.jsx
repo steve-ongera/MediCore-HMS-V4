@@ -279,7 +279,7 @@ export default function HelpCenter() {
           </div>
           
           <Link to="/contact-us" className="btn btn-primary">
-            <i className="bi bi-send me-2"></i>
+            <i className="bi bi-send  me-1"></i>
             Still need help? Contact Support
           </Link>
         </div>

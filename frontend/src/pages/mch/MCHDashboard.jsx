@@ -54,7 +54,7 @@ export default function MCHDashboard() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function MCHDashboard() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function MCHDashboard() {
           </div>
           <div className="stat-card__value">{highRisk}</div>
           <div className="stat-card__delta is-up">
-            <i className="bi bi-arrow-up me-1"></i> Requires special attention
+            <i className="bi bi-arrow-up  me-1"></i> Requires special attention
           </div>
         </div>
 
@@ -119,16 +119,16 @@ export default function MCHDashboard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-arrow-right-circle me-2"></i> Quick Actions
+            <i className="bi bi-arrow-right-circle  me-1"></i> Quick Actions
           </h5>
         </div>
         <div className="card-body">
           <div className="flex gap-3 flex-wrap">
             <Link to="/mch/antenatal" className="btn btn-primary">
-              <i className="bi bi-person-pregnant me-2"></i> Antenatal Care
+              <i className="bi bi-person-pregnant  me-1"></i> Antenatal Care
             </Link>
             <Link to="/mch/children" className="btn btn-secondary">
-              <i className="bi bi-person-child me-2"></i> Child Records
+              <i className="bi bi-person-child  me-1"></i> Child Records
             </Link>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function MCHDashboard() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-syringe me-1"></i>
+            <i className="bi bi-syringe  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Immunizations Due</h5>
           </div>
           <div>
@@ -174,7 +174,7 @@ export default function MCHDashboard() {
                       <td>{new Date(imm.due_date).toLocaleDateString()}</td>
                       <td className="cell-actions">
                         <Link to={`/mch/children/${imm.child}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View Child
+                          <i className="bi bi-eye  me-1"></i> View Child
                         </Link>
                       </td>
                     </tr>
@@ -189,7 +189,7 @@ export default function MCHDashboard() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-baby me-1"></i>
+            <i className="bi bi-baby  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Recent Deliveries</h5>
           </div>
           <div>

@@ -270,7 +270,7 @@ export default function VideoTutorials() {
             </div>
             <div className="modal-footer">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock me-1"></i>
+                <i className="bi bi-clock  me-1"></i>
                 Duration: {selectedVideo.duration}
               </span>
               <button 
@@ -338,7 +338,7 @@ export default function VideoTutorials() {
                       <p className="video-card__description">{video.description}</p>
                       <div className="video-card__meta">
                         <span className="video-card__watch">
-                          <i className="bi bi-play-circle me-1"></i>
+                          <i className="bi bi-play-circle  me-1"></i>
                           Watch now
                         </span>
                       </div>
@@ -391,11 +391,11 @@ export default function VideoTutorials() {
           </p>
           <div className="flex gap-3 flex-wrap">
             <Link to="/help" className="btn btn-secondary">
-              <i className="bi bi-book me-2"></i>
+              <i className="bi bi-book  me-1"></i>
               Help Center
             </Link>
             <Link to="/contact-us" className="btn btn-primary">
-              <i className="bi bi-chat-dots me-2"></i>
+              <i className="bi bi-chat-dots  me-1"></i>
               Contact Support
             </Link>
           </div>

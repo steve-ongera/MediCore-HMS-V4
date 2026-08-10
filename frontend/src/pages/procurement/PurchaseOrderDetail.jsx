@@ -189,10 +189,10 @@ export default function PurchaseOrderDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/procurement/orders")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Orders
+            <i className="bi bi-arrow-left  me-1"></i> Back to Orders
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -201,7 +201,7 @@ export default function PurchaseOrderDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function PurchaseOrderDetail() {
               <div className="patient-header__name">{po.po_number}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-building me-1"></i> {po.supplier_name}
+                  <i className="bi bi-building  me-1"></i> {po.supplier_name}
                 </span>
                 <span>•</span>
                 <span className={`badge ${getStatusBadge(po.status)}`}>
@@ -253,7 +253,7 @@ export default function PurchaseOrderDetail() {
           {po.status !== "FULLY_RECEIVED" && po.status !== "CANCELLED" && (
             <div style={{ marginTop: "var(--space-3)" }}>
               <button className="btn btn-danger" onClick={handleCancel}>
-                <i className="bi bi-x-circle me-2"></i> Cancel Purchase Order
+                <i className="bi bi-x-circle  me-1"></i> Cancel Purchase Order
               </button>
             </div>
           )}
@@ -263,7 +263,7 @@ export default function PurchaseOrderDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul me-1"></i>
+            <i className="bi bi-list-ul  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Order Items</h5>
           </div>
           <div>
@@ -310,7 +310,7 @@ export default function PurchaseOrderDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-box-seam me-2"></i> Record Goods Receipt
+              <i className="bi bi-box-seam  me-1"></i> Record Goods Receipt
             </h5>
           </div>
           <div className="card-body">
@@ -521,7 +521,7 @@ export default function PurchaseOrderDetail() {
               </div>
 
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-box-seam me-2"></i> Record Receipt
+                <i className="bi bi-box-seam  me-1"></i> Record Receipt
               </button>
             </form>
           </div>
@@ -531,7 +531,7 @@ export default function PurchaseOrderDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-clock-history me-2"></i> Goods Receipt History
+            <i className="bi bi-clock-history  me-1"></i> Goods Receipt History
           </h5>
         </div>
         <div className="card-body">
@@ -545,9 +545,9 @@ export default function PurchaseOrderDetail() {
             </div>
           ) : (
             <div className="text-sm text-muted">
-              <i className="bi bi-info-circle me-1"></i> {po.goods_receipts.length} receipt(s) recorded.
+              <i className="bi bi-info-circle  me-1"></i> {po.goods_receipts.length} receipt(s) recorded.
               <Link to={`/procurement/receipts?po=${po.id}`} className="btn btn-secondary btn-sm" style={{ marginLeft: "var(--space-2)" }}>
-                <i className="bi bi-eye me-1"></i> View All
+                <i className="bi bi-eye  me-1"></i> View All
               </Link>
             </div>
           )}
@@ -557,7 +557,7 @@ export default function PurchaseOrderDetail() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-file-earmark-plus me-2"></i> Record Supplier Invoice
+            <i className="bi bi-file-earmark-plus  me-1"></i> Record Supplier Invoice
           </h5>
         </div>
         <div className="card-body">
@@ -596,7 +596,7 @@ export default function PurchaseOrderDetail() {
               </div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-file-earmark-plus me-2"></i> Record Supplier Invoice
+              <i className="bi bi-file-earmark-plus  me-1"></i> Record Supplier Invoice
             </button>
           </form>
         </div>

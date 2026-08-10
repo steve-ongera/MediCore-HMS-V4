@@ -98,7 +98,7 @@ export default function CalibrationSchedule() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function CalibrationSchedule() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function CalibrationSchedule() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Schedule Calibration
+            <i className="bi bi-plus-circle  me-1"></i> Schedule Calibration
           </h5>
         </div>
         <div className="card-body">
@@ -148,7 +148,7 @@ export default function CalibrationSchedule() {
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-plus-circle me-2"></i> Schedule
+                      <i className="bi bi-plus-circle  me-1"></i> Schedule
                     </>
                   )}
                 </button>
@@ -161,7 +161,7 @@ export default function CalibrationSchedule() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -258,7 +258,7 @@ export default function CalibrationSchedule() {
                                 style={{ width: "160px", minHeight: "30px" }}
                               />
                               <button className="btn btn-success btn-sm" onClick={submitComplete}>
-                                <i className="bi bi-check me-1"></i> Save
+                                <i className="bi bi-check  me-1"></i> Save
                               </button>
                               <button className="btn btn-secondary btn-sm" onClick={() => setCompletingId(null)}>
                                 <i className="bi bi-x"></i>
@@ -266,7 +266,7 @@ export default function CalibrationSchedule() {
                             </div>
                           ) : (
                             <button className="btn btn-primary btn-sm" onClick={() => openComplete(c.id)}>
-                              <i className="bi bi-pencil me-1"></i> Record Result
+                              <i className="bi bi-pencil  me-1"></i> Record Result
                             </button>
                           )
                         )}

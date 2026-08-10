@@ -98,7 +98,7 @@ export default function QueueBoard() {
             className="btn btn-secondary"
             onClick={loadQueues}
           >
-            <i className="bi bi-arrow-clockwise me-2"></i>
+            <i className="bi bi-arrow-clockwise  me-1"></i>
             Refresh
           </button>
         </div>
@@ -127,7 +127,7 @@ export default function QueueBoard() {
                       <span className="spinner-border spinner-border-sm" />
                     ) : (
                       <>
-                        <i className="bi bi-chevron-right me-1"></i>
+                        <i className="bi bi-chevron-right  me-1"></i>
                         Call Next
                       </>
                     )}

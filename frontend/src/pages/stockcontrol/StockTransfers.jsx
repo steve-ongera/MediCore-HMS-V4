@@ -79,7 +79,7 @@ export default function StockTransfers() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => { load(); loadLocations(); loadMedicines(); }}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -88,7 +88,7 @@ export default function StockTransfers() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function StockTransfers() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-arrow-left-right me-2"></i> Request Transfer
+            <i className="bi bi-arrow-left-right  me-1"></i> Request Transfer
           </h5>
         </div>
         <div className="card-body">
@@ -130,7 +130,7 @@ export default function StockTransfers() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-list-ul me-1"></i> Items
+              <i className="bi bi-list-ul  me-1"></i> Items
             </h6>
             {items.map((it, i) => (
               <div key={i} className="field-row" style={{ marginBottom: "var(--space-2)" }}>
@@ -159,12 +159,12 @@ export default function StockTransfers() {
               </div>
             ))}
             <button type="button" className="btn btn-secondary btn-sm" onClick={addItem}>
-              <i className="bi bi-plus-circle me-1"></i> Add Item
+              <i className="bi bi-plus-circle  me-1"></i> Add Item
             </button>
 
             <div className="form-actions" style={{ marginTop: "var(--space-3)" }}>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-send me-2"></i> Submit Transfer Request
+                <i className="bi bi-send  me-1"></i> Submit Transfer Request
               </button>
             </div>
           </form>
@@ -174,7 +174,7 @@ export default function StockTransfers() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel me-1"></i>
+            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
               <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
               <select
@@ -238,7 +238,7 @@ export default function StockTransfers() {
                       </td>
                       <td className="cell-actions">
                         <Link to={`/stockcontrol/transfers/${t.id}`} className="btn btn-secondary btn-sm">
-                          <i className="bi bi-eye me-1"></i> View
+                          <i className="bi bi-eye  me-1"></i> View
                         </Link>
                       </td>
                     </tr>

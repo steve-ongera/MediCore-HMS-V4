@@ -149,7 +149,7 @@ export default function RaiseRequisition() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/procurement/requisitions")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Requisitions
+            <i className="bi bi-arrow-left  me-1"></i> Back to Requisitions
           </button>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function RaiseRequisition() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -167,12 +167,12 @@ export default function RaiseRequisition() {
       <div className="card">
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-clipboard-plus me-2"></i> Requisition Details
+            <i className="bi bi-clipboard-plus  me-1"></i> Requisition Details
           </h5>
         </div>
         <div className="card-body">
           <div className="text-sm text-muted" style={{ marginBottom: "var(--space-3)" }}>
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle  me-1"></i>
             Requisitions can be for medicines, equipment, IT items, tenders, construction, or any other departmental need — as long as it's tied to your department's active budget line.
           </div>
 
@@ -189,7 +189,7 @@ export default function RaiseRequisition() {
               </select>
               {budgets.length === 0 && (
                 <div className="text-sm text-warning" style={{ marginTop: "var(--space-1)" }}>
-                  <i className="bi bi-exclamation-triangle me-1"></i>
+                  <i className="bi bi-exclamation-triangle  me-1"></i>
                   No active budget line found for your department. Contact Accounting to have one allocated before raising a requisition.
                 </div>
               )}
@@ -264,7 +264,7 @@ export default function RaiseRequisition() {
             </div>
 
             <h6 className="text-sm font-semibold" style={{ marginBottom: "var(--space-2)", marginTop: "var(--space-3)" }}>
-              <i className="bi bi-list-ul me-1"></i> Items
+              <i className="bi bi-list-ul  me-1"></i> Items
             </h6>
             {items.map((it, i) => (
               <div key={i} className="field-row" style={{ marginBottom: "var(--space-2)" }}>
@@ -314,7 +314,7 @@ export default function RaiseRequisition() {
               </div>
             ))}
             <button type="button" className="btn btn-secondary btn-sm" onClick={addItem}>
-              <i className="bi bi-plus-circle me-1"></i> Add Item
+              <i className="bi bi-plus-circle  me-1"></i> Add Item
             </button>
 
             <div className="card" style={{ marginTop: "var(--space-3)", background: "var(--bg-secondary)" }}>
@@ -326,7 +326,7 @@ export default function RaiseRequisition() {
                   </span>
                   {selectedBudget && estimatedTotal > Number(selectedBudget.available_amount) && (
                     <span className="text-sm text-danger">
-                      <i className="bi bi-exclamation-triangle me-1"></i>
+                      <i className="bi bi-exclamation-triangle  me-1"></i>
                       Exceeds available budget
                     </span>
                   )}
@@ -354,7 +354,7 @@ export default function RaiseRequisition() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-send me-2"></i> Submit Requisition
+                    <i className="bi bi-send  me-1"></i> Submit Requisition
                   </>
                 )}
               </button>

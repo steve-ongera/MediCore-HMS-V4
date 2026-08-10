@@ -147,10 +147,10 @@ export default function EmployeeDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/hr/employees")}>
-            <i className="bi bi-arrow-left me-2"></i> Back to Employees
+            <i className="bi bi-arrow-left  me-1"></i> Back to Employees
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default function EmployeeDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function EmployeeDetail() {
               <div className="patient-header__name">{employee.full_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash me-1"></i> {employee.employee_number}
+                  <i className="bi bi-hash  me-1"></i> {employee.employee_number}
                 </span>
                 <span>•</span>
                 <span>{employee.job_title}</span>
@@ -261,7 +261,7 @@ export default function EmployeeDetail() {
           {isActive && (
             <div style={{ marginTop: "var(--space-3)" }}>
               <button className="btn btn-danger" onClick={handleTerminate}>
-                <i className="bi bi-x-circle me-2"></i> Terminate Employment
+                <i className="bi bi-x-circle  me-1"></i> Terminate Employment
               </button>
             </div>
           )}
@@ -272,7 +272,7 @@ export default function EmployeeDetail() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-plus-circle me-2"></i> Request Leave
+              <i className="bi bi-plus-circle  me-1"></i> Request Leave
             </h5>
           </div>
           <div className="card-body">
@@ -316,7 +316,7 @@ export default function EmployeeDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-send me-2"></i> Submit Leave Request
+                <i className="bi bi-send  me-1"></i> Submit Leave Request
               </button>
             </form>
           </div>
@@ -326,7 +326,7 @@ export default function EmployeeDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-calendar-check me-1"></i>
+            <i className="bi bi-calendar-check  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Leave History</h5>
           </div>
           <div>
@@ -381,7 +381,7 @@ export default function EmployeeDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Record Performance Review
+            <i className="bi bi-plus-circle  me-1"></i> Record Performance Review
           </h5>
         </div>
         <div className="card-body">
@@ -449,7 +449,7 @@ export default function EmployeeDetail() {
               />
             </div>
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-plus-circle me-2"></i> Save Review
+              <i className="bi bi-plus-circle  me-1"></i> Save Review
             </button>
           </form>
         </div>
@@ -458,7 +458,7 @@ export default function EmployeeDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-star me-1"></i>
+            <i className="bi bi-star  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Performance History</h5>
           </div>
           <div>
@@ -508,7 +508,7 @@ export default function EmployeeDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Log Disciplinary Record
+            <i className="bi bi-plus-circle  me-1"></i> Log Disciplinary Record
           </h5>
         </div>
         <div className="card-body">
@@ -555,7 +555,7 @@ export default function EmployeeDetail() {
               />
             </div>
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-plus-circle me-2"></i> Log Record
+              <i className="bi bi-plus-circle  me-1"></i> Log Record
             </button>
           </form>
         </div>
@@ -564,7 +564,7 @@ export default function EmployeeDetail() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-file-text me-1"></i>
+            <i className="bi bi-file-text  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Disciplinary History</h5>
           </div>
           <div>

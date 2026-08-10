@@ -73,7 +73,7 @@ export default function Attendance() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function Attendance() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle me-2"></i> {error}
+              <i className="bi bi-exclamation-circle  me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function Attendance() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-plus-circle me-2"></i> Record Attendance
+            <i className="bi bi-plus-circle  me-1"></i> Record Attendance
           </h5>
         </div>
         <div className="card-body">
@@ -161,7 +161,7 @@ export default function Attendance() {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-              <i className="bi bi-plus-circle me-2"></i> Record
+              <i className="bi bi-plus-circle  me-1"></i> Record
             </button>
           </form>
         </div>
@@ -170,7 +170,7 @@ export default function Attendance() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-calendar me-1"></i>
+            <i className="bi bi-calendar  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Attendance for</h5>
             <div className="field" style={{ marginBottom: 0 }}>
               <input
