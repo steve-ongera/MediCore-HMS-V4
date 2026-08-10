@@ -242,3 +242,10 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@yourhospital
 
 MEDICORE_CONFIRM_EMAIL = config("MEDICORE_CONFIRM_EMAIL")
 MEDICORE_CONFIRM_PASSWORD_HASH = config("MEDICORE_CONFIRM_PASSWORD_HASH")
+
+
+# settings.py — the mode switch for when you're ready for real equipment
+PACS_MODE = config("PACS_MODE", default="DEMO")  # "DEMO" or "REAL"
+PACS_ORTHANC_BASE_URL = config("PACS_ORTHANC_BASE_URL", default="")
+PACS_ORTHANC_USERNAME = config("PACS_ORTHANC_USERNAME", default="")
+PACS_ORTHANC_PASSWORD = config("PACS_ORTHANC_PASSWORD", default="")
