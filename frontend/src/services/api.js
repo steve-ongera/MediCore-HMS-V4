@@ -921,7 +921,7 @@ export const getMOHMCHDeliveries = (params) => unwrap(client.get(`/moh/mch/deliv
 export const getMOHReferrals = (params) => unwrap(client.get(`/moh/theatre-emergency-blood-referral/referrals/${qs(params)}`));
 
 export const submitContactInquiry = (payload) => unwrap(client.post("/contact-inquiries/", payload));
-
+export const getInvoiceSummary = (params) => unwrap(client.get(`/invoices/summary/${qs(params)}`));
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

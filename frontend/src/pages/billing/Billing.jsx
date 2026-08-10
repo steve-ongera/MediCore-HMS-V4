@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "../../context/ToastContext";
-import { getInvoices } from "../../services/api";
+import { getInvoices, getInvoiceSummary } from "../../services/api";
 import DataTable from "../../components/DataTable";
 import SearchBar from "../../components/SearchBar";
 import Pagination from "../../components/Pagination";
@@ -17,11 +17,20 @@ export default function Billing() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  // Whole-dataset totals, independent of pagination — refetched whenever the
+  // filters change, NOT on every page turn (the totals for a given
+  // search/status filter don't change as you page through them).
+  const [summary, setSummary] = useState(null);
+
   const pageSize = 20;
 
   useEffect(() => {
     loadInvoices();
   }, [page, search, statusFilter]);
+
+  useEffect(() => {
+    loadSummary();
+  }, [search, statusFilter]);
 
   const loadInvoices = async () => {
     setLoading(true);
@@ -36,6 +45,18 @@ export default function Billing() {
       toast.error(err.message || "Failed to load invoices");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSummary = async () => {
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (statusFilter) params.status = statusFilter;
+      const data = await getInvoiceSummary(params);
+      setSummary(data);
+    } catch (err) {
+      toast.error(err.message || "Failed to load invoice summary");
     }
   };
 
@@ -120,7 +141,7 @@ export default function Billing() {
     { value: "CANCELLED", label: "Cancelled" },
   ];
 
-  const totalBalance = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
+  const totalOutstanding = summary ? parseFloat(summary.total_outstanding) || 0 : 0;
 
   if (loading && invoices.length === 0) {
     return (
@@ -140,7 +161,7 @@ export default function Billing() {
           <p className="page-subtitle">Manage patient invoices and payments</p>
         </div>
         <div className="page-header__actions">
-          <button className="btn btn-secondary" onClick={() => { setPage(1); loadInvoices(); }}>
+          <button className="btn btn-secondary" onClick={() => { setPage(1); loadInvoices(); loadSummary(); }}>
             <i className="bi bi-arrow-clockwise me-2"></i> Refresh
           </button>
           <Link to="/billing/payments" className="btn btn-success">
@@ -150,29 +171,29 @@ export default function Billing() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — whole filtered dataset, not just the current page */}
       <div className="stat-grid" style={{ marginBottom: "var(--space-4)" }}>
         <StatCard
           label="Total Invoices"
-          value={total}
+          value={summary ? summary.total_invoices : total}
           icon="bi-receipt"
           variant="primary"
         />
         <StatCard
           label="Total Outstanding"
-          value={formatCurrency(totalBalance)}
+          value={formatCurrency(totalOutstanding)}
           icon="bi-credit-card"
           variant="danger"
         />
         <StatCard
           label="Unpaid Invoices"
-          value={invoices.filter((i) => i.status === "UNPAID").length}
+          value={summary ? summary.unpaid_count : 0}
           icon="bi-exclamation-circle"
           variant="warning"
         />
         <StatCard
           label="Fully Paid"
-          value={invoices.filter((i) => i.status === "PAID").length}
+          value={summary ? summary.paid_count : 0}
           icon="bi-check-circle"
           variant="success"
         />
