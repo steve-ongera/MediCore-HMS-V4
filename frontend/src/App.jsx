@@ -248,6 +248,11 @@ import LabRadiologyReport from "./pages/moh/LabRadiologyReport.jsx";
 import PharmacyCommoditiesReport from "./pages/moh/PharmacyCommoditiesReport.jsx";
 import TheatreEmergencyReport from "./pages/moh/TheatreEmergencyReport.jsx";
 
+import VideoTutorials from "./pages/support/VideoTutorials.jsx";
+import HelpCenter from "./pages/support/HelpCenter.jsx";
+import ContactUs from "./pages/support/ContactUs.jsx";
+import Subscriptions from "./pages/support/Subscriptions.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -884,6 +889,13 @@ export default function App() {
         <Route path="/moh/lab-radiology" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><LabRadiologyReport /></ProtectedRoute>} />
         <Route path="/moh/pharmacy" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><PharmacyCommoditiesReport /></ProtectedRoute>} />
         <Route path="/moh/theatre-emergency" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><TheatreEmergencyReport /></ProtectedRoute>} />
+
+
+        {/* Visible to every authenticated user — no role restriction */}
+        <Route path="/tutorials" element={<ProtectedRoute><VideoTutorials /></ProtectedRoute>} />
+        <Route path="/help" element={<ProtectedRoute><HelpCenter /></ProtectedRoute>} />
+        <Route path="/contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+        <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
 
 
         {/* Profile - any authenticated user */}

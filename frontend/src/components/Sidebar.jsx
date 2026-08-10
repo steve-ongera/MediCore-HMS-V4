@@ -370,6 +370,10 @@ const NAV_GROUPS = [
       { to: "/announcements", label: "Announcements", icon: "bi-megaphone" },
       { to: "/biomed/service-requests", label: "Report Equipment Issue", icon: "bi-exclamation-triangle" },
       { to: "/settings", label: "Settings", icon: "bi-gear", roles: ["IT_SUPPORT_OFFICER"] },
+      { to: "/tutorials", label: "Video Tutorials", icon: "bi-play-circle" },
+      { to: "/help", label: "Help Center", icon: "bi-question-circle" },
+      { to: "/contact-us", label: "Contact Us", icon: "bi-envelope" },
+      { to: "/subscriptions", label: "Subscriptions", icon: "bi-award" },
     ],
   },
 ];

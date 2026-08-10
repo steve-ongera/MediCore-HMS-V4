@@ -920,6 +920,8 @@ export const getMOHPharmacyDispenses = (params) => unwrap(client.get(`/moh/pharm
 export const getMOHMCHDeliveries = (params) => unwrap(client.get(`/moh/mch/deliveries/${qs(params)}`));
 export const getMOHReferrals = (params) => unwrap(client.get(`/moh/theatre-emergency-blood-referral/referrals/${qs(params)}`));
 
+export const submitContactInquiry = (payload) => unwrap(client.post("/contact-inquiries/", payload));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
