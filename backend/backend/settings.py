@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "licensing",
     "moh",
     "support",
+    "pacs",
 ]
 
 MIDDLEWARE = [
