@@ -12,6 +12,7 @@ import {
   getLowStockMedicines,
 } from "../../services/api";
 import DataTable from "../../components/DataTable";
+import SearchBar from "../../components/SearchBar";
 import StatusBadge from "../../components/StatusBadge";
 import Modal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -29,6 +30,11 @@ export default function Inventory() {
   const [batches, setBatches] = useState([]);
   const [batchPage, setBatchPage] = useState(1);
   const [batchTotal, setBatchTotal] = useState(0);
+
+  // Search terms — independent per tab so switching tabs doesn't carry one
+  // tab's filter into another's results.
+  const [medSearch, setMedSearch] = useState("");
+  const [batchSearch, setBatchSearch] = useState("");
 
   const [suppliers, setSuppliers] = useState([]);
   const [supPage, setSupPage] = useState(1);
@@ -117,6 +123,18 @@ export default function Inventory() {
   useEffect(() => { if (!loading) loadBatches(batchPage); }, [batchPage]);
   useEffect(() => { if (!loading) loadSuppliers(supPage); }, [supPage]);
 
+  useEffect(() => {
+    if (loading) return;
+    setMedPage(1);
+    loadMedicines(1);
+  }, [medSearch]);
+
+  useEffect(() => {
+    if (loading) return;
+    setBatchPage(1);
+    loadBatches(1);
+  }, [batchSearch]);
+
   const loadCounts = async () => {
     const [medCountRes, supCountRes, batchSample, low] = await Promise.all([
       getMedicines({ page: 1, page_size: 1 }),
@@ -137,7 +155,9 @@ export default function Inventory() {
   const loadMedicines = async (page = medPage) => {
     setTableLoading(true);
     try {
-      const data = await getMedicines({ page, page_size: PAGE_SIZE });
+      const params = { page, page_size: PAGE_SIZE };
+      if (medSearch) params.search = medSearch;
+      const data = await getMedicines(params);
       setMedicines(data.results || []);
       setMedTotal(data.count ?? (data.results || []).length);
     } finally {
@@ -148,7 +168,9 @@ export default function Inventory() {
   const loadBatches = async (page = batchPage) => {
     setTableLoading(true);
     try {
-      const data = await getMedicineBatches({ page, page_size: PAGE_SIZE });
+      const params = { page, page_size: PAGE_SIZE };
+      if (batchSearch) params.search = batchSearch;
+      const data = await getMedicineBatches(params);
       setBatches(data.results || []);
       setBatchTotal(data.count ?? (data.results || []).length);
     } finally {
@@ -549,11 +571,27 @@ export default function Inventory() {
 
       <div className="card">
         <div className="card-header">
-          <h5 className="card-title">
-            {activeTab === "medicines" && "Medicine Catalog"}
-            {activeTab === "batches" && "Stock Batches"}
-            {activeTab === "suppliers" && "Suppliers"}
-          </h5>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h5 className="card-title">
+              {activeTab === "medicines" && "Medicine Catalog"}
+              {activeTab === "batches" && "Stock Batches"}
+              {activeTab === "suppliers" && "Suppliers"}
+            </h5>
+            {activeTab === "medicines" && (
+              <SearchBar
+                placeholder="Search medicines by name, generic name, category..."
+                onSearch={setMedSearch}
+                delay={400}
+              />
+            )}
+            {activeTab === "batches" && (
+              <SearchBar
+                placeholder="Search batches by medicine or batch #..."
+                onSearch={setBatchSearch}
+                delay={400}
+              />
+            )}
+          </div>
           {activeTab === "medicines" && (
             <button
               type="button"
