@@ -923,6 +923,19 @@ export const getMOHReferrals = (params) => unwrap(client.get(`/moh/theatre-emerg
 
 export const submitContactInquiry = (payload) => unwrap(client.post("/contact-inquiries/", payload));
 export const getInvoiceSummary = (params) => unwrap(client.get(`/invoices/summary/${qs(params)}`));
+
+
+export const getPACSStudies = (params) => unwrap(client.get(`/pacs-studies/${qs(params)}`));
+export const getPACSWorklist = () => unwrap(client.get("/pacs-studies/worklist/"));
+export const getPendingPACSReports = () => unwrap(client.get("/pacs-studies/pending-reports/"));
+export const getPACSStudyDetail = (id) => unwrap(client.get(`/pacs-studies/${id}/`));
+export const schedulePACSStudy = (payload) => unwrap(client.post("/pacs-studies/", payload));
+export const simulatePACSImages = (id, payload) => unwrap(client.post(`/pacs-studies/${id}/simulate-images/`, payload));
+export const getPACSViewerUrl = (id) => unwrap(client.get(`/pacs-studies/${id}/viewer-url/`));
+export const savePACSReport = (id, payload) => unwrap(client.post(`/pacs-studies/${id}/save-report/`, payload));
+export const finalizePACSReport = (id) => unwrap(client.post(`/pacs-studies/${id}/finalize-report/`));
+
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAllActiveMedicationOrders, recordMedicationAdministration } from "../../services/api";
 import { formatDateTime } from "../../utils/formatters";
@@ -8,6 +8,7 @@ export default function AdmissionMedicineOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [administeringId, setAdministeringId] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => { load(); }, []);
 
@@ -32,6 +33,24 @@ export default function AdmissionMedicineOrders() {
       setAdministeringId(null);
     }
   };
+
+  // Client-side filter — the full active-orders set (capped at 200) is
+  // already loaded in memory, so there's no need to round-trip to the
+  // server for search. Matches across the fields visible in the table.
+  const filteredOrders = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return orders;
+    return orders.filter((o) => {
+      const haystack = [
+        o.admission_number, o.patient_name, o.medicine_name,
+        o.dosage, o.route, o.frequency, o.ordered_by_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [orders, search]);
 
   if (loading) {
     return (
@@ -72,10 +91,18 @@ export default function AdmissionMedicineOrders() {
           <div className="flex items-center gap-3 flex-wrap">
             <i className="bi bi-capsule  me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Active Medication Orders</h5>
+            <input
+              type="text"
+              className="input"
+              placeholder="Search patient, medicine, admission #, doctor..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ width: "280px" }}
+            />
           </div>
           <div>
             <span className="text-tertiary text-sm">
-              {orders.length} order{orders.length !== 1 ? "s" : ""}
+              {filteredOrders.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -93,6 +120,14 @@ export default function AdmissionMedicineOrders() {
               </div>
               <h3 className="empty-state__title">No active medication orders</h3>
               <p className="empty-state__desc">There are currently no active medication orders for admitted patients.</p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">
+                <i className="bi bi-search"></i>
+              </div>
+              <h3 className="empty-state__title">No matching orders</h3>
+              <p className="empty-state__desc">No active medication orders match "{search}".</p>
             </div>
           ) : (
             <div className="table-scroll">
@@ -113,7 +148,7 @@ export default function AdmissionMedicineOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => {
+                  {filteredOrders.map((o) => {
                     const canGive = o.is_currently_due;
                     return (
                       <tr key={o.id}>
@@ -174,7 +209,7 @@ export default function AdmissionMedicineOrders() {
         {orders.length > 0 && (
           <div className="card-footer">
             <span className="text-tertiary text-sm">
-              Showing {orders.length} active medication order{orders.length !== 1 ? "s" : ""}
+              Showing {filteredOrders.length} of {orders.length} active medication order{orders.length !== 1 ? "s" : ""}
             </span>
           </div>
         )}
