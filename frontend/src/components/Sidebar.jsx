@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth, ROLES } from "../context/AuthContext";
 import medicoreLogo from "../assets/logo.png";
 
@@ -105,9 +106,6 @@ const NAV_GROUPS = [
     roles: [ROLES.PHARMACIST, ROLES.ACCOUNTANT],
     links: [
       { to: "/stockcontrol/locations", label: "Store Locations", icon: "bi-geo-alt", roles: [ROLES.PHARMACIST] },
-      // Internal transfers span every store location hospital-wide —
-      // Pharmacy-only now. Nurses previously saw this; removed per access
-      // review (see App.jsx comment on /stockcontrol/transfers).
       { to: "/stockcontrol/transfers", label: "Internal Transfers", icon: "bi-arrow-left-right", roles: [ROLES.PHARMACIST] },
       { to: "/stockcontrol/counts", label: "Stock Counts", icon: "bi-clipboard2-check" },
       { to: "/stockcontrol/discrepancies", label: "Discrepancy Report", icon: "bi-exclamation-triangle-fill" },
@@ -201,9 +199,6 @@ const NAV_GROUPS = [
     label: "Ambulance",
     roles: [ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST],
     links: [
-      // Full fleet & dispatch board is operational data (vehicle status,
-      // driver assignments, every active dispatch hospital-wide) —
-      // Dispatcher-only now. Clinical staff still request dispatches below.
       { to: "/ambulance", label: "Fleet & Dispatch Board", icon: "bi-truck-front-fill", roles: [ROLES.AMBULANCE_DISPATCHER] },
       { to: "/ambulance/request", label: "Request Dispatch", icon: "bi-telephone-plus-fill" },
       { to: "/ambulance/fleet", label: "Manage Fleet", icon: "bi-gear-wide-connected", roles: [ROLES.AMBULANCE_DISPATCHER] },
@@ -215,9 +210,6 @@ const NAV_GROUPS = [
     label: "Mortuary",
     roles: [ROLES.MORTUARY_ATTENDANT],
     links: [
-      // Full register (next-of-kin details, storage, release status for
-      // every case) is Mortuary Attendant-only now. Clinical staff still
-      // admit deceased patients below.
       { to: "/mortuary", label: "Mortuary Register", icon: "bi-house-lock-fill", roles: [ROLES.MORTUARY_ATTENDANT] },
       { to: "/mortuary/admit", label: "Admit Deceased", icon: "bi-file-earmark-plus" },
       { to: "/mortuary/reports", label: "My Reports", icon: "bi-graph-up", roles: [ROLES.MORTUARY_ATTENDANT] },
@@ -379,19 +371,100 @@ const NAV_GROUPS = [
   },
 ];
 
+// A group only becomes a collapsible dropdown once a given user can
+// actually see more than this many links in it — small groups (1-2 links)
+// always render flat with no toggle, regardless of role.
+const COLLAPSE_THRESHOLD = 2;
+
 export default function Sidebar({ onNavigate }) {
   const { user, hasRole } = useAuth();
+  const location = useLocation();
+  const scrollRef = useRef(null);
 
-  // roles: [] on a group/link means "Super Admin only". We can't route this
-  // through hasRole(...roles) — spreading an empty array calls hasRole()
-  // with zero arguments, which AuthContext defines as "is anyone logged
-  // in" (true for every role), not "no roles allowed". So the empty-array
-  // case is checked directly against user.role instead.
   const canSee = (roles) => {
-    if (roles === undefined) return true; // no restriction — any authenticated role
-    if (roles.length === 0) return user?.role === ROLES.SUPER_ADMIN; // explicit Super Admin only
+    if (roles === undefined) return true;
+    if (roles.length === 0) return user?.role === ROLES.SUPER_ADMIN;
     return hasRole(...roles);
   };
+
+  const visibleGroups = useMemo(() => {
+    return NAV_GROUPS.map((group) => {
+      const visibleLinks = group.links.filter((link) => canSee(link.roles ?? group.roles));
+      return {
+        label: group.label,
+        visibleLinks,
+        isCollapsible: visibleLinks.length > COLLAPSE_THRESHOLD,
+      };
+    }).filter((group) => group.visibleLinks.length > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const activeGroupLabel = useMemo(() => {
+    const isLinkActive = (to) =>
+      location.pathname === to || location.pathname.startsWith(`${to}/`);
+    const match = visibleGroups.find(
+      (group) => group.isCollapsible && group.visibleLinks.some((link) => isLinkActive(link.to))
+    );
+    return match ? match.label : null;
+  }, [location.pathname, visibleGroups]);
+
+  // ---- Open-by-default behavior ----
+  // Every collapsible group is OPEN by default. We only track which
+  // groups the user has explicitly CLOSED, instead of tracking a single
+  // "open" group. This lets multiple dropdowns stay expanded at once,
+  // and a group only collapses when the user deliberately toggles it shut.
+  const [closedGroups, setClosedGroups] = useState(() => new Set());
+
+  // If the active route lives inside a group the user had closed, force
+  // it back open so the current page is never hidden inside a collapsed
+  // dropdown. This never closes any other group.
+  useEffect(() => {
+    if (!activeGroupLabel) return;
+    setClosedGroups((prev) => {
+      if (!prev.has(activeGroupLabel)) return prev;
+      const next = new Set(prev);
+      next.delete(activeGroupLabel);
+      return next;
+    });
+  }, [activeGroupLabel]);
+
+  const toggleGroup = (label) => {
+    setClosedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const activeLink = scrollRef.current?.querySelector(".sidebar__link.is-active");
+    if (activeLink) {
+      activeLink.scrollIntoView({ block: "nearest" });
+    }
+  }, [location.pathname]);
+
+  const renderLinks = (links) => (
+    <nav className="sidebar__nav">
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          end
+          className={({ isActive }) => `sidebar__link${isActive ? " is-active" : ""}`}
+          onClick={onNavigate}
+        >
+          <span className="sidebar__link-icon">
+            <i className={`bi ${link.icon}`} aria-hidden="true" />
+          </span>
+          <span className="sidebar__link-text">{link.label}</span>
+        </NavLink>
+      ))}
+    </nav>
+  );
 
   return (
     <aside className="sidebar">
@@ -409,30 +482,32 @@ export default function Sidebar({ onNavigate }) {
         <span className="sidebar__brand-text">Medicore HMIS</span>
       </div>
 
-      <div className="sidebar__scroll">
-        {NAV_GROUPS.map((group) => {
-          const visibleLinks = group.links.filter((link) => canSee(link.roles ?? group.roles));
-          if (visibleLinks.length === 0) return null;
+      <div className="sidebar__scroll" ref={scrollRef}>
+        {visibleGroups.map((group) => {
+          if (!group.isCollapsible) {
+            return (
+              <div className="sidebar__group" key={group.label}>
+                <div className="sidebar__group-label">{group.label}</div>
+                {renderLinks(group.visibleLinks)}
+              </div>
+            );
+          }
 
+          const isOpen = !closedGroups.has(group.label);
           return (
             <div className="sidebar__group" key={group.label}>
-              <div className="sidebar__group-label">{group.label}</div>
-              <nav className="sidebar__nav">
-                {visibleLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end
-                    className={({ isActive }) => `sidebar__link${isActive ? " is-active" : ""}`}
-                    onClick={onNavigate}
-                  >
-                    <span className="sidebar__link-icon">
-                      <i className={`bi ${link.icon}`} aria-hidden="true" />
-                    </span>
-                    <span className="sidebar__link-text">{link.label}</span>
-                  </NavLink>
-                ))}
-              </nav>
+              <button
+                type="button"
+                className={`sidebar__group-header${isOpen ? " is-open" : ""}`}
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={isOpen}
+              >
+                <span>{group.label}</span>
+                <i className="bi bi-chevron-right sidebar__group-chevron" aria-hidden="true" />
+              </button>
+              <div className={`sidebar__group-collapse${isOpen ? " is-open" : ""}`}>
+                {renderLinks(group.visibleLinks)}
+              </div>
             </div>
           );
         })}

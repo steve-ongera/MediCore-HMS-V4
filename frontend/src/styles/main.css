@@ -790,7 +790,7 @@ table {
   bottom: 0;
   width: var(--sidebar-width);
   background: var(--gray-0);
-  color: var(--gray-600);
+  color: var(--gray-700);
   display: flex;
   flex-direction: column;
   z-index: var(--z-sidebar);
@@ -851,16 +851,88 @@ table {
 
 .sidebar__group-label {
   font-size: var(--fs-2xs);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--gray-400);
+  color: var(--gray-600);
   padding: 0 var(--space-3);
   margin-bottom: var(--space-2);
 }
 
 .app-shell.is-sidebar-collapsed .sidebar__group-label {
   display: none;
+}
+
+/* ---- Collapsible group header (dropdown trigger) ----
+   Open by default: every group with more links than COLLAPSE_THRESHOLD
+   renders expanded on load. The header is only a way to CLOSE a group;
+   clicking it again reopens it. Multiple groups can be open at once. */
+.sidebar__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-600);
+  transition: background var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+
+.sidebar__group-header:hover {
+  background: var(--surface-hover);
+  color: var(--gray-900);
+}
+
+.sidebar__group-header.is-open {
+  color: var(--primary-800);
+  background: var(--primary-soft);
+}
+
+.sidebar__group-chevron {
+  font-size: 11px;
+  color: var(--gray-500);
+  transition: transform var(--duration-base) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+  flex-shrink: 0;
+}
+
+.sidebar__group-header.is-open .sidebar__group-chevron {
+  transform: rotate(90deg);
+  color: var(--primary-700);
+}
+
+.app-shell.is-sidebar-collapsed .sidebar__group-header {
+  display: none;
+}
+
+/* ---- Collapsible body ----
+   grid-template-rows: 0fr -> 1fr animates height smoothly without JS
+   measuring scrollHeight. Any number of groups can be .is-open at the
+   same time (each toggles independently), since they default to open. */
+.sidebar__group-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-base) var(--ease-standard);
+}
+
+.sidebar__group-collapse > .sidebar__nav {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sidebar__group-collapse.is-open {
+  grid-template-rows: 1fr;
+}
+
+.sidebar__group-collapse.is-open > .sidebar__nav {
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-2);
 }
 
 .sidebar__nav {
@@ -876,8 +948,8 @@ table {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--gray-600);
+  font-weight: var(--fw-semibold);
+  color: var(--gray-800);
   position: relative;
   transition: background var(--duration-fast) var(--ease-standard),
               color var(--duration-fast) var(--ease-standard),
@@ -888,7 +960,7 @@ table {
 
 .sidebar__link:hover {
   background: var(--primary-50);
-  color: var(--primary-700);
+  color: var(--primary-800);
   text-decoration: none;
 }
 
@@ -922,6 +994,15 @@ table {
   flex-shrink: 0;
   display: grid;
   place-items: center;
+  color: var(--gray-600);
+}
+
+.sidebar__link:hover .sidebar__link-icon {
+  color: var(--primary-700);
+}
+
+.sidebar__link.is-active .sidebar__link-icon {
+  color: var(--gray-0);
 }
 
 .sidebar__link-text {
@@ -952,7 +1033,7 @@ table {
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--border-subtle);
   font-size: var(--fs-2xs);
-  color: var(--gray-400);
+  color: var(--gray-500);
 }
 
 /* ==========================================================================
