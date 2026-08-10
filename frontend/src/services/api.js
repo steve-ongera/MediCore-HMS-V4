@@ -710,6 +710,7 @@ export const getICUBilling = (id) => unwrap(client.get(`/icu-admissions/${id}/bi
 export const getOutstandingInvoicesForPatient = (patientId) => unwrap(client.get(`/bulk-payments/outstanding-invoices/${qs({ patient: patientId })}`));
 export const createBulkPayment = (payload) => unwrap(client.post("/bulk-payments/", payload));
 export const getBulkPaymentReceipt = (id) => unwrap(client.get(`/bulk-payments/${id}/receipt/`));
+export const getBulkPayments = (params) => unwrap(client.get(`/bulk-payments/${qs(params)}`));
 
 export const getExpiringBatches = () => unwrap(client.get("/medicine-batches/expiring-soon/"));
 

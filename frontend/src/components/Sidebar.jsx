@@ -28,6 +28,7 @@ const NAV_GROUPS = [
     links: [
       { to: "/billing", label: "Billing", icon: "bi-cash-stack" },
       { to: "/billing/bulk-payment", label: "Bulk Payment", icon: "bi-stack" },
+      { to: "/billing/bulk-payments", label: "Bulk Payments List", icon: "bi-list-ul" },
       { to: "/billing/walk-in-sale", label: "Walk-in Sale", icon: "bi-bag-check" },
       { to: "/billing/payments", label: "Payments", icon: "bi-receipt" },
       { to: "/billing/till", label: "Cash Till", icon: "bi-safe", roles: [ROLES.CASHIER] },
