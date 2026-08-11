@@ -316,7 +316,7 @@ class DepartmentViewSet(BaseModelViewSet):
 # Patients
 # ---------------------------------------------------------------------------
 class PatientViewSet(BaseModelViewSet):
-    queryset = Patient.objects.all()
+    queryset = Patient.objects.all().order_by("-created_at")
     serializer_class = PatientSerializer
     filterset_class = PatientFilter
     search_fields = ["full_name", "phone", "national_id", "hospital_number"]
