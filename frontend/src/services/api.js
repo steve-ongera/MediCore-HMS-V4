@@ -940,6 +940,25 @@ export const finalizePACSReport = (id) => unwrap(client.post(`/pacs-studies/${id
 export const getVisitDetail = (id) => unwrap(client.get(`/visits/${id}/`));
 export const deleteVisit = (id) => unwrap(client.delete(`/visits/${id}/`));
 
+export const getDoctorProfiles = (params) => unwrap(client.get(`/doctor-profiles/${qs(params)}`));
+export const getDoctorProfile = (id) => unwrap(client.get(`/doctor-profiles/${id}/`));
+export const createDoctorProfile = (payload) => unwrap(client.post("/doctor-profiles/", payload));
+export const updateDoctorProfile = (id, payload) => unwrap(client.patch(`/doctor-profiles/${id}/`, payload));
+export const deleteDoctorProfile = (id) => unwrap(client.delete(`/doctor-profiles/${id}/`));
+export const getDoctorTreatmentHistory = (id) => unwrap(client.get(`/doctor-profiles/${id}/treatment-history/`));
+export const getDoctorVisits = (id) => unwrap(client.get(`/doctor-profiles/${id}/visits/`));
+
+export const getDoctorSchedules = (params) => unwrap(client.get(`/doctor-schedules/${qs(params)}`));
+export const createDoctorSchedule = (payload) => unwrap(client.post("/doctor-schedules/", payload));
+
+export const getDoctorHolidays = (params) => unwrap(client.get(`/doctor-holidays/${qs(params)}`));
+export const createDoctorHoliday = (payload) => unwrap(client.post("/doctor-holidays/", payload));
+export const approveDoctorHoliday = (id) => unwrap(client.post(`/doctor-holidays/${id}/approve/`));
+export const rejectDoctorHoliday = (id) => unwrap(client.post(`/doctor-holidays/${id}/reject/`));
+
+export const getDoctorCommissions = (params) => unwrap(client.get(`/doctor-commissions/${qs(params)}`));
+export const markCommissionPaid = (id) => unwrap(client.post(`/doctor-commissions/${id}/mark-paid/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
