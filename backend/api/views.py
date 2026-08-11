@@ -389,10 +389,17 @@ class VisitViewSet(BaseModelViewSet):
     filterset_class = VisitFilter
     search_fields = ["visit_number", "patient__full_name", "patient__hospital_number"]
     ordering_fields = ["visit_date"]
+    
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def perform_create(self, serializer):
         visit = serializer.save(registered_by=self.request.user, status=VisitStatus.AWAITING_PAYMENT)
         return visit
+    
+    def perform_destroy(self, instance):
+        # Soft-delete via BaseModel's existing pattern, not a hard delete —
+        # matches every other module's destroy behavior in this system.
+        instance.soft_delete()
 
 
 # ---------------------------------------------------------------------------

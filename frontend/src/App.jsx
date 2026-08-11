@@ -256,6 +256,9 @@ import Subscriptions from "./pages/support/Subscriptions.jsx";
 import PACSWorklist from "./pages/pacs/PACSWorklist.jsx";
 import StudyDetail from "./pages/pacs/StudyDetail.jsx";
 import BulkPaymentList from "./pages/billing/BulkPaymentList.jsx";
+import VisitList from "./pages/reception/VisitList.jsx";
+import VisitDetail from "./pages/reception/VisitDetail.jsx";
+import VisitEdit from "./pages/reception/VisitEdit.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -904,6 +907,9 @@ export default function App() {
         <Route path="/pacs" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST, ROLES.DOCTOR]}><PACSWorklist /></ProtectedRoute>} />
         <Route path="/pacs/studies/:id" element={<ProtectedRoute allowedRoles={[ROLES.RADIOLOGIST, ROLES.DOCTOR]}><StudyDetail /></ProtectedRoute>} />
         <Route path="/billing/bulk-payments" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPaymentList /></ProtectedRoute>} />
+        <Route path="/visits" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST]}><VisitList /></ProtectedRoute>} />
+        <Route path="/visits/:id" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST]}><VisitDetail /></ProtectedRoute>} />
+        <Route path="/visits/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST]}><VisitEdit /></ProtectedRoute>} />
 
         {/* Profile - any authenticated user */}
         <Route

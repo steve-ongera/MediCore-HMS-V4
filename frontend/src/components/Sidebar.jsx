@@ -20,6 +20,7 @@ const NAV_GROUPS = [
       { to: "/patients", label: "Patients", icon: "bi-people" },
       { to: "/patients/register", label: "Register Patient", icon: "bi-person-plus" },
       { to: "/visits/register", label: "Register Visit", icon: "bi-clipboard2-plus" },
+      { to: "/visits", label: "Visit List", icon: "bi-list-ul" },
     ],
   },
   {

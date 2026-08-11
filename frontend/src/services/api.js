@@ -937,6 +937,8 @@ export const getPACSViewerUrl = (id) => unwrap(client.get(`/pacs-studies/${id}/v
 export const savePACSReport = (id, payload) => unwrap(client.post(`/pacs-studies/${id}/save-report/`, payload));
 export const finalizePACSReport = (id) => unwrap(client.post(`/pacs-studies/${id}/finalize-report/`));
 
+export const getVisitDetail = (id) => unwrap(client.get(`/visits/${id}/`));
+export const deleteVisit = (id) => unwrap(client.delete(`/visits/${id}/`));
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
