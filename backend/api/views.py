@@ -384,7 +384,7 @@ class MedicalHistoryNoteViewSet(BaseModelViewSet):
 # Visits
 # ---------------------------------------------------------------------------
 class VisitViewSet(BaseModelViewSet):
-    queryset = Visit.objects.select_related("patient", "department", "doctor").all()
+    queryset = Visit.objects.select_related("patient", "department", "doctor").all().order_by("-visit_date")
     serializer_class = VisitSerializer
     filterset_class = VisitFilter
     search_fields = ["visit_number", "patient__full_name", "patient__hospital_number"]
