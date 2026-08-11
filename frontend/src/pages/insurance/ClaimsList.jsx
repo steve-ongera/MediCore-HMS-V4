@@ -103,7 +103,7 @@ export default function ClaimsList() {
   };
 
   /**
-   * Generate PDF Report matching BulkPaymentReceipt layout styling
+   * Generate PDF Report with tight single-line rows & full claim number visibility
    */
   const generatePdf = async (exportData) => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -125,7 +125,7 @@ export default function ClaimsList() {
 
     const brandX = logoImg ? margin + 15 : margin;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setTextColor(...DARK_TEXT);
     doc.text("MEDICORE HOSPITAL", brandX, 15);
 
@@ -136,38 +136,38 @@ export default function ClaimsList() {
 
     // Right Header Title & Metadata
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(10.5);
     doc.setTextColor(...BRAND_COLOR);
     doc.text("INSURANCE CLAIMS REPORT", pageWidth - margin, 15, { align: "right" });
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(...MUTED_COLOR);
     doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
 
     // Accent Line
     doc.setDrawColor(...BRAND_COLOR);
     doc.setLineWidth(0.4);
-    doc.line(margin, 24, pageWidth - margin, 24);
+    doc.line(margin, 23, pageWidth - margin, 23);
 
-    let startY = 28;
+    let startY = 26;
 
-    // Active Filters Info Summary Block
+    // Filter Summary
     const activeInsurerName = insurers.find((i) => String(i.id) === String(insurerFilter))?.name || "All Insurers";
     autoTable(doc, {
       startY: startY,
       theme: "plain",
       margin: { left: margin, right: margin },
       styles: {
-        fontSize: 8,
-        cellPadding: 1.8,
+        fontSize: 7.5,
+        cellPadding: 1.2,
         textColor: DARK_TEXT,
       },
       columnStyles: {
-        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 28 },
-        1: { cellWidth: 62 },
-        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 28 },
-        3: { cellWidth: 62 },
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 26 },
+        1: { cellWidth: 64 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 26 },
+        3: { cellWidth: 64 },
       },
       body: [
         [
@@ -191,16 +191,16 @@ export default function ClaimsList() {
       },
     });
 
-    startY = doc.lastAutoTable.finalY + 5;
+    startY = doc.lastAutoTable.finalY + 4;
 
-    // Table Data
+    // Table Columns Definition
     const tableColumns = [
       { header: "Claim #", dataKey: "claim_number" },
       { header: "Patient Name", dataKey: "patient_name" },
       { header: "Insurer", dataKey: "insurer_name" },
       { header: "Status", dataKey: "status" },
-      { header: "Claimed Amount", dataKey: "total_claimed" },
-      { header: "Approved Amount", dataKey: "total_approved" },
+      { header: "Claimed (KES)", dataKey: "total_claimed" },
+      { header: "Approved (KES)", dataKey: "total_approved" },
     ];
 
     let totalClaimedSum = 0;
@@ -222,84 +222,85 @@ export default function ClaimsList() {
       };
     });
 
-    // AutoTable Rendering
+    // AutoTable Rendering - Expanded Claim # width to fit completely
     autoTable(doc, {
       startY: startY,
       columns: tableColumns,
       body: tableRows,
-      margin: { left: margin, right: margin, bottom: 20 },
+      margin: { left: margin, right: margin, bottom: 18 },
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 7,               // Compact text size
+        cellPadding: 1.2,          // Slim padding for single-line height
         textColor: DARK_TEXT,
         valign: "middle",
+        overflow: "ellipsize",     // Ellipsize secondary long fields if needed
       },
       headStyles: {
         fillColor: BRAND_COLOR,
         textColor: [255, 255, 255],
         fontStyle: "bold",
-        fontSize: 8,
-        cellPadding: 2.2,
+        fontSize: 7.5,
+        cellPadding: 1.5,
       },
       alternateRowStyles: {
         fillColor: LIGHT_FILL,
       },
       columnStyles: {
-        0: { cellWidth: 32 },
-        1: { cellWidth: "auto" },
-        2: { cellWidth: 38 },
-        3: { cellWidth: 28 },
-        4: { cellWidth: 28, halign: "right" },
-        5: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+        0: { cellWidth: 38, minCellWidth: 38, fontStyle: "bold" }, // Claim # - Full width display guarantee
+        1: { cellWidth: 42 },                                       // Patient Name
+        2: { cellWidth: 36 },                                       // Insurer Name
+        3: { cellWidth: 26 },                                       // Status
+        4: { cellWidth: 22, halign: "right" },                       // Claimed
+        5: { cellWidth: 22, halign: "right", fontStyle: "bold" },  // Approved
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.5);
+        doc.setFontSize(7);
         doc.setTextColor(...MUTED_COLOR);
 
         doc.setDrawColor(...LIGHT_BORDER);
         doc.setLineWidth(0.3);
-        doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+        doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
 
         doc.text(
           "Confidential - Official Insurance Claims Summary Report",
           margin,
-          pageHeight - 7
+          pageHeight - 6
         );
         doc.text(
           `Page ${data.pageNumber} of ${pageCount}`,
           pageWidth - margin,
-          pageHeight - 7,
+          pageHeight - 6,
           { align: "right" }
         );
       },
     });
 
-    // Totals Highlight Block
-    let finalY = doc.lastAutoTable.finalY + 5;
+    // Totals Box
+    let finalY = doc.lastAutoTable.finalY + 4;
 
-    if (finalY + 20 > pageHeight - 15) {
+    if (finalY + 18 > pageHeight - 12) {
       doc.addPage();
-      finalY = 15;
+      finalY = 12;
     }
 
     doc.setFillColor(...LIGHT_FILL);
-    doc.rect(pageWidth - margin - 90, finalY, 90, 16, "F");
+    doc.rect(pageWidth - margin - 80, finalY, 80, 14, "F");
     doc.setDrawColor(...LIGHT_BORDER);
-    doc.rect(pageWidth - margin - 90, finalY, 90, 16, "S");
+    doc.rect(pageWidth - margin - 80, finalY, 80, 14, "S");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(...DARK_TEXT);
-    doc.text("Total Claimed:", pageWidth - margin - 86, finalY + 6);
+    doc.text("Total Claimed:", pageWidth - margin - 76, finalY + 5.5);
     doc.setTextColor(...BRAND_COLOR);
-    doc.text(formatCurrency(totalClaimedSum), pageWidth - margin - 4, finalY + 6, { align: "right" });
+    doc.text(formatCurrency(totalClaimedSum), pageWidth - margin - 4, finalY + 5.5, { align: "right" });
 
     doc.setTextColor(...DARK_TEXT);
-    doc.text("Total Approved:", pageWidth - margin - 86, finalY + 12);
+    doc.text("Total Approved:", pageWidth - margin - 76, finalY + 10.5);
     doc.setTextColor(...BRAND_COLOR);
-    doc.text(formatCurrency(totalApprovedSum), pageWidth - margin - 4, finalY + 12, { align: "right" });
+    doc.text(formatCurrency(totalApprovedSum), pageWidth - margin - 4, finalY + 10.5, { align: "right" });
 
     return doc;
   };
@@ -310,7 +311,7 @@ export default function ClaimsList() {
   const generateExcelXML = (exportData) => {
     const rowsHtml = exportData.map((c) => `
       <tr>
-        <td>${c.claim_number || ""}</td>
+        <td style="mso-number-format:'\\@';">${c.claim_number || ""}</td>
         <td>${c.patient_name || ""}</td>
         <td>${c.insurer_name || ""}</td>
         <td>${(c.status || "").replace(/_/g, " ")}</td>
@@ -366,7 +367,6 @@ export default function ClaimsList() {
     setError("");
 
     try {
-      // Fetch all claims using active filters
       const data = await getInsuranceClaims({
         ...buildParams(),
         page: 1,
@@ -563,7 +563,7 @@ export default function ClaimsList() {
           ) : (
             <>
               <div className="table-scroll">
-                <table className="data-table">
+                <table className="data-table" style={{ whiteSpace: "nowrap" }}>
                   <thead>
                     <tr>
                       <th>Claim #</th>
