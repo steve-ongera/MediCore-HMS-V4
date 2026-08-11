@@ -413,7 +413,7 @@ from django.db.models.functions import Coalesce
 
 
 class InvoiceViewSet(BaseModelViewSet):
-    queryset = Invoice.objects.select_related("patient", "visit").all()
+    queryset = Invoice.objects.select_related("patient", "visit").all().order_by("-created_at")
     serializer_class = InvoiceSerializer
     filterset_class = InvoiceFilter
     search_fields = ["invoice_number", "patient__full_name"]
@@ -670,7 +670,7 @@ class PrescriptionViewSet(BaseModelViewSet):
 class LabTestCatalogViewSet(BaseModelViewSet):
     queryset = LabTestCatalog.objects.filter(is_active=True)
     serializer_class = LabTestCatalogSerializer
-    permission_classes = [IsITSupportOrSuperAdmin]
+    permission_classes = []
     search_fields = ["name", "code"]
 
 
