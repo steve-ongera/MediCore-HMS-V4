@@ -1,6 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getInsuranceClaim, submitInsuranceClaim, applyClaimResponse, settleInsuranceClaim, cancelInsuranceClaim } from "../../services/api";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { 
+  getInsuranceClaim, 
+  submitInsuranceClaim, 
+  applyClaimResponse, 
+  settleInsuranceClaim, 
+  cancelInsuranceClaim 
+} from "../../services/api";
+import { formatCurrency, formatDateTime } from "../../utils/formatters";
+import medicoreLogo from "../../assets/logo.png";
+
+// Design constants aligned with BulkPaymentReceipt / HMIS Standard
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
 
 export default function ClaimDetail() {
   const { id } = useParams();
@@ -9,6 +26,7 @@ export default function ClaimDetail() {
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const [responseForm, setResponseForm] = useState({ status: "APPROVED", approved_amount: "", rejection_reason: "" });
   const [itemApprovals, setItemApprovals] = useState({});
@@ -69,6 +87,238 @@ export default function ClaimDetail() {
     } catch (err) { setError(err.message); }
   };
 
+  /**
+   * Helper to load logo image into jsPDF
+   */
+  const loadImage = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  /**
+   * Export detailed Claim PDF
+   */
+  const handleExportPdf = async () => {
+    if (!claim) return;
+    setExporting(true);
+
+    try {
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 12;
+
+      // 1. Header Logo & Branding
+      const logoImg = await loadImage(medicoreLogo);
+      if (logoImg) {
+        try {
+          doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+        } catch (e) {
+          console.warn("Could not render logo in PDF:", e);
+        }
+      }
+
+      const brandX = logoImg ? margin + 15 : margin;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("MEDICORE HOSPITAL", brandX, 15);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Healthcare Management Information System", brandX, 19);
+
+      // Document Header Right
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...BRAND_COLOR);
+      doc.text("INSURANCE CLAIM DETAILS", pageWidth - margin, 15, { align: "right" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+      // Separator Line
+      doc.setDrawColor(...BRAND_COLOR);
+      doc.setLineWidth(0.4);
+      doc.line(margin, 23, pageWidth - margin, 23);
+
+      let startY = 27;
+
+      // 2. Claim Summary Header Block (Claim # fully expanded)
+      autoTable(doc, {
+        startY: startY,
+        theme: "plain",
+        margin: { left: margin, right: margin },
+        styles: {
+          fontSize: 8,
+          cellPadding: 1.5,
+          textColor: DARK_TEXT,
+        },
+        columnStyles: {
+          0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 32 },
+          1: { fontStyle: "bold", textColor: BRAND_COLOR, cellWidth: 60 }, // Full Claim # display
+          2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 32 },
+          3: { cellWidth: 62 },
+        },
+        body: [
+          [
+            "Claim Number:",
+            claim.claim_number || "-",
+            "Claim Status:",
+            (claim.status || "-").replace(/_/g, " "),
+          ],
+          [
+            "Patient Name:",
+            claim.patient_name || "-",
+            "Hospital #:",
+            claim.hospital_number || "-",
+          ],
+          [
+            "Insurer Name:",
+            claim.insurer_name || "-",
+            "Member Number:",
+            claim.member_number || "-",
+          ],
+          ...(claim.gateway_reference ? [[
+            "Gateway Ref:",
+            claim.gateway_reference,
+            "",
+            "",
+          ]] : []),
+          ...(claim.rejection_reason ? [[
+            "Rejection Reason:",
+            claim.rejection_reason,
+            "",
+            "",
+          ]] : []),
+        ],
+        didDrawCell: (data) => {
+          if (data.row.index === 0 && data.column.index === 0) {
+            doc.setFillColor(...LIGHT_FILL);
+          }
+        },
+      });
+
+      startY = doc.lastAutoTable.finalY + 5;
+
+      // Section Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("Claim Breakdown Items", margin, startY);
+
+      startY += 3;
+
+      // 3. Claim Items Table
+      const itemColumns = [
+        { header: "Invoice #", dataKey: "invoice_number" },
+        { header: "Description", dataKey: "invoice_description" },
+        { header: "Source Type", dataKey: "invoice_source_type" },
+        { header: "Claimed (KES)", dataKey: "amount_claimed" },
+        { header: "Approved (KES)", dataKey: "amount_approved" },
+      ];
+
+      const itemRows = (claim.items || []).map((item) => ({
+        invoice_number: item.invoice_number || "-",
+        invoice_description: item.invoice_description || "-",
+        invoice_source_type: item.invoice_source_type || "-",
+        amount_claimed: formatCurrency(item.amount_claimed || 0),
+        amount_approved: formatCurrency(item.amount_approved || 0),
+      }));
+
+      autoTable(doc, {
+        startY: startY,
+        columns: itemColumns,
+        body: itemRows,
+        margin: { left: margin, right: margin, bottom: 18 },
+        styles: {
+          fontSize: 7.5,
+          cellPadding: 1.5,
+          textColor: DARK_TEXT,
+          valign: "middle",
+        },
+        headStyles: {
+          fillColor: BRAND_COLOR,
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 8,
+          cellPadding: 1.8,
+        },
+        alternateRowStyles: {
+          fillColor: LIGHT_FILL,
+        },
+        columnStyles: {
+          0: { cellWidth: 35, fontStyle: "bold" },
+          1: { cellWidth: 65 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 28, halign: "right" },
+          4: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+        },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7);
+          doc.setTextColor(...MUTED_COLOR);
+
+          doc.setDrawColor(...LIGHT_BORDER);
+          doc.setLineWidth(0.3);
+          doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
+
+          doc.text(
+            `Confidential - Claim Details for ${claim.claim_number}`,
+            margin,
+            pageHeight - 6
+          );
+          doc.text(
+            `Page ${data.pageNumber} of ${pageCount}`,
+            pageWidth - margin,
+            pageHeight - 6,
+            { align: "right" }
+          );
+        },
+      });
+
+      // 4. Totals Box
+      let finalY = doc.lastAutoTable.finalY + 5;
+      if (finalY + 22 > pageHeight - 12) {
+        doc.addPage();
+        finalY = 12;
+      }
+
+      doc.setFillColor(...LIGHT_FILL);
+      doc.rect(pageWidth - margin - 85, finalY, 85, 18, "F");
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.rect(pageWidth - margin - 85, finalY, 85, 18, "S");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("Total Amount Claimed:", pageWidth - margin - 81, finalY + 6);
+      doc.setTextColor(...BRAND_COLOR);
+      doc.text(`KES ${formatCurrency(claim.total_claimed)}`, pageWidth - margin - 4, finalY + 6, { align: "right" });
+
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("Total Amount Approved:", pageWidth - margin - 81, finalY + 12);
+      doc.setTextColor(...BRAND_COLOR);
+      doc.text(`KES ${formatCurrency(claim.total_approved)}`, pageWidth - margin - 4, finalY + 12, { align: "right" });
+
+      // Save PDF
+      doc.save(`Claim_${claim.claim_number}.pdf`);
+    } catch (err) {
+      setError(err.message || "Failed to generate claim PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       "DRAFT": "badge-neutral",
@@ -106,10 +356,28 @@ export default function ClaimDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/insurance/claims")}>
-            <i className="bi bi-arrow-left  me-1"></i> Back to Claims
+            <i className="bi bi-arrow-left me-1"></i> Back to Claims
           </button>
+          
+          <button 
+            className="btn btn-secondary" 
+            onClick={handleExportPdf}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-1" role="status" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-file-earmark-pdf me-1"></i> Export PDF
+              </>
+            )}
+          </button>
+
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
+            <i className="bi bi-arrow-clockwise me-1"></i> Refresh
           </button>
         </div>
       </div>
@@ -118,7 +386,7 @@ export default function ClaimDetail() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle  me-1"></i> {error}
+              <i className="bi bi-exclamation-circle me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -131,10 +399,12 @@ export default function ClaimDetail() {
               <i className="bi bi-file-earmark-text fs-2xl"></i>
             </div>
             <div className="patient-header__meta">
-              <div className="patient-header__name">{claim.claim_number}</div>
+              <div className="patient-header__name" style={{ wordBreak: "break-all" }}>
+                {claim.claim_number}
+              </div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-person  me-1"></i> {claim.patient_name}
+                  <i className="bi bi-person me-1"></i> {claim.patient_name}
                 </span>
                 <span>•</span>
                 <span>{claim.hospital_number}</span>
@@ -147,7 +417,7 @@ export default function ClaimDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-building  me-1"></i> {claim.insurer_name}
+                <i className="bi bi-building me-1"></i> {claim.insurer_name}
               </span>
             </div>
           </div>
@@ -198,7 +468,7 @@ export default function ClaimDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-list-ul  me-1"></i>
+            <i className="bi bi-list-ul me-1"></i>
             <h5 className="card-title" style={{ marginBottom: 0 }}>Claim Items</h5>
           </div>
           <div>
@@ -241,16 +511,16 @@ export default function ClaimDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-send  me-1"></i> Actions
+              <i className="bi bi-send me-1"></i> Actions
             </h5>
           </div>
           <div className="card-body">
             <div className="flex gap-3 flex-wrap">
               <button className="btn btn-primary" onClick={handleSubmitClaim}>
-                <i className="bi bi-send  me-1"></i> Submit Claim
+                <i className="bi bi-send me-1"></i> Submit Claim
               </button>
               <button className="btn btn-danger" onClick={handleCancel}>
-                <i className="bi bi-x-circle  me-1"></i> Cancel Claim
+                <i className="bi bi-x-circle me-1"></i> Cancel Claim
               </button>
             </div>
           </div>
@@ -261,7 +531,7 @@ export default function ClaimDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-pencil-square  me-1"></i> Record Insurer Response
+              <i className="bi bi-pencil-square me-1"></i> Record Insurer Response
             </h5>
           </div>
           <div className="card-body">
@@ -344,10 +614,10 @@ export default function ClaimDetail() {
 
               <div className="form-actions">
                 <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                  <i className="bi bi-check-circle  me-1"></i> Record Response
+                  <i className="bi bi-check-circle me-1"></i> Record Response
                 </button>
                 <button type="button" className="btn btn-danger" onClick={handleCancel}>
-                  <i className="bi bi-x-circle  me-1"></i> Cancel Claim
+                  <i className="bi bi-x-circle me-1"></i> Cancel Claim
                 </button>
               </div>
             </form>
@@ -359,13 +629,13 @@ export default function ClaimDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-cash-stack  me-1"></i> Settlement
+              <i className="bi bi-cash-stack me-1"></i> Settlement
             </h5>
           </div>
           <div className="card-body">
             <div className="flex gap-3 flex-wrap">
               <button className="btn btn-success" onClick={handleSettle}>
-                <i className="bi bi-cash-stack  me-1"></i> Settle Claim (Create Payments)
+                <i className="bi bi-cash-stack me-1"></i> Settle Claim (Create Payments)
               </button>
             </div>
           </div>
