@@ -418,6 +418,7 @@ export const submitInsuranceClaim = (id) => unwrap(client.post(`/insurance-claim
 export const applyClaimResponse = (id, payload) => unwrap(client.post(`/insurance-claims/${id}/apply-response/`, payload));
 export const settleInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/settle/`));
 export const cancelInsuranceClaim = (id) => unwrap(client.post(`/insurance-claims/${id}/cancel/`));
+export const exportInsuranceClaims = (params, format) => client.get(`/insurance-claims/export/${qs({ ...params, format })}`, { responseType: "blob" });
 
 // ===========================================================================
 // eTIMS / KRA FISCALIZATION

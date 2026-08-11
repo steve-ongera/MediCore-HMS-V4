@@ -1,34 +1,405 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { getInsuranceClaims } from "../../services/api";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { getInsuranceClaims, getInsurers } from "../../services/api";
 import Pagination from "../../components/Pagination";
+import { formatCurrency, formatDateTime } from "../../utils/formatters";
+import medicoreLogo from "../../assets/logo.png";
+
+// Design constants aligned with BulkPaymentReceipt / HMIS Standard
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
 
 export default function ClaimsList() {
   const [claims, setClaims] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [insurerFilter, setInsurerFilter] = useState("");
+  const [insurers, setInsurers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportMenuRef = useRef(null);
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 20;
 
-  useEffect(() => { setPage(1); }, [statusFilter]);
-  useEffect(() => { load(); }, [statusFilter, page]);
+  // Load insurer options once for the filter dropdown
+  useEffect(() => {
+    getInsurers({ page_size: 200 })
+      .then((data) => setInsurers(data.results ?? data))
+      .catch(() => {});
+  }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => { setPage(1); }, [statusFilter, insurerFilter, debouncedSearch]);
+  useEffect(() => { load(); }, [statusFilter, insurerFilter, debouncedSearch, page]);
+
+  // Close the export dropdown on outside click
+  useEffect(() => {
+    const onClick = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const buildParams = () => {
+    const params = {};
+    if (statusFilter) params.status = statusFilter;
+    if (insurerFilter) params.insurer = insurerFilter;
+    if (debouncedSearch) params.search = debouncedSearch;
+    return params;
+  };
 
   const load = async () => {
     setLoading(true);
     try {
-      const params = { page, page_size: pageSize };
-      if (statusFilter) params.status = statusFilter;
-      const data = await getInsuranceClaims(params);
+      const data = await getInsuranceClaims({ ...buildParams(), page, page_size: pageSize });
       const results = data.results ?? data;
       setClaims(results);
       setTotal(data.count ?? results.length);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
-  // Status badge mapping
+  /**
+   * Helper to load an image element into jsPDF
+   */
+  const loadImage = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  /**
+   * Helper to trigger browser download from a Blob
+   */
+  const downloadFile = (content, filename, mimeType) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  /**
+   * Generate PDF Report matching BulkPaymentReceipt layout styling
+   */
+  const generatePdf = async (exportData) => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 12;
+
+    // Load logo
+    const logoImg = await loadImage(medicoreLogo);
+
+    // 1. Header Rendering
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+      } catch (e) {
+        console.warn("Could not render logo in PDF:", e);
+      }
+    }
+
+    const brandX = logoImg ? margin + 15 : margin;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("MEDICORE HOSPITAL", brandX, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Healthcare Management Information System", brandX, 19);
+
+    // Right Header Title & Metadata
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("INSURANCE CLAIMS REPORT", pageWidth - margin, 15, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+    // Accent Line
+    doc.setDrawColor(...BRAND_COLOR);
+    doc.setLineWidth(0.4);
+    doc.line(margin, 24, pageWidth - margin, 24);
+
+    let startY = 28;
+
+    // Active Filters Info Summary Block
+    const activeInsurerName = insurers.find((i) => String(i.id) === String(insurerFilter))?.name || "All Insurers";
+    autoTable(doc, {
+      startY: startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: {
+        fontSize: 8,
+        cellPadding: 1.8,
+        textColor: DARK_TEXT,
+      },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 28 },
+        1: { cellWidth: 62 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 28 },
+        3: { cellWidth: 62 },
+      },
+      body: [
+        [
+          "Insurer Filter:",
+          activeInsurerName,
+          "Status Filter:",
+          statusFilter ? statusFilter.replace(/_/g, " ") : "All Statuses",
+        ],
+        [
+          "Search Query:",
+          debouncedSearch || "None",
+          "Total Records:",
+          `${exportData.length} claim(s)`,
+        ],
+      ],
+      didDrawCell: (data) => {
+        if (data.row.index === 0 && data.column.index === 0) {
+          doc.setDrawColor(...LIGHT_BORDER);
+          doc.setFillColor(...LIGHT_FILL);
+        }
+      },
+    });
+
+    startY = doc.lastAutoTable.finalY + 5;
+
+    // Table Data
+    const tableColumns = [
+      { header: "Claim #", dataKey: "claim_number" },
+      { header: "Patient Name", dataKey: "patient_name" },
+      { header: "Insurer", dataKey: "insurer_name" },
+      { header: "Status", dataKey: "status" },
+      { header: "Claimed Amount", dataKey: "total_claimed" },
+      { header: "Approved Amount", dataKey: "total_approved" },
+    ];
+
+    let totalClaimedSum = 0;
+    let totalApprovedSum = 0;
+
+    const tableRows = exportData.map((c) => {
+      const claimed = parseFloat(c.total_claimed || 0);
+      const approved = parseFloat(c.total_approved || 0);
+      totalClaimedSum += claimed;
+      totalApprovedSum += approved;
+
+      return {
+        claim_number: c.claim_number || "-",
+        patient_name: c.patient_name || "-",
+        insurer_name: c.insurer_name || "-",
+        status: (c.status || "-").replace(/_/g, " "),
+        total_claimed: formatCurrency(claimed),
+        total_approved: formatCurrency(approved),
+      };
+    });
+
+    // AutoTable Rendering
+    autoTable(doc, {
+      startY: startY,
+      columns: tableColumns,
+      body: tableRows,
+      margin: { left: margin, right: margin, bottom: 20 },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        textColor: DARK_TEXT,
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: BRAND_COLOR,
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 8,
+        cellPadding: 2.2,
+      },
+      alternateRowStyles: {
+        fillColor: LIGHT_FILL,
+      },
+      columnStyles: {
+        0: { cellWidth: 32 },
+        1: { cellWidth: "auto" },
+        2: { cellWidth: 38 },
+        3: { cellWidth: 28 },
+        4: { cellWidth: 28, halign: "right" },
+        5: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+      },
+      didDrawPage: (data) => {
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...MUTED_COLOR);
+
+        doc.setDrawColor(...LIGHT_BORDER);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+
+        doc.text(
+          "Confidential - Official Insurance Claims Summary Report",
+          margin,
+          pageHeight - 7
+        );
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}`,
+          pageWidth - margin,
+          pageHeight - 7,
+          { align: "right" }
+        );
+      },
+    });
+
+    // Totals Highlight Block
+    let finalY = doc.lastAutoTable.finalY + 5;
+
+    if (finalY + 20 > pageHeight - 15) {
+      doc.addPage();
+      finalY = 15;
+    }
+
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(pageWidth - margin - 90, finalY, 90, 16, "F");
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.rect(pageWidth - margin - 90, finalY, 90, 16, "S");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("Total Claimed:", pageWidth - margin - 86, finalY + 6);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text(formatCurrency(totalClaimedSum), pageWidth - margin - 4, finalY + 6, { align: "right" });
+
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("Total Approved:", pageWidth - margin - 86, finalY + 12);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text(formatCurrency(totalApprovedSum), pageWidth - margin - 4, finalY + 12, { align: "right" });
+
+    return doc;
+  };
+
+  /**
+   * Generate XML Excel Spreadsheet
+   */
+  const generateExcelXML = (exportData) => {
+    const rowsHtml = exportData.map((c) => `
+      <tr>
+        <td>${c.claim_number || ""}</td>
+        <td>${c.patient_name || ""}</td>
+        <td>${c.insurer_name || ""}</td>
+        <td>${(c.status || "").replace(/_/g, " ")}</td>
+        <td>${c.total_claimed || 0}</td>
+        <td>${c.total_approved || 0}</td>
+      </tr>
+    `).join("");
+
+    return `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="utf-8" />
+          <!--[if gte mso 9]>
+          <xml>
+            <x:ExcelWorkbook>
+              <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                  <x:Name>Insurance Claims</x:Name>
+                  <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                </x:ExcelWorksheet>
+              </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+          </xml>
+          <![endif]-->
+        </head>
+        <body>
+          <table>
+            <thead>
+              <tr style="background-color: #1e40af; color: #ffffff; font-weight: bold;">
+                <th>Claim #</th>
+                <th>Patient Name</th>
+                <th>Insurer</th>
+                <th>Status</th>
+                <th>Claimed Amount</th>
+                <th>Approved Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+  };
+
+  /**
+   * Client-Side Export Handler
+   */
+  const handleExport = async (format) => {
+    setExportOpen(false);
+    setExporting(true);
+    setError("");
+
+    try {
+      // Fetch all claims using active filters
+      const data = await getInsuranceClaims({
+        ...buildParams(),
+        page: 1,
+        page_size: 10000,
+      });
+
+      const exportData = data.results ?? data ?? [];
+
+      if (!exportData.length) {
+        setError("No claims match the filter criteria to export.");
+        return;
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 10);
+
+      if (format === "pdf") {
+        const doc = await generatePdf(exportData);
+        doc.save(`Insurance_Claims_${timestamp}.pdf`);
+      } else if (format === "xlsx") {
+        const excelContent = generateExcelXML(exportData);
+        downloadFile(
+          excelContent,
+          `Insurance_Claims_${timestamp}.xls`,
+          "application/vnd.ms-excel"
+        );
+      }
+    } catch (err) {
+      setError(err.message || "Failed to export claims");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       "DRAFT": "badge-neutral",
@@ -62,10 +433,45 @@ export default function ClaimsList() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
+            <i className="bi bi-arrow-clockwise me-1"></i> Refresh
           </button>
+
+          <div className="dropdown" ref={exportMenuRef} style={{ position: "relative" }}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setExportOpen((o) => !o)}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-1" role="status" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-download me-1"></i>
+                  Export
+                  <i className="bi bi-chevron-down ms-1"></i>
+                </>
+              )}
+            </button>
+            {exportOpen && (
+              <div
+                className="dropdown-menu show"
+                style={{ position: "absolute", right: 0, top: "110%", zIndex: 20, minWidth: "160px" }}
+              >
+                <button className="dropdown-item" onClick={() => handleExport("xlsx")}>
+                  <i className="bi bi-file-earmark-excel me-2"></i> Excel (.xls)
+                </button>
+                <button className="dropdown-item" onClick={() => handleExport("pdf")}>
+                  <i className="bi bi-file-earmark-pdf me-2"></i> PDF Document
+                </button>
+              </div>
+            )}
+          </div>
+
           <Link to="/insurance/claims/new" className="btn btn-primary">
-            <i className="bi bi-plus-circle  me-1"></i> File Claim
+            <i className="bi bi-plus-circle me-1"></i> File Claim
           </Link>
         </div>
       </div>
@@ -74,7 +480,7 @@ export default function ClaimsList() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle  me-1"></i> {error}
+              <i className="bi bi-exclamation-circle me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -83,9 +489,35 @@ export default function ClaimsList() {
       <div className="card">
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
-            <i className="bi bi-funnel  me-1"></i>
             <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Filter by Status</label>
+              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Search</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="Claim #, patient, hospital #..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ width: "220px" }}
+              />
+            </div>
+
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Insurer</label>
+              <select
+                className="select"
+                value={insurerFilter}
+                onChange={(e) => setInsurerFilter(e.target.value)}
+                style={{ width: "180px" }}
+              >
+                <option value="">All Insurers</option>
+                {insurers.map((ins) => (
+                  <option key={ins.id} value={ins.id}>{ins.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Status</label>
               <select
                 className="select"
                 value={statusFilter}
@@ -118,13 +550,13 @@ export default function ClaimsList() {
               </div>
               <h3 className="empty-state__title">No claims found</h3>
               <p className="empty-state__desc">
-                {statusFilter 
-                  ? `No claims with status "${statusFilter.replace("_", " ")}" found.` 
+                {statusFilter || insurerFilter || debouncedSearch
+                  ? "No claims match your current filters."
                   : "Start by filing a new insurance claim."}
               </p>
-              {!statusFilter && (
+              {!statusFilter && !insurerFilter && !debouncedSearch && (
                 <Link to="/insurance/claims/new" className="btn btn-primary">
-                  <i className="bi bi-plus-circle  me-1"></i> File Claim
+                  <i className="bi bi-plus-circle me-1"></i> File Claim
                 </Link>
               )}
             </div>
@@ -155,11 +587,11 @@ export default function ClaimsList() {
                             {c.status.replace("_", " ")}
                           </span>
                         </td>
-                        <td className="cell-numeric">KES {c.total_claimed}</td>
-                        <td className="cell-numeric">KES {c.total_approved}</td>
+                        <td className="cell-numeric">{formatCurrency(c.total_claimed)}</td>
+                        <td className="cell-numeric">{formatCurrency(c.total_approved)}</td>
                         <td className="cell-actions">
                           <Link to={`/insurance/claims/${c.id}`} className="btn btn-secondary btn-sm">
-                            <i className="bi bi-eye  me-1"></i> View
+                            <i className="bi bi-eye me-1"></i> View
                           </Link>
                         </td>
                       </tr>
@@ -175,22 +607,10 @@ export default function ClaimsList() {
         {claims.length > 0 && (
           <div className="card-footer">
             <div className="flex gap-2">
-              <span className="badge badge-success">
-                <span className="badge-dot"></span>
-                Approved
-              </span>
-              <span className="badge badge-warning">
-                <span className="badge-dot"></span>
-                Partial
-              </span>
-              <span className="badge badge-danger">
-                <span className="badge-dot"></span>
-                Rejected
-              </span>
-              <span className="badge badge-info">
-                <span className="badge-dot"></span>
-                Under Review
-              </span>
+              <span className="badge badge-success"><span className="badge-dot"></span>Approved</span>
+              <span className="badge badge-warning"><span className="badge-dot"></span>Partial</span>
+              <span className="badge badge-danger"><span className="badge-dot"></span>Rejected</span>
+              <span className="badge badge-info"><span className="badge-dot"></span>Under Review</span>
             </div>
           </div>
         )}

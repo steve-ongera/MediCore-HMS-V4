@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView  # noqa: F401 (re-exported via urls)
 from django.core.exceptions import ValidationError
+from rest_framework import mixins
 
 from api.middleware import set_current_user
 from api.models import (
@@ -2062,6 +2063,8 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
     """
     permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
     queryset = BulkPayment.objects.select_related("patient", "cashier").prefetch_related("lines__invoice", "lines__payment")
+    filterset_fields = ["method"]
+    search_fields = ["receipt_number", "patient__full_name", "patient__hospital_number", "reference_number"]
 
     @action(detail=False, methods=["get"], url_path="outstanding-invoices")
     def outstanding_invoices(self, request):
@@ -2156,6 +2159,15 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
         bulk_payment = self.get_object()
         return Response(BulkPaymentSerializer(bulk_payment).data)
     
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = BulkPaymentSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = BulkPaymentSerializer(queryset, many=True)
+        return Response(serializer.data)
+        
     
 
 
@@ -2185,3 +2197,6 @@ class ITSupportDashboardView(APIView):
             "bar": {"title": "Open Tickets by Category", "data": [{"name": r["category"], "value": r["count"]} for r in ticket_by_category]},
             "pie": {"title": "Open Tickets by Priority", "data": [{"name": r["priority"], "value": r["count"]} for r in ticket_by_priority]},
         })
+        
+        
+    
