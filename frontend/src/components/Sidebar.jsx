@@ -198,6 +198,19 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Doctor Management",
+    roles: [ROLES.HR_OFFICER, ROLES.SUPER_ADMIN],
+    links: [
+      { to: "/doctors", label: "List of Doctors", icon: "bi-person-badge" },
+      { to: "/doctors/create", label: "Add New", icon: "bi-person-plus" },
+      { to: "/doctors/treatment-history", label: "Treatment History", icon: "bi-journal-medical" },
+      { to: "/doctors/schedule", label: "Schedule", icon: "bi-calendar3" },
+      { to: "/doctors/holidays", label: "Holidays", icon: "bi-calendar-x" },
+      { to: "/doctors/commission", label: "Doctors Commission", icon: "bi-cash-coin" },
+      { to: "/doctors/visits", label: "Doctor Visits", icon: "bi-clipboard2-pulse" },
+    ],
+  },
+  {
     label: "Ambulance",
     roles: [ROLES.AMBULANCE_DISPATCHER, ROLES.RECEPTIONIST],
     links: [

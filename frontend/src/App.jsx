@@ -920,6 +920,19 @@ export default function App() {
         <Route path="/visits/:id" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST]}><VisitDetail /></ProtectedRoute>} />
         <Route path="/visits/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.RECEPTIONIST]}><VisitEdit /></ProtectedRoute>} />
 
+        {(() => { const roles = [ROLES.HR_OFFICER, ROLES.SUPER_ADMIN]; return (
+          <>
+            <Route path="/doctors" element={<ProtectedRoute allowedRoles={roles}><DoctorList /></ProtectedRoute>} />
+            <Route path="/doctors/create" element={<ProtectedRoute allowedRoles={roles}><DoctorCreate /></ProtectedRoute>} />
+            <Route path="/doctors/:id" element={<ProtectedRoute allowedRoles={roles}><DoctorDetail /></ProtectedRoute>} />
+            <Route path="/doctors/treatment-history" element={<ProtectedRoute allowedRoles={roles}><TreatmentHistoryAll /></ProtectedRoute>} />
+            <Route path="/doctors/schedule" element={<ProtectedRoute allowedRoles={roles}><DoctorScheduleAll /></ProtectedRoute>} />
+            <Route path="/doctors/holidays" element={<ProtectedRoute allowedRoles={roles}><DoctorHolidaysAll /></ProtectedRoute>} />
+            <Route path="/doctors/commission" element={<ProtectedRoute allowedRoles={roles}><DoctorCommissionAll /></ProtectedRoute>} />
+            <Route path="/doctors/visits" element={<ProtectedRoute allowedRoles={roles}><DoctorVisitsAll /></ProtectedRoute>} />
+          </>
+        );})()}
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
