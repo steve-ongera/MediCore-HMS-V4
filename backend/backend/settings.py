@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "moh",
     "support",
     "pacs",
+    "doctormgmt",
 ]
 
 MIDDLEWARE = [
