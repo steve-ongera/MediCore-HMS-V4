@@ -959,6 +959,25 @@ export const rejectDoctorHoliday = (id) => unwrap(client.post(`/doctor-holidays/
 export const getDoctorCommissions = (params) => unwrap(client.get(`/doctor-commissions/${qs(params)}`));
 export const markCommissionPaid = (id) => unwrap(client.post(`/doctor-commissions/${id}/mark-paid/`));
 
+
+export const getCarePlans = (params) => unwrap(client.get(`/care-plans/${qs(params)}`));
+export const getCarePlanDetail = (id) => unwrap(client.get(`/care-plans/${id}/`));
+export const createCarePlan = (payload) => unwrap(client.post("/care-plans/", payload));
+export const getCarePlansByPatient = (patientId) => unwrap(client.get(`/care-plans/by-patient/${patientId}/`));
+export const addFollowUpTask = (carePlanId, payload) => unwrap(client.post(`/care-plans/${carePlanId}/add-task/`, payload));
+export const addCareMilestone = (carePlanId, payload) => unwrap(client.post(`/care-plans/${carePlanId}/add-milestone/`, payload));
+export const addMonitoringReading = (carePlanId, payload) => unwrap(client.post(`/care-plans/${carePlanId}/add-reading/`, payload));
+export const closeCarePlan = (id) => unwrap(client.post(`/care-plans/${id}/close/`));
+
+export const getFollowUpTasks = (params) => unwrap(client.get(`/follow-up-tasks/${qs(params)}`));
+export const getMyFollowUpTasks = () => unwrap(client.get("/follow-up-tasks/my-tasks/"));
+export const getOverdueFollowUps = () => unwrap(client.get("/follow-up-tasks/overdue/"));
+export const getDueTodayFollowUps = () => unwrap(client.get("/follow-up-tasks/due-today/"));
+export const getFollowUpDashboard = () => unwrap(client.get("/follow-up-tasks/dashboard/"));
+export const completeFollowUpTask = (id, payload) => unwrap(client.post(`/follow-up-tasks/${id}/complete/`, payload));
+export const markFollowUpMissed = (id, payload) => unwrap(client.post(`/follow-up-tasks/${id}/mark-missed/`, payload));
+export const cancelFollowUpTask = (id) => unwrap(client.post(`/follow-up-tasks/${id}/cancel/`));
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
