@@ -269,6 +269,12 @@ import DoctorHolidaysAll from "./pages/doctormgmt/DoctorHolidaysAll.jsx";
 import DoctorCommissionAll from "./pages/doctormgmt/DoctorCommissionAll.jsx";
 import DoctorVisitsAll from "./pages/doctormgmt/DoctorVisitsAll.jsx";
 
+import CareCoordinationDashboard from "./pages/carecoordination/CareCoordinationDashboard.jsx";
+import CarePlanList from "./pages/carecoordination/CarePlanList.jsx";
+import CarePlanDetail from "./pages/carecoordination/CarePlanDetail.jsx";
+import CreateCarePlan from "./pages/carecoordination/CreateCarePlan.jsx";
+import AllFollowUpTasks from "./pages/carecoordination/AllFollowUpTasks.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {

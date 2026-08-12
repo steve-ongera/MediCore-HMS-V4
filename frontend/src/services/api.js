@@ -977,7 +977,7 @@ export const getFollowUpDashboard = () => unwrap(client.get("/follow-up-tasks/da
 export const completeFollowUpTask = (id, payload) => unwrap(client.post(`/follow-up-tasks/${id}/complete/`, payload));
 export const markFollowUpMissed = (id, payload) => unwrap(client.post(`/follow-up-tasks/${id}/mark-missed/`, payload));
 export const cancelFollowUpTask = (id) => unwrap(client.post(`/follow-up-tasks/${id}/cancel/`));
-
+export const  addMilestone = (id) => unwrap(client.get("/follow-up-task/add-milestone"));
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------
