@@ -197,6 +197,7 @@ class NotificationType(models.TextChoices):
     DISASTER_EMERGENCY = "DISASTER_EMERGENCY", "Fire or disaster emergency"
     NETWORK_RESTORED = "NETWORK_RESTORED", "Network connectivity restored"
     DELIVERY_FAILED = "DELIVERY_FAILED", "SMS/Email delivery failed"
+   
 
 
 class Notification(BaseModel):
