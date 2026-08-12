@@ -1,12 +1,29 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
-  getEmergencyVisit, getEmergencyBilling, saveTriageVitals, createEmergencyNote,
-  getEmergencyProcedureCatalog, orderEmergencyProcedure, completeEmergencyProcedure,
-  getMedicines, createEmergencyMedicationOrder, recordEmergencyMedicationAdministration,
-  dischargeHome, transferToAdmission, emergencyLama, emergencyDeceased,
-  getAvailableBeds, getWards, getUsers, addEmergencyCharge,
+  getEmergencyVisit,
+  getEmergencyBilling,
+  saveTriageVitals,
+  createEmergencyNote,
+  getEmergencyProcedureCatalog,
+  orderEmergencyProcedure,
+  completeEmergencyProcedure,
+  getMedicines,
+  createEmergencyMedicationOrder,
+  recordEmergencyMedicationAdministration,
+  dischargeHome,
+  transferToAdmission,
+  emergencyLama,
+  emergencyDeceased,
+  getAvailableBeds,
+  getWards,
+  getUsers,
+  addEmergencyCharge,
 } from "../../services/api";
+import { formatCurrency, formatDateTime } from "../../utils/formatters";
+import medicoreLogo from "../../assets/logo.png";
 
 const TRIAGE_META = {
   1: { label: "Resuscitation", badge: "badge-danger" },
@@ -16,6 +33,13 @@ const TRIAGE_META = {
   5: { label: "Non-Urgent", badge: "badge-neutral" },
 };
 
+// Design constants — kept in sync with the Mortuary discharge certificate
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
+
 export default function EmergencyVisitDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,10 +48,18 @@ export default function EmergencyVisitDetail() {
   const [billing, setBilling] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const [vitals, setVitals] = useState({
-    weight_kg: "", temperature_c: "", pulse_bpm: "", respiratory_rate: "",
-    bp_systolic: "", bp_diastolic: "", oxygen_saturation: "", gcs_score: "", pain_score: "",
+    weight_kg: "",
+    temperature_c: "",
+    pulse_bpm: "",
+    respiratory_rate: "",
+    bp_systolic: "",
+    bp_diastolic: "",
+    oxygen_saturation: "",
+    gcs_score: "",
+    pain_score: "",
   });
   const [noteText, setNoteText] = useState("");
 
@@ -46,7 +78,11 @@ export default function EmergencyVisitDetail() {
   const [doctors, setDoctors] = useState([]);
   const [transferWard, setTransferWard] = useState("");
   const [transferBeds, setTransferBeds] = useState([]);
-  const [transferForm, setTransferForm] = useState({ bed: "", admitting_doctor: "", admission_diagnosis: "" });
+  const [transferForm, setTransferForm] = useState({
+    bed: "",
+    admitting_doctor: "",
+    admission_diagnosis: "",
+  });
 
   useEffect(() => {
     load();
@@ -172,7 +208,11 @@ export default function EmergencyVisitDetail() {
   const submitMedOrder = async (e) => {
     e.preventDefault();
     try {
-      await createEmergencyMedicationOrder({ emergency_visit: id, ...medOrder, quantity: Number(medOrder.quantity) || 1 });
+      await createEmergencyMedicationOrder({
+        emergency_visit: id,
+        ...medOrder,
+        quantity: Number(medOrder.quantity) || 1,
+      });
       setMedOrder({ medicine: "", dosage: "", route: "IV", quantity: 1 });
       load();
     } catch (err) {
@@ -264,6 +304,353 @@ export default function EmergencyVisitDetail() {
     else navigate("/billing/payments");
   };
 
+  // --- DISCHARGE FREEZE CHECK ---
+  // If balance > 0, Discharge Home and LAMA are disabled. Only DECEASED remains enabled.
+  const hasOutstandingBalance = Number(billing?.balance || 0) > 0;
+
+  const loadImage = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  const getStatusLabel = (status) => {
+    const labelMap = {
+      IN_ED: "In ED",
+      ADMITTED: "Admitted",
+      DISCHARGED: "Discharged",
+      TRANSFERRED_OUT: "Transferred Out",
+      LAMA: "Left Against Medical Advice",
+      DECEASED: "Deceased",
+    };
+    return labelMap[status] || status;
+  };
+
+  /**
+   * Generates a professional PDF report for the ED visit, styled to match
+   * the Mortuary discharge certificate: branded header, structured
+   * label/value tables, itemized billing, and a signature block.
+   */
+  const generateEmergencyReportPdf = async (visit, billingData) => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 12;
+
+    const logoImg = await loadImage(medicoreLogo);
+    const triage = TRIAGE_META[visit.triage_level] || { label: "—" };
+
+    // 1. Header
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+      } catch (e) {
+        console.warn("Could not render logo in PDF:", e);
+      }
+    }
+
+    const brandX = logoImg ? margin + 15 : margin;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("MEDICORE EMERGENCY REPORT-", brandX, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Healthcare Management Information System", brandX, 19);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("EMERGENCY VISIT REPORT", pageWidth - margin, 15, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+    doc.setDrawColor(...BRAND_COLOR);
+    doc.setLineWidth(0.4);
+    doc.line(margin, 24, pageWidth - margin, 24);
+
+    let startY = 28;
+
+    // 2. Patient & Visit Summary
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("1. Patient & Visit Summary", margin, startY);
+
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        1: { cellWidth: 55 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        3: { cellWidth: 55 },
+      },
+      body: [
+        ["Visit Number:", visit.visit_number || "N/A", "Patient Name:", visit.patient_name || "N/A"],
+        ["Hospital Number:", visit.hospital_number || "N/A", "Status:", getStatusLabel(visit.status)],
+        ["Bay:", visit.bay_number || "Unassigned", "Arrival Mode:", visit.arrival_mode || "N/A"],
+        ["Triage Level:", triage.label, "Arrived At:", formatDateTime(visit.arrived_at)],
+        ["Duration in ED:", `${(Number(visit.duration_hours) || 0).toFixed(1)} hrs`, "", ""],
+        ["Chief Complaint:", visit.chief_complaint || "—", "", ""],
+        ["Disposition Notes:", visit.disposition_notes || "—", "", ""],
+      ],
+    });
+
+    startY = doc.lastAutoTable.finalY + 5;
+
+    // 3. Billing Summary
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("2. Financial & Billing Summary", margin, startY);
+
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+        1: { cellWidth: 30 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+        3: { cellWidth: 30 },
+        4: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+        5: { cellWidth: 30 },
+      },
+      body: [
+        [
+          "Grand Total:",
+          formatCurrency(billingData?.grand_total || 0),
+          "Amount Paid:",
+          formatCurrency(billingData?.amount_paid || 0),
+          "Balance:",
+          formatCurrency(billingData?.balance || 0),
+        ],
+      ],
+    });
+
+    startY = doc.lastAutoTable.finalY + 2;
+
+    const invoicesList = billingData?.invoices || [];
+    if (invoicesList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Invoice #", "Description", "Amount", "Balance", "Status"]],
+        body: invoicesList.map((inv) => [
+          inv.invoice_number || "-",
+          inv.description || "-",
+          formatCurrency(inv.amount),
+          formatCurrency(inv.balance),
+          inv.status || "-",
+        ]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 6;
+    } else {
+      startY += 6;
+    }
+
+    // 4. Triage Vitals
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("3. Triage Vitals", margin, startY);
+    startY += 3;
+
+    const vitalsList = visit.vitals || [];
+    if (vitalsList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Recorded At", "BP (mmHg)", "Temp (°C)", "Pulse (bpm)", "SpO2 (%)", "GCS", "Pain"]],
+        body: vitalsList.map((v) => [
+          formatDateTime(v.recorded_at),
+          `${v.bp_systolic}/${v.bp_diastolic}`,
+          v.temperature_c,
+          v.pulse_bpm,
+          v.oxygen_saturation,
+          v.gcs_score,
+          v.pain_score,
+        ]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 5;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No vitals recorded.", margin, startY + 2);
+      startY += 8;
+    }
+
+    // 5. Clinical Notes
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("4. Clinical Notes", margin, startY);
+    startY += 3;
+
+    const notesList = visit.notes || [];
+    if (notesList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Date / Time", "Author", "Note"]],
+        body: notesList.map((n) => [formatDateTime(n.created_at), n.author_name || "-", n.note || "-"]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+        columnStyles: { 2: { cellWidth: 100 } },
+      });
+      startY = doc.lastAutoTable.finalY + 5;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No notes recorded.", margin, startY + 2);
+      startY += 8;
+    }
+
+    // 6. Ordered Procedures
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("5. Ordered Procedures", margin, startY);
+    startY += 3;
+
+    const proceduresList = visit.procedures || [];
+    if (proceduresList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Procedure", "Notes", "Status"]],
+        body: proceduresList.map((p) => [p.procedure_name || "-", p.notes || "—", p.status || "-"]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 5;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No procedures recorded.", margin, startY + 2);
+      startY += 8;
+    }
+
+    // 7. Medication Orders — check for page overflow before starting a new section
+    if (startY > 250) {
+      doc.addPage();
+      startY = 20;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("6. Medication Orders", margin, startY);
+    startY += 3;
+
+    const medsList = visit.medication_orders || [];
+    if (medsList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Medicine", "Dosage", "Route", "Qty", "Status"]],
+        body: medsList.map((m) => [
+          m.medicine_name || "-",
+          m.dosage || "-",
+          m.route || "-",
+          m.quantity,
+          m.is_active ? "Active" : "Completed",
+        ]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 6;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No medication orders recorded.", margin, startY + 2);
+      startY += 10;
+    }
+
+    // 8. Sign-off block
+    if (startY > 255) {
+      doc.addPage();
+      startY = 20;
+    }
+
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, 30, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("CLINICAL RECORD SIGN-OFF", margin + 4, startY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(
+      "This report reflects the emergency department record at the time of generation.",
+      margin + 4,
+      startY + 12
+    );
+
+    doc.line(margin + 4, startY + 24, margin + 84, startY + 24);
+    doc.text("Attending Physician / Nurse Signature", margin + 4, startY + 28);
+
+    doc.line(margin + 100, startY + 24, margin + 180, startY + 24);
+    doc.text("Date", margin + 100, startY + 28);
+
+    // Footer on every page
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      const pageHeight = doc.internal.pageSize.getHeight();
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.setLineWidth(0.2);
+      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Generated by Emergency Department HMIS • Confidential Medical Report", margin, pageHeight - 9);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 9, { align: "right" });
+    }
+
+    doc.save(`Emergency_Visit_Report_${visit.visit_number}.pdf`);
+  };
+
+  const handleDownloadPdfReport = async () => {
+    if (!ed) return;
+    setGeneratingPdf(true);
+    try {
+      await generateEmergencyReportPdf(ed, billing);
+    } catch (err) {
+      setError(err.message || "Failed to generate PDF report.");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -279,26 +666,14 @@ export default function EmergencyVisitDetail() {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      "IN_ED": "badge-primary",
-      "ADMITTED": "badge-info",
-      "DISCHARGED": "badge-success",
-      "TRANSFERRED_OUT": "badge-info",
-      "LAMA": "badge-warning",
-      "DECEASED": "badge-danger",
+      IN_ED: "badge-primary",
+      ADMITTED: "badge-info",
+      DISCHARGED: "badge-success",
+      TRANSFERRED_OUT: "badge-info",
+      LAMA: "badge-warning",
+      DECEASED: "badge-danger",
     };
     return statusMap[status] || "badge-neutral";
-  };
-
-  const getStatusLabel = (status) => {
-    const labelMap = {
-      "IN_ED": "In ED",
-      "ADMITTED": "Admitted",
-      "DISCHARGED": "Discharged",
-      "TRANSFERRED_OUT": "Transferred Out",
-      "LAMA": "Left Against Medical Advice",
-      "DECEASED": "Deceased",
-    };
-    return labelMap[status] || status;
   };
 
   const triage = TRIAGE_META[ed.triage_level] || { label: "—", badge: "badge-neutral" };
@@ -316,24 +691,36 @@ export default function EmergencyVisitDetail() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/emergency")}>
-            <i className="bi bi-arrow-left  me-1"></i> Back to ED Board
+            <i className="bi bi-arrow-left me-1"></i> Back to ED Board
+          </button>
+          <button className="btn btn-primary" onClick={handleDownloadPdfReport} disabled={generatingPdf}>
+            <i className="bi bi-file-earmark-pdf me-1"></i>
+            {generatingPdf ? "Generating..." : "PDF Report"}
           </button>
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
+            <i className="bi bi-arrow-clockwise me-1"></i> Refresh
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
+        <div
+          className="card"
+          style={{
+            marginBottom: "var(--space-4)",
+            borderColor: "var(--danger)",
+            background: "var(--danger-soft)",
+          }}
+        >
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle  me-1"></i> {error}
+              <i className="bi bi-exclamation-circle me-1"></i> {error}
             </div>
           </div>
         </div>
       )}
 
+      {/* Patient Header Summary */}
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-body">
           <div className="patient-header">
@@ -344,7 +731,7 @@ export default function EmergencyVisitDetail() {
               <div className="patient-header__name">{ed.patient_name}</div>
               <div className="patient-header__sub">
                 <span className="patient-header__id">
-                  <i className="bi bi-hash  me-1"></i> {ed.hospital_number}
+                  <i className="bi bi-hash me-1"></i> {ed.hospital_number}
                 </span>
                 <span>•</span>
                 <span>Bay: {ed.bay_number || "—"}</span>
@@ -357,7 +744,7 @@ export default function EmergencyVisitDetail() {
             </div>
             <div className="patient-header__actions">
               <span className="text-sm text-muted">
-                <i className="bi bi-clock  me-1"></i> {durationHours.toFixed(1)} hrs
+                <i className="bi bi-clock me-1"></i> {durationHours.toFixed(1)} hrs
               </span>
             </div>
           </div>
@@ -406,7 +793,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-currency-dollar  me-1"></i> Billing
+            <i className="bi bi-currency-dollar me-1"></i> Billing
           </h5>
         </div>
         <div className="card-body">
@@ -425,7 +812,7 @@ export default function EmergencyVisitDetail() {
                       <i className="bi bi-receipt"></i>
                     </div>
                   </div>
-                  <div className="stat-card__value">KES {billing.grand_total}</div>
+                  <div className="stat-card__value">{formatCurrency(billing.grand_total)}</div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-card__top">
@@ -434,7 +821,7 @@ export default function EmergencyVisitDetail() {
                       <i className="bi bi-check-circle"></i>
                     </div>
                   </div>
-                  <div className="stat-card__value">KES {billing.amount_paid}</div>
+                  <div className="stat-card__value">{formatCurrency(billing.amount_paid)}</div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-card__top">
@@ -443,7 +830,7 @@ export default function EmergencyVisitDetail() {
                       <i className="bi bi-currency-dollar"></i>
                     </div>
                   </div>
-                  <div className="stat-card__value">KES {billing.balance}</div>
+                  <div className="stat-card__value">{formatCurrency(billing.balance)}</div>
                 </div>
               </div>
 
@@ -459,14 +846,22 @@ export default function EmergencyVisitDetail() {
                     </tr>
                   </thead>
                   <tbody>
-                    {billing.invoices.map((inv) => (
+                    {(billing.invoices || []).map((inv) => (
                       <tr key={inv.id}>
                         <td className="cell-mono">{inv.invoice_number}</td>
                         <td>{inv.description}</td>
-                        <td className="cell-numeric">KES {inv.amount}</td>
-                        <td className="cell-numeric">KES {inv.balance}</td>
+                        <td className="cell-numeric">{formatCurrency(inv.amount)}</td>
+                        <td className="cell-numeric">{formatCurrency(inv.balance)}</td>
                         <td>
-                          <span className={`badge ${inv.status === "PAID" ? "badge-success" : inv.status === "PARTIAL" ? "badge-warning" : "badge-danger"}`}>
+                          <span
+                            className={`badge ${
+                              inv.status === "PAID"
+                                ? "badge-success"
+                                : inv.status === "PARTIAL"
+                                ? "badge-warning"
+                                : "badge-danger"
+                            }`}
+                          >
                             <span className="badge-dot"></span>
                             {inv.status}
                           </span>
@@ -484,13 +879,16 @@ export default function EmergencyVisitDetail() {
                   onClick={goToBillingPayment}
                   disabled={Number(billing.balance) <= 0}
                 >
-                  <i className="bi bi-credit-card  me-1"></i> Go to Billing / Take Payment
+                  <i className="bi bi-credit-card me-1"></i> Go to Billing / Take Payment
                 </button>
               </div>
 
               {isActive && (
                 <>
-                  <h6 className="text-sm font-semibold" style={{ marginTop: "var(--space-4)", marginBottom: "var(--space-2)" }}>
+                  <h6
+                    className="text-sm font-semibold"
+                    style={{ marginTop: "var(--space-4)", marginBottom: "var(--space-2)" }}
+                  >
                     Add Charge
                   </h6>
                   <form onSubmit={submitCharge}>
@@ -516,8 +914,12 @@ export default function EmergencyVisitDetail() {
                         />
                       </div>
                       <div className="field" style={{ marginBottom: 0 }}>
-                        <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                          <i className="bi bi-plus-circle  me-1"></i> Add Charge
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          style={{ marginTop: "var(--space-3)" }}
+                        >
+                          <i className="bi bi-plus-circle me-1"></i> Add Charge
                         </button>
                       </div>
                     </div>
@@ -533,7 +935,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-heart-pulse  me-1"></i> Triage Vitals
+            <i className="bi bi-heart-pulse me-1"></i> Triage Vitals
           </h5>
         </div>
         <div className="card-body">
@@ -542,43 +944,97 @@ export default function EmergencyVisitDetail() {
               <div className="vitals-grid">
                 <div className="field">
                   <label className="field-label">Weight (kg)</label>
-                  <input type="number" className="input" placeholder="Weight" value={vitals.weight_kg} onChange={handleVitalsChange("weight_kg")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Weight"
+                    value={vitals.weight_kg}
+                    onChange={handleVitalsChange("weight_kg")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">Temp (°C)</label>
-                  <input type="number" className="input" placeholder="Temp" value={vitals.temperature_c} onChange={handleVitalsChange("temperature_c")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Temp"
+                    value={vitals.temperature_c}
+                    onChange={handleVitalsChange("temperature_c")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">Pulse (bpm)</label>
-                  <input type="number" className="input" placeholder="Pulse" value={vitals.pulse_bpm} onChange={handleVitalsChange("pulse_bpm")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Pulse"
+                    value={vitals.pulse_bpm}
+                    onChange={handleVitalsChange("pulse_bpm")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">Resp. Rate</label>
-                  <input type="number" className="input" placeholder="Resp rate" value={vitals.respiratory_rate} onChange={handleVitalsChange("respiratory_rate")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Resp rate"
+                    value={vitals.respiratory_rate}
+                    onChange={handleVitalsChange("respiratory_rate")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">BP Systolic</label>
-                  <input type="number" className="input" placeholder="Systolic" value={vitals.bp_systolic} onChange={handleVitalsChange("bp_systolic")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Systolic"
+                    value={vitals.bp_systolic}
+                    onChange={handleVitalsChange("bp_systolic")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">BP Diastolic</label>
-                  <input type="number" className="input" placeholder="Diastolic" value={vitals.bp_diastolic} onChange={handleVitalsChange("bp_diastolic")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Diastolic"
+                    value={vitals.bp_diastolic}
+                    onChange={handleVitalsChange("bp_diastolic")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">SpO2 (%)</label>
-                  <input type="number" className="input" placeholder="SpO2" value={vitals.oxygen_saturation} onChange={handleVitalsChange("oxygen_saturation")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="SpO2"
+                    value={vitals.oxygen_saturation}
+                    onChange={handleVitalsChange("oxygen_saturation")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">GCS Score</label>
-                  <input type="number" className="input" placeholder="GCS" value={vitals.gcs_score} onChange={handleVitalsChange("gcs_score")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="GCS"
+                    value={vitals.gcs_score}
+                    onChange={handleVitalsChange("gcs_score")}
+                  />
                 </div>
                 <div className="field">
                   <label className="field-label">Pain Score (0-10)</label>
-                  <input type="number" className="input" placeholder="Pain" value={vitals.pain_score} onChange={handleVitalsChange("pain_score")} />
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Pain"
+                    value={vitals.pain_score}
+                    onChange={handleVitalsChange("pain_score")}
+                  />
                 </div>
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-floppy  me-1"></i> Save Vitals
+                <i className="bi bi-floppy me-1"></i> Save Vitals
               </button>
             </form>
           )}
@@ -604,7 +1060,9 @@ export default function EmergencyVisitDetail() {
                   {(ed.vitals || []).map((v) => (
                     <tr key={v.id}>
                       <td>{new Date(v.recorded_at).toLocaleString()}</td>
-                      <td className="cell-numeric">{v.bp_systolic}/{v.bp_diastolic}</td>
+                      <td className="cell-numeric">
+                        {v.bp_systolic}/{v.bp_diastolic}
+                      </td>
                       <td className="cell-numeric">{v.temperature_c}°C</td>
                       <td className="cell-numeric">{v.pulse_bpm}</td>
                       <td className="cell-numeric">{v.oxygen_saturation}%</td>
@@ -623,7 +1081,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-file-text  me-1"></i> Notes
+            <i className="bi bi-file-text me-1"></i> Notes
           </h5>
         </div>
         <div className="card-body">
@@ -639,7 +1097,7 @@ export default function EmergencyVisitDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-plus-circle  me-1"></i> Add Note
+                <i className="bi bi-plus-circle me-1"></i> Add Note
               </button>
             </form>
           )}
@@ -666,7 +1124,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-scissors  me-1"></i> Procedures
+            <i className="bi bi-scissors me-1"></i> Procedures
           </h5>
         </div>
         <div className="card-body">
@@ -674,10 +1132,17 @@ export default function EmergencyVisitDetail() {
             <form onSubmit={submitProcedure} style={{ marginBottom: "var(--space-4)" }}>
               <div className="field-row">
                 <div className="field" style={{ marginBottom: 0, flex: 1 }}>
-                  <select className="select" value={selectedProcedure} onChange={(e) => setSelectedProcedure(e.target.value)} required>
+                  <select
+                    className="select"
+                    value={selectedProcedure}
+                    onChange={(e) => setSelectedProcedure(e.target.value)}
+                    required
+                  >
                     <option value="">Select procedure</option>
                     {procedureCatalog.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name} (KES {p.price})</option>
+                      <option key={p.id} value={p.id}>
+                        {p.name} (KES {p.price})
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -692,7 +1157,7 @@ export default function EmergencyVisitDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-plus-circle  me-1"></i> Order
+                    <i className="bi bi-plus-circle me-1"></i> Order
                   </button>
                 </div>
               </div>
@@ -711,13 +1176,24 @@ export default function EmergencyVisitDetail() {
                     <div className="rx-item__detail">{p.notes || "—"}</div>
                   </div>
                   <div className="flex gap-2 align-items-center">
-                    <span className={`badge ${p.status === "ORDERED" ? "badge-warning" : p.status === "IN_PROGRESS" ? "badge-info" : "badge-success"}`}>
+                    <span
+                      className={`badge ${
+                        p.status === "ORDERED"
+                          ? "badge-warning"
+                          : p.status === "IN_PROGRESS"
+                          ? "badge-info"
+                          : "badge-success"
+                      }`}
+                    >
                       <span className="badge-dot"></span>
                       {p.status}
                     </span>
                     {isActive && p.status === "ORDERED" && (
-                      <button className="btn btn-success btn-sm" onClick={() => handleCompleteProcedure(p.id)}>
-                        <i className="bi bi-check  me-1"></i> Complete
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => handleCompleteProcedure(p.id)}
+                      >
+                        <i className="bi bi-check me-1"></i> Complete
                       </button>
                     )}
                   </div>
@@ -732,7 +1208,7 @@ export default function EmergencyVisitDetail() {
       <div className="card" style={{ marginBottom: "var(--space-6)" }}>
         <div className="card-header">
           <h5 className="card-title">
-            <i className="bi bi-capsule  me-1"></i> Medications
+            <i className="bi bi-capsule me-1"></i> Medications
           </h5>
         </div>
         <div className="card-body">
@@ -740,10 +1216,17 @@ export default function EmergencyVisitDetail() {
             <form onSubmit={submitMedOrder} style={{ marginBottom: "var(--space-4)" }}>
               <div className="field-row">
                 <div className="field" style={{ marginBottom: 0, flex: 2 }}>
-                  <select className="select" value={medOrder.medicine} onChange={handleMedOrderChange("medicine")} required>
+                  <select
+                    className="select"
+                    value={medOrder.medicine}
+                    onChange={handleMedOrderChange("medicine")}
+                    required
+                  >
                     <option value="">Select medicine</option>
                     {medicines.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -758,7 +1241,11 @@ export default function EmergencyVisitDetail() {
                   />
                 </div>
                 <div className="field" style={{ marginBottom: 0, flex: 1 }}>
-                  <select className="select" value={medOrder.route} onChange={handleMedOrderChange("route")}>
+                  <select
+                    className="select"
+                    value={medOrder.route}
+                    onChange={handleMedOrderChange("route")}
+                  >
                     <option value="IV">IV</option>
                     <option value="IM">IM</option>
                     <option value="SC">SC</option>
@@ -779,7 +1266,7 @@ export default function EmergencyVisitDetail() {
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-plus-circle  me-1"></i> Order
+                    <i className="bi bi-plus-circle me-1"></i> Order
                   </button>
                 </div>
               </div>
@@ -805,8 +1292,11 @@ export default function EmergencyVisitDetail() {
                       {m.is_active ? "Active" : "Complete"}
                     </span>
                     {isActive && m.is_active && (
-                      <button className="btn btn-success btn-sm" onClick={() => handleAdministerMed(m.id)}>
-                        <i className="bi bi-check  me-1"></i> Give
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => handleAdministerMed(m.id)}
+                      >
+                        <i className="bi bi-check me-1"></i> Give
                       </button>
                     )}
                   </div>
@@ -822,7 +1312,7 @@ export default function EmergencyVisitDetail() {
         <div className="card">
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-door-open  me-1"></i> Disposition
+              <i className="bi bi-door-open me-1"></i> Disposition
             </h5>
           </div>
           <div className="card-body">
@@ -836,15 +1326,42 @@ export default function EmergencyVisitDetail() {
               />
             </div>
 
+            {hasOutstandingBalance && (
+              <div
+                className="alert"
+                style={{
+                  marginBottom: "var(--space-3)",
+                  padding: "var(--space-3)",
+                  borderRadius: "6px",
+                  color: "#991b1b",
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca",
+                }}
+              >
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Discharge Restricted:</strong> The patient has an unpaid balance of{" "}
+                <strong>{formatCurrency(billing?.balance)}</strong>. Discharge Home and LAMA are disabled until
+                payment is cleared. Only the <strong>Deceased</strong> option remains active.
+              </div>
+            )}
+
             <div className="flex gap-3 flex-wrap" style={{ marginBottom: "var(--space-4)" }}>
-              <button className="btn btn-success" onClick={handleDischargeHome}>
-                <i className="bi bi-house  me-1"></i> Discharge Home
+              <button
+                className="btn btn-success"
+                onClick={handleDischargeHome}
+                disabled={hasOutstandingBalance}
+              >
+                <i className="bi bi-house me-1"></i> Discharge Home
               </button>
-              <button className="btn btn-warning" onClick={handleLama}>
-                <i className="bi bi-exclamation-triangle  me-1"></i> Left Against Medical Advice
+              <button
+                className="btn btn-warning"
+                onClick={handleLama}
+                disabled={hasOutstandingBalance}
+              >
+                <i className="bi bi-exclamation-triangle me-1"></i> Left Against Medical Advice
               </button>
               <button className="btn btn-danger" onClick={handleDeceased}>
-                <i className="bi bi-heart  me-1"></i> Deceased
+                <i className="bi bi-heart me-1"></i> Deceased
               </button>
             </div>
 
@@ -854,26 +1371,47 @@ export default function EmergencyVisitDetail() {
             <form onSubmit={submitTransfer}>
               <div className="field-row">
                 <div className="field" style={{ marginBottom: 0 }}>
-                  <select className="select" value={transferWard} onChange={handleTransferWardChange} required>
+                  <select
+                    className="select"
+                    value={transferWard}
+                    onChange={handleTransferWardChange}
+                    required
+                  >
                     <option value="">Select ward</option>
                     {wards.map((w) => (
-                      <option key={w.id} value={w.id}>{w.name}</option>
+                      <option key={w.id} value={w.id}>
+                        {w.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
-                  <select className="select" value={transferForm.bed} onChange={handleTransferFormChange("bed")} required>
+                  <select
+                    className="select"
+                    value={transferForm.bed}
+                    onChange={handleTransferFormChange("bed")}
+                    required
+                  >
                     <option value="">Select bed</option>
                     {transferBeds.map((b) => (
-                      <option key={b.id} value={b.id}>{b.bed_number}</option>
+                      <option key={b.id} value={b.id}>
+                        {b.bed_number}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
-                  <select className="select" value={transferForm.admitting_doctor} onChange={handleTransferFormChange("admitting_doctor")} required>
+                  <select
+                    className="select"
+                    value={transferForm.admitting_doctor}
+                    onChange={handleTransferFormChange("admitting_doctor")}
+                    required
+                  >
                     <option value="">Select admitting doctor</option>
                     {doctors.map((d) => (
-                      <option key={d.id} value={d.id}>{d.full_name}</option>
+                      <option key={d.id} value={d.id}>
+                        {d.full_name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -887,7 +1425,7 @@ export default function EmergencyVisitDetail() {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                <i className="bi bi-arrow-right  me-1"></i> Transfer to Admission
+                <i className="bi bi-arrow-right me-1"></i> Transfer to Admission
               </button>
             </form>
           </div>

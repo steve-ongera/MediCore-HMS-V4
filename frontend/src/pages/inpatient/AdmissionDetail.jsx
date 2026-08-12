@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   getAdmission,
   getAdmissionBilling,
@@ -22,6 +24,15 @@ import {
   orderProcedureForAdmission,
   completeProcedure,
 } from "../../services/api";
+import { formatCurrency, formatDateTime } from "../../utils/formatters";
+import medicoreLogo from "../../assets/logo.png";
+
+// Design constants (mirrors the mortuary discharge certificate)
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
 
 export default function AdmissionDetail() {
   const { id } = useParams();
@@ -67,6 +78,9 @@ export default function AdmissionDetail() {
   const [selectedProcedure, setSelectedProcedure] = useState("");
   const [procedureNotes, setProcedureNotes] = useState("");
   const [orderSubmitting, setOrderSubmitting] = useState(false);
+
+  // Admission report PDF
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     loadAdmission();
@@ -249,6 +263,18 @@ export default function AdmissionDetail() {
 
   const handleDischarge = async (e) => {
     e.preventDefault();
+
+    // Normal discharge is blocked while there's an outstanding balance.
+    // Every other discharge type (DAMA, Referred Out, Deceased, Absconded)
+    // is allowed to proceed with a balance still owing.
+    if (dischargeType === "NORMAL" && Number(billing?.balance || 0) > 0) {
+      setError(
+        `Cannot process a normal discharge. Outstanding balance: ${formatCurrency(billing?.balance || 0)}. ` +
+        `Please clear the balance first, or select a different discharge type.`
+      );
+      return;
+    }
+
     try {
       await dischargePatient(id, { discharge_type: dischargeType, discharge_summary: dischargeSummary });
       loadAdmission();
@@ -324,6 +350,356 @@ export default function AdmissionDetail() {
     }
   };
 
+  const loadImage = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  /**
+   * Generates a full Admission Report PDF using tabulated sections:
+   * - Patient & Admission particulars
+   * - Billing summary & invoice breakdown
+   * - Ward rounds, nursing notes, vitals
+   * - Medication orders
+   * - Lab / radiology requests
+   * - Procedures
+   * - Bed transfer history
+   * Styled to match the Mortuary Discharge Certificate PDF.
+   */
+  const generateAdmissionReportPdf = async (admissionData, billingData) => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 12;
+
+    const logoImg = await loadImage(medicoreLogo);
+
+    const checkPageBreak = (y, minSpace = 30) => {
+      if (y > pageHeight - minSpace) {
+        doc.addPage();
+        return 15;
+      }
+      return y;
+    };
+
+    // 1. Header
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+      } catch (e) {
+        console.warn("Could not render logo in PDF:", e);
+      }
+    }
+
+    const brandX = logoImg ? margin + 15 : margin;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("MEDICORE HOSPITAL", brandX, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Healthcare Management Information System", brandX, 19);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("INPATIENT ADMISSION REPORT", pageWidth - margin, 15, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+    doc.setDrawColor(...BRAND_COLOR);
+    doc.setLineWidth(0.4);
+    doc.line(margin, 24, pageWidth - margin, 24);
+
+    let startY = 28;
+
+    // 2. Patient & Admission Particulars
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("1. Patient & Admission Particulars", margin, startY);
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        1: { cellWidth: 55 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        3: { cellWidth: 55 },
+      },
+      body: [
+        ["Admission #:", admissionData.admission_number || "N/A", "Status:", admissionData.status || "N/A"],
+        ["Patient Name:", admissionData.patient_name || "N/A", "Hospital #:", admissionData.hospital_number || "N/A"],
+        ["Ward:", admissionData.ward_name || "N/A", "Bed:", admissionData.bed_number || "N/A"],
+        ["Admission Type:", admissionData.admission_type || "N/A", "Length of Stay:", `${admissionData.length_of_stay_days ?? 0} day(s)`],
+        ["Admission Date:", formatDateTime(admissionData.admission_date), "Discharge Date:", admissionData.discharge_date ? formatDateTime(admissionData.discharge_date) : "—"],
+        ["Admitting Doctor:", admissionData.admitting_doctor_name || "N/A", "Attending Doctor:", admissionData.attending_doctor_name || "N/A"],
+        ["Discharge Type:", admissionData.discharge_type || "—", "Diagnosis:", admissionData.admission_diagnosis || "—"],
+      ],
+    });
+    startY = doc.lastAutoTable.finalY + 5;
+
+    if (admissionData.discharge_summary) {
+      startY = checkPageBreak(startY, 25);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Discharge Summary:", margin, startY);
+      startY += 4;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(...DARK_TEXT);
+      const summaryLines = doc.splitTextToSize(admissionData.discharge_summary, pageWidth - margin * 2);
+      doc.text(summaryLines, margin, startY);
+      startY += summaryLines.length * 4 + 4;
+    }
+
+    // 3. Billing Summary
+    startY = checkPageBreak(startY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("2. Billing Summary", margin, startY);
+    startY += 3;
+
+    if (billingData?.has_visit) {
+      autoTable(doc, {
+        startY,
+        theme: "plain",
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+        columnStyles: {
+          0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+          1: { cellWidth: 30 },
+          2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+          3: { cellWidth: 30 },
+          4: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+          5: { cellWidth: 30 },
+        },
+        body: [[
+          "Grand Total:", formatCurrency(billingData.grand_total || 0),
+          "Amount Paid:", formatCurrency(billingData.amount_paid || 0),
+          "Balance:", formatCurrency(billingData.balance || 0),
+        ]],
+      });
+      startY = doc.lastAutoTable.finalY + 2;
+
+      const invoicesList = billingData.invoices || [];
+      if (invoicesList.length > 0) {
+        autoTable(doc, {
+          startY,
+          head: [["Invoice #", "Type", "Description", "Amount", "Paid", "Balance", "Status"]],
+          body: invoicesList.map((inv) => [
+            inv.invoice_number || "-",
+            inv.source_type || "-",
+            inv.description || "-",
+            formatCurrency(inv.amount),
+            formatCurrency(inv.amount_paid),
+            formatCurrency(inv.balance),
+            inv.status || "-",
+          ]),
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 7.5, cellPadding: 2, textColor: DARK_TEXT },
+          headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+        });
+        startY = doc.lastAutoTable.finalY + 6;
+      } else {
+        startY += 6;
+      }
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No billing data available.", margin, startY + 2);
+      startY += 8;
+    }
+
+    // Reusable table-section renderer for the remaining clinical sections
+    const renderTableSection = (title, head, rows, emptyLabel) => {
+      startY = checkPageBreak(startY);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text(title, margin, startY);
+      startY += 3;
+
+      if (rows.length > 0) {
+        autoTable(doc, {
+          startY,
+          head: [head],
+          body: rows,
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 7.5, cellPadding: 2, textColor: DARK_TEXT },
+          headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+        });
+        startY = doc.lastAutoTable.finalY + 6;
+      } else {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8);
+        doc.setTextColor(...MUTED_COLOR);
+        doc.text(emptyLabel, margin, startY + 2);
+        startY += 8;
+      }
+    };
+
+    // 4. Ward Rounds
+    renderTableSection(
+      "3. Ward Rounds",
+      ["Date", "Doctor", "Notes", "Plan"],
+      (admissionData.ward_rounds || []).map((r) => [
+        formatDateTime(r.round_date),
+        r.doctor_name || "—",
+        r.notes || "—",
+        r.plan || "—",
+      ]),
+      "No ward rounds recorded."
+    );
+
+    // 5. Nursing Notes
+    renderTableSection(
+      "4. Nursing Notes",
+      ["Shift", "Nurse", "Note"],
+      (admissionData.nursing_notes || []).map((n) => [n.shift || "—", n.nurse_name || "—", n.note || "—"]),
+      "No nursing notes recorded."
+    );
+
+    // 6. Vitals
+    renderTableSection(
+      "5. Vitals",
+      ["Date/Time", "Shift", "BP", "Temp", "Pulse", "RR", "SpO2", "BMI"],
+      (admissionData.vitals || []).map((v) => [
+        formatDateTime(v.recorded_at),
+        v.shift || "—",
+        `${v.bp_systolic ?? "—"}/${v.bp_diastolic ?? "—"}`,
+        v.temperature_c ? `${v.temperature_c}°C` : "—",
+        v.pulse_bpm ?? "—",
+        v.respiratory_rate ?? "—",
+        v.oxygen_saturation ? `${v.oxygen_saturation}%` : "—",
+        v.bmi || "—",
+      ]),
+      "No vitals recorded."
+    );
+
+    // 7. Medication Orders
+    renderTableSection(
+      "6. Medication Orders",
+      ["Medicine", "Dosage", "Route", "Frequency", "Qty", "Status"],
+      (admissionData.medication_orders || []).map((m) => [
+        m.medicine_name || "—",
+        m.dosage || "—",
+        m.route || "—",
+        m.frequency || "—",
+        m.quantity ?? "—",
+        m.is_active ? "Active" : "Discontinued",
+      ]),
+      "No medication orders."
+    );
+
+    // 8. Lab Requests
+    renderTableSection(
+      "7. Lab Requests",
+      ["Test", "Price", "Status", "Ordered", "Result"],
+      (admissionData.lab_orders || []).map((o) => [
+        o.test_name || "—",
+        formatCurrency(o.test_price || 0),
+        o.status || "—",
+        formatDateTime(o.ordered_at),
+        o.result?.result_text || (o.result ? "See file" : "Pending"),
+      ]),
+      "No lab requests for this admission."
+    );
+
+    // 9. Radiology Requests
+    renderTableSection(
+      "8. Radiology Requests",
+      ["Test", "Price", "Status", "Ordered"],
+      (admissionData.radiology_orders || []).map((o) => [
+        o.test_name || "—",
+        formatCurrency(o.test_price || 0),
+        o.status || "—",
+        formatDateTime(o.ordered_at),
+      ]),
+      "No radiology requests for this admission."
+    );
+
+    // 10. Procedures
+    renderTableSection(
+      "9. Procedures",
+      ["Procedure", "Price", "Notes", "Status", "Ordered"],
+      (admissionData.procedures || []).map((p) => [
+        p.procedure_name || "—",
+        formatCurrency(p.procedure_price || 0),
+        p.notes || "—",
+        p.status || "—",
+        formatDateTime(p.ordered_at),
+      ]),
+      "No procedures recorded for this admission."
+    );
+
+    // 11. Bed Transfer History
+    renderTableSection(
+      "10. Bed Transfer History",
+      ["Date", "From", "To", "Reason"],
+      (admissionData.bed_transfers || []).map((t) => [
+        formatDateTime(t.transferred_at),
+        t.from_bed_label || "N/A",
+        t.to_bed_label || "—",
+        t.reason || "—",
+      ]),
+      "No bed transfer history."
+    );
+
+    // 12. Certification footer
+    startY = checkPageBreak(startY, 40);
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, 30, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("REPORT CERTIFICATION", margin + 4, startY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("This report reflects the admission record as of the generation date above.", margin + 4, startY + 12);
+
+    doc.line(margin + 4, startY + 24, margin + 70, startY + 24);
+    doc.text("Prepared By", margin + 4, startY + 28);
+
+    doc.line(pageWidth - margin - 70, startY + 24, pageWidth - margin - 4, startY + 24);
+    doc.text("Medical Records Officer", pageWidth - margin - 70, startY + 28);
+
+    doc.save(`Admission_Report_${admissionData.admission_number}.pdf`);
+  };
+
+  const handleDownloadAdmissionPdf = async () => {
+    if (!admission) return;
+    setGeneratingPdf(true);
+    try {
+      await generateAdmissionReportPdf(admission, billing);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -348,6 +724,10 @@ export default function AdmissionDetail() {
   if (!admission) return null;
 
   const isActive = admission.status === "ADMITTED";
+  const hasOutstandingBalance = Number(billing?.balance || 0) > 0;
+  // A normal discharge requires the bill to be cleared. Every other discharge
+  // type (DAMA, Referred Out, Deceased, Absconded) may proceed with a balance owing.
+  const dischargeBlockedByBalance = dischargeType === "NORMAL" && hasOutstandingBalance;
 
   const tabs = [
     { id: "patient", label: "Patient Info", icon: "bi-person" },
@@ -400,6 +780,9 @@ export default function AdmissionDetail() {
           </button>
           <button className="btn btn-secondary" onClick={loadAdmission}>
             <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
+          </button>
+          <button className="btn btn-secondary" onClick={handleDownloadAdmissionPdf} disabled={generatingPdf}>
+            <i className="bi bi-download  me-1"></i> {generatingPdf ? "Generating..." : "Download Report (PDF)"}
           </button>
         </div>
       </div>
@@ -1192,6 +1575,25 @@ export default function AdmissionDetail() {
           {/* Discharge Tab */}
           {activeTab === "discharge" && isActive && (
             <div>
+              {dischargeBlockedByBalance && (
+                <div
+                  className="card"
+                  style={{
+                    marginBottom: "var(--space-4)",
+                    borderColor: "var(--warning)",
+                    background: "var(--warning-soft)",
+                  }}
+                >
+                  <div className="card-body text-warning">
+                    <i className="bi bi-lock-fill  me-1"></i>
+                    <strong>Discharge Restricted:</strong> This admission has an outstanding balance of{" "}
+                    <strong>KES {billing?.balance}</strong>. A normal discharge requires the bill to be cleared
+                    first. Select a different discharge type (Discharge Against Medical Advice, Referred Out,
+                    Deceased, or Absconded) if the patient needs to leave before the balance is settled.
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleDischarge}>
                 <div className="field">
                   <label className="field-label">Discharge Type</label>
@@ -1213,8 +1615,14 @@ export default function AdmissionDetail() {
                     required
                   />
                 </div>
-                <button type="submit" className="btn btn-danger">
-                  <i className="bi bi-door-open  me-1"></i> Discharge Patient
+                <button
+                  type="submit"
+                  className="btn btn-danger"
+                  disabled={dischargeBlockedByBalance}
+                  title={dischargeBlockedByBalance ? "Clear the outstanding balance to unlock normal discharge" : ""}
+                >
+                  <i className={`bi ${dischargeBlockedByBalance ? "bi-lock-fill" : "bi-door-open"}  me-1`}></i>
+                  Discharge Patient
                 </button>
               </form>
             </div>
