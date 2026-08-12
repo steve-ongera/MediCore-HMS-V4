@@ -933,6 +933,16 @@ export default function App() {
           </>
         );})()}
 
+        {(() => { const roles = [ROLES.DOCTOR, ROLES.NURSE, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.SUPER_ADMIN]; return (
+          <>
+            <Route path="/care-coordination" element={<ProtectedRoute allowedRoles={roles}><CareCoordinationDashboard /></ProtectedRoute>} />
+            <Route path="/care-coordination/care-plans" element={<ProtectedRoute allowedRoles={roles}><CarePlanList /></ProtectedRoute>} />
+            <Route path="/care-coordination/care-plans/new" element={<ProtectedRoute allowedRoles={roles}><CreateCarePlan /></ProtectedRoute>} />
+            <Route path="/care-coordination/care-plans/:id" element={<ProtectedRoute allowedRoles={roles}><CarePlanDetail /></ProtectedRoute>} />
+            <Route path="/care-coordination/all-tasks" element={<ProtectedRoute allowedRoles={roles}><AllFollowUpTasks /></ProtectedRoute>} />
+          </>
+        );})()}
+
         {/* Profile - any authenticated user */}
         <Route
           path="/profile"
