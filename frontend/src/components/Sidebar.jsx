@@ -222,6 +222,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+  label: "Care Coordination",
+    roles: [ROLES.DOCTOR, ROLES.NURSE, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER],
+    links: [
+      { to: "/care-coordination", label: "Dashboard", icon: "bi-clipboard2-pulse" },
+      { to: "/care-coordination/care-plans", label: "Care Plans", icon: "bi-heart-pulse" },
+      { to: "/care-coordination/care-plans/new", label: "New Care Plan", icon: "bi-plus-circle" },
+      { to: "/care-coordination/all-tasks", label: "All Follow-up Tasks", icon: "bi-list-task" },
+    ],
+  },
+  {
     label: "Mortuary",
     roles: [ROLES.MORTUARY_ATTENDANT],
     links: [
