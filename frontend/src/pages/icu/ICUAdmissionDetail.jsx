@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   getICUAdmission, getICUBilling, recordICUVitals, recordVentilatorSettings,
   getICUProcedureCatalog, orderICUProcedure, dischargeFromICU,
 } from "../../services/api";
 import { formatCurrency, formatDate, formatDateTime } from "../../utils/formatters";
+import medicoreLogo from "../../assets/logo.png";
+
+// Design constants — kept in sync with the Emergency / Mortuary reports
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
 
 export default function ICUAdmissionDetail() {
   const { id } = useParams();
@@ -15,6 +25,7 @@ export default function ICUAdmissionDetail() {
   const [procedures, setProcedures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const [vitalsForm, setVitalsForm] = useState({
     heart_rate: "", bp_systolic: "", bp_diastolic: "", mean_arterial_pressure: "",
@@ -85,8 +96,24 @@ export default function ICUAdmissionDetail() {
     } catch (err) { setError(err.message); }
   };
 
+  // --- DISCHARGE / CLOSE-EPISODE FREEZE CHECK ---
+  // If there is an outstanding balance, the episode can only be closed when the
+  // discharge status is DECEASED. All other dispositions require the bill to be cleared first.
+  const hasOutstandingBalance = Number(billing?.balance || 0) > 0;
+  const dischargeBlocked = hasOutstandingBalance && dischargeForm.status !== "DECEASED";
+
   const submitDischarge = async (e) => {
     e.preventDefault();
+
+    if (hasOutstandingBalance && dischargeForm.status !== "DECEASED") {
+      setError(
+        `Cannot close this ICU episode. Outstanding balance: ${formatCurrency(
+          billing.balance
+        )}. Please clear the balance first, or select "Deceased" as the status.`
+      );
+      return;
+    }
+
     if (!window.confirm("Discharge/close this ICU episode?")) return;
     try {
       await dischargeFromICU(id, dischargeForm);
@@ -112,6 +139,8 @@ export default function ICUAdmissionDetail() {
     return statusMap[status] || "badge-neutral";
   };
 
+  const getStatusLabel = (status) => (status || "").replace("_", " ");
+
   const getModeLabel = (mode) => {
     const labels = {
       "NONE": "Not Ventilated",
@@ -122,6 +151,304 @@ export default function ICUAdmissionDetail() {
       "PSV": "Pressure Support (PSV)",
     };
     return labels[mode] || mode;
+  };
+
+  const loadImage = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  /**
+   * Generates a professional PDF report for the ICU/HDU admission, styled to
+   * match the Emergency and Mortuary reports: branded header, structured
+   * label/value tables, itemized billing, clinical history tables, and a
+   * sign-off block.
+   */
+  const generateICUReportPdf = async (adm, billingData) => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 12;
+
+    const logoImg = await loadImage(medicoreLogo);
+
+    // 1. Header
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+      } catch (e) {
+        console.warn("Could not render logo in PDF:", e);
+      }
+    }
+
+    const brandX = logoImg ? margin + 15 : margin;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("MEDICORE HOSPITAL ICU / HDU", brandX, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Healthcare Management Information System", brandX, 19);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("ICU / HDU ADMISSION REPORT", pageWidth - margin, 15, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+    doc.setDrawColor(...BRAND_COLOR);
+    doc.setLineWidth(0.4);
+    doc.line(margin, 24, pageWidth - margin, 24);
+
+    let startY = 28;
+
+    // 2. Patient & Admission Summary
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("1. Patient & Admission Summary", margin, startY);
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        1: { cellWidth: 55 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        3: { cellWidth: 55 },
+      },
+      body: [
+        ["Admission Number:", adm.icu_admission_number || "N/A", "Patient Name:", adm.patient_name || "N/A"],
+        ["Hospital Number:", adm.hospital_number || "N/A", "Status:", getStatusLabel(adm.status)],
+        ["Bed:", adm.bed_number || "N/A", "Unit Type:", adm.unit_type || "N/A"],
+        ["Admitted At:", formatDateTime(adm.admitted_at), "Length of Stay:", `${adm.length_of_stay_days} day(s)`],
+        ["Severity Score:", adm.severity_score ?? "—", "Attending Physician:", adm.attending_physician_name || "—"],
+        ["Admission Reason:", adm.admission_reason || "—", "", ""],
+        ["Admission Diagnosis:", adm.admission_diagnosis || "—", "", ""],
+        ...(adm.discharged_at ? [["Discharged At:", formatDateTime(adm.discharged_at), "", ""]] : []),
+        ...(adm.discharge_summary ? [["Discharge Summary:", adm.discharge_summary, "", ""]] : []),
+      ],
+    });
+
+    startY = doc.lastAutoTable.finalY + 5;
+
+    // 3. Billing Summary
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("2. Financial & Billing Summary", margin, startY);
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+        1: { cellWidth: 30 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+        3: { cellWidth: 30 },
+        4: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 30 },
+        5: { cellWidth: 30 },
+      },
+      body: [
+        [
+          "Grand Total:",
+          formatCurrency(billingData?.grand_total || 0),
+          "Amount Paid:",
+          formatCurrency(billingData?.amount_paid || 0),
+          "Balance:",
+          formatCurrency(billingData?.balance || 0),
+        ],
+      ],
+    });
+
+    startY = doc.lastAutoTable.finalY + 2;
+
+    const invoicesList = billingData?.invoices || [];
+    if (invoicesList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Invoice #", "Description", "Amount", "Balance", "Status"]],
+        body: invoicesList.map((inv) => [
+          inv.invoice_number || "-",
+          inv.description || "-",
+          formatCurrency(inv.amount),
+          formatCurrency(inv.balance),
+          inv.status || "-",
+        ]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 6;
+    } else {
+      startY += 6;
+    }
+
+    // 4. Vitals History
+    if (startY > 250) { doc.addPage(); startY = 20; }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("3. Vitals History", margin, startY);
+    startY += 3;
+
+    const vitalsList = adm.vitals || [];
+    if (vitalsList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Time", "HR", "BP", "SpO2", "GCS", "Urine Output"]],
+        body: vitalsList.map((v) => [
+          formatDateTime(v.recorded_at),
+          v.heart_rate,
+          `${v.bp_systolic}/${v.bp_diastolic}`,
+          `${v.oxygen_saturation}%`,
+          v.gcs_score,
+          `${v.urine_output_ml} ml`,
+        ]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 5;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No vitals recorded.", margin, startY + 2);
+      startY += 8;
+    }
+
+    // 5. Ventilator Settings History
+    if (startY > 250) { doc.addPage(); startY = 20; }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("4. Ventilator Settings History", margin, startY);
+    startY += 3;
+
+    const ventList = adm.ventilator_settings || [];
+    if (ventList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Time", "Mode", "FiO2", "PEEP", "Tidal Volume"]],
+        body: ventList.map((v) => [
+          formatDateTime(v.recorded_at),
+          getModeLabel(v.mode),
+          `${v.fio2_percent}%`,
+          v.peep_cmh2o,
+          v.tidal_volume_ml,
+        ]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 5;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No ventilator settings recorded.", margin, startY + 2);
+      startY += 8;
+    }
+
+    // 6. Procedures
+    if (startY > 250) { doc.addPage(); startY = 20; }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("5. Procedures", margin, startY);
+    startY += 3;
+
+    const procList = adm.procedures || [];
+    if (procList.length > 0) {
+      autoTable(doc, {
+        startY,
+        head: [["Procedure", "Performed By", "Time"]],
+        body: procList.map((p) => [p.procedure_name || "-", p.performed_by_name || "-", formatDateTime(p.performed_at)]),
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 8, cellPadding: 2, textColor: DARK_TEXT },
+        headStyles: { fillColor: BRAND_COLOR, textColor: [255, 255, 255], fontStyle: "bold" },
+      });
+      startY = doc.lastAutoTable.finalY + 6;
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("No procedures recorded.", margin, startY + 2);
+      startY += 10;
+    }
+
+    // 7. Sign-off block
+    if (startY > 255) { doc.addPage(); startY = 20; }
+
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, 30, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("CLINICAL RECORD SIGN-OFF", margin + 4, startY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text(
+      "This report reflects the ICU/HDU admission record at the time of generation.",
+      margin + 4,
+      startY + 12
+    );
+
+    doc.line(margin + 4, startY + 24, margin + 84, startY + 24);
+    doc.text("Attending Physician / Nurse Signature", margin + 4, startY + 28);
+
+    doc.line(margin + 100, startY + 24, margin + 180, startY + 24);
+    doc.text("Date", margin + 100, startY + 28);
+
+    // Footer on every page
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      const pageHeight = doc.internal.pageSize.getHeight();
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.setLineWidth(0.2);
+      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Generated by ICU/HDU HMIS • Confidential Medical Report", margin, pageHeight - 9);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 9, { align: "right" });
+    }
+
+    doc.save(`ICU_Admission_Report_${adm.icu_admission_number}.pdf`);
+  };
+
+  const handleDownloadPdfReport = async () => {
+    if (!admission) return;
+    setGeneratingPdf(true);
+    try {
+      await generateICUReportPdf(admission, billing);
+    } catch (err) {
+      setError(err.message || "Failed to generate PDF report.");
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   if (loading) {
@@ -148,6 +475,10 @@ export default function ICUAdmissionDetail() {
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/icu")}>
             <i className="bi bi-arrow-left  me-1"></i> Back to Board
+          </button>
+          <button className="btn btn-primary" onClick={handleDownloadPdfReport} disabled={generatingPdf}>
+            <i className="bi bi-file-earmark-pdf me-1"></i>
+            {generatingPdf ? "Generating..." : "PDF Report"}
           </button>
           <button className="btn btn-secondary" onClick={load}>
             <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
@@ -182,7 +513,7 @@ export default function ICUAdmissionDetail() {
                 <span>•</span>
                 <span className={`badge ${getStatusBadge(admission.status)}`}>
                   <span className="badge-dot"></span>
-                  {admission.status.replace("_", " ")}
+                  {getStatusLabel(admission.status)}
                 </span>
               </div>
             </div>
@@ -266,7 +597,7 @@ export default function ICUAdmissionDetail() {
                 <div className="stat-card">
                   <div className="stat-card__top">
                     <span className="stat-card__label">Balance</span>
-                    <div className="stat-card__icon tone-warning">
+                    <div className={`stat-card__icon ${hasOutstandingBalance ? "tone-danger" : "tone-warning"}`}>
                       <i className="bi bi-currency-dollar"></i>
                     </div>
                   </div>
@@ -634,6 +965,26 @@ export default function ICUAdmissionDetail() {
             </h5>
           </div>
           <div className="card-body">
+            {hasOutstandingBalance && (
+              <div
+                className="alert"
+                style={{
+                  marginBottom: "var(--space-3)",
+                  padding: "var(--space-3)",
+                  borderRadius: "6px",
+                  color: "#991b1b",
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca",
+                }}
+              >
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Closure Restricted:</strong> This admission has an outstanding balance of{" "}
+                <strong>{formatCurrency(billing?.balance)}</strong>. The episode can only be closed while a
+                balance remains if the status is set to <strong>Deceased</strong>. All other dispositions
+                require the balance to be cleared first.
+              </div>
+            )}
+
             <form onSubmit={submitDischarge}>
               <div className="field">
                 <label className="field-label">Status <span className="required">*</span></label>
@@ -653,8 +1004,13 @@ export default function ICUAdmissionDetail() {
                   onChange={(e) => setDischargeForm((p) => ({ ...p, discharge_summary: e.target.value }))}
                 />
               </div>
-              <button type="submit" className="btn btn-danger">
-                <i className="bi bi-door-open  me-1"></i> Close ICU Episode
+              <button
+                type="submit"
+                className="btn btn-danger"
+                disabled={dischargeBlocked}
+                title={dischargeBlocked ? "Clear outstanding balance, or set status to Deceased, to close this episode" : ""}
+              >
+                <i className={`bi ${dischargeBlocked ? "bi-lock-fill" : "bi-door-open"}  me-1`}></i> Close ICU Episode
               </button>
             </form>
           </div>
