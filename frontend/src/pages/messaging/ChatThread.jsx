@@ -27,12 +27,23 @@ export default function ChatThread() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Normalizes the /conversations/ response: it may come back as a plain
+  // array, or as a DRF-paginated object ({count, next, previous, results}).
+  // Guarding here means a change to backend pagination settings can never
+  // silently break this screen again.
+  const toArray = (data) => {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.results)) return data.results;
+    return [];
+  };
+
   const loadThread = async () => {
     setLoading(true);
     try {
       const [msgs, convs] = await Promise.all([getConversationMessages(id), getConversations()]);
       setMessages(msgs);
-      setConversation(convs.find((c) => c.id === id) || null);
+      const convList = toArray(convs);
+      setConversation(convList.find((c) => c.id === id) || null);
     } catch (err) {
       setError(err.message);
     } finally {

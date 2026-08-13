@@ -1,3 +1,4 @@
+#messaging/serializers.py
 from rest_framework import serializers
 from django.utils import timezone
 
@@ -24,7 +25,10 @@ class ConversationSerializer(serializers.ModelSerializer):
         fields = ["id", "is_group", "name", "participant_names", "other_participant", "last_message", "unread_count", "updated_at"]
 
     def get_participant_names(self, obj):
-        return [p.user.get_full_name() for p in obj.conversationparticipant_set.select_related("user").all()]
+        return [
+            p.user.get_full_name() or p.user.username
+            for p in obj.conversationparticipant_set.select_related("user").all()
+        ]
 
     def get_other_participant(self, obj):
         """For 1:1 chats — the person who ISN'T the requesting user, so the frontend can show a clean chat header."""
@@ -34,13 +38,16 @@ class ConversationSerializer(serializers.ModelSerializer):
         other = obj.conversationparticipant_set.exclude(user=request.user).select_related("user").first()
         if not other:
             return None
-        return {"id": str(other.user.id), "name": other.user.get_full_name(), "role": other.user.role}
+        # Fall back to username if the user has no first/last name set, so the
+        # frontend never has to render an empty string (which reads as "Unknown").
+        name = other.user.get_full_name() or other.user.username
+        return {"id": str(other.user.id), "name": name, "role": other.user.role}
 
     def get_last_message(self, obj):
         msg = obj.messages.order_by("-created_at").first()
         if not msg:
             return None
-        return {"text": msg.text, "sender_name": msg.sender.get_full_name(), "created_at": msg.created_at}
+        return {"text": msg.text, "sender_name": msg.sender.get_full_name() or msg.sender.username, "created_at": msg.created_at}
 
     def get_unread_count(self, obj):
         request = self.context.get("request")

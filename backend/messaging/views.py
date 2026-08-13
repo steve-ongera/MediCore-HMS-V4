@@ -1,3 +1,4 @@
+#messaging/views.py
 from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -12,6 +13,7 @@ from .serializers import ConversationSerializer, MessageSerializer, StartConvers
 
 class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ConversationSerializer
+    pagination_class = None  # a user's conversation list is small; keep the response a plain array
 
     def get_queryset(self):
         return Conversation.objects.filter(participants=self.request.user).prefetch_related(
