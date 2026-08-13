@@ -44,13 +44,20 @@ export default function ClaimsList() {
     return () => clearTimeout(t);
   }, [search]);
 
-  useEffect(() => { setPage(1); }, [statusFilter, insurerFilter, debouncedSearch]);
-  useEffect(() => { load(); }, [statusFilter, insurerFilter, debouncedSearch, page]);
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, insurerFilter, debouncedSearch]);
+
+  useEffect(() => {
+    load();
+  }, [statusFilter, insurerFilter, debouncedSearch, page]);
 
   // Close the export dropdown on outside click
   useEffect(() => {
     const onClick = (e) => {
-      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportOpen(false);
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+        setExportOpen(false);
+      }
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -67,11 +74,19 @@ export default function ClaimsList() {
   const load = async () => {
     setLoading(true);
     try {
-      const data = await getInsuranceClaims({ ...buildParams(), page, page_size: pageSize });
+      const data = await getInsuranceClaims({
+        ...buildParams(),
+        page,
+        page_size: pageSize,
+      });
       const results = data.results ?? data;
       setClaims(results);
       setTotal(data.count ?? results.length);
-    } catch (err) { setError(err.message); } finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message || "Failed to load claims");
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -103,7 +118,7 @@ export default function ClaimsList() {
   };
 
   /**
-   * Generate PDF Report with tight single-line rows & full claim number visibility
+   * Generate PDF Report with Totals & Official Sign/Stamp Approval Blocks
    */
   const generatePdf = async (exportData) => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -152,8 +167,10 @@ export default function ClaimsList() {
 
     let startY = 26;
 
-    // Filter Summary
-    const activeInsurerName = insurers.find((i) => String(i.id) === String(insurerFilter))?.name || "All Insurers";
+    // Filter Summary Block
+    const activeInsurerName =
+      insurers.find((i) => String(i.id) === String(insurerFilter))?.name || "All Insurers";
+
     autoTable(doc, {
       startY: startY,
       theme: "plain",
@@ -222,18 +239,18 @@ export default function ClaimsList() {
       };
     });
 
-    // AutoTable Rendering - Expanded Claim # width to fit completely
+    // AutoTable Rendering
     autoTable(doc, {
       startY: startY,
       columns: tableColumns,
       body: tableRows,
-      margin: { left: margin, right: margin, bottom: 18 },
+      margin: { left: margin, right: margin, bottom: 20 },
       styles: {
-        fontSize: 7,               // Compact text size
-        cellPadding: 1.2,          // Slim padding for single-line height
+        fontSize: 7,
+        cellPadding: 1.2,
         textColor: DARK_TEXT,
         valign: "middle",
-        overflow: "ellipsize",     // Ellipsize secondary long fields if needed
+        overflow: "ellipsize",
       },
       headStyles: {
         fillColor: BRAND_COLOR,
@@ -246,12 +263,12 @@ export default function ClaimsList() {
         fillColor: LIGHT_FILL,
       },
       columnStyles: {
-        0: { cellWidth: 38, minCellWidth: 38, fontStyle: "bold" }, // Claim # - Full width display guarantee
-        1: { cellWidth: 42 },                                       // Patient Name
-        2: { cellWidth: 36 },                                       // Insurer Name
-        3: { cellWidth: 26 },                                       // Status
-        4: { cellWidth: 22, halign: "right" },                       // Claimed
-        5: { cellWidth: 22, halign: "right", fontStyle: "bold" },  // Approved
+        0: { cellWidth: 38, minCellWidth: 38, fontStyle: "bold" },
+        1: { cellWidth: 42 },
+        2: { cellWidth: 36 },
+        3: { cellWidth: 26 },
+        4: { cellWidth: 22, halign: "right" },
+        5: { cellWidth: 22, halign: "right", fontStyle: "bold" },
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
@@ -277,30 +294,97 @@ export default function ClaimsList() {
       },
     });
 
-    // Totals Box
-    let finalY = doc.lastAutoTable.finalY + 4;
+    // Totals Summary Box
+    let currentY = doc.lastAutoTable.finalY + 4;
 
-    if (finalY + 18 > pageHeight - 12) {
+    if (currentY + 65 > pageHeight - 15) {
       doc.addPage();
-      finalY = 12;
+      currentY = 15;
     }
 
     doc.setFillColor(...LIGHT_FILL);
-    doc.rect(pageWidth - margin - 80, finalY, 80, 14, "F");
+    doc.rect(pageWidth - margin - 80, currentY, 80, 14, "F");
     doc.setDrawColor(...LIGHT_BORDER);
-    doc.rect(pageWidth - margin - 80, finalY, 80, 14, "S");
+    doc.rect(pageWidth - margin - 80, currentY, 80, 14, "S");
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(...DARK_TEXT);
-    doc.text("Total Claimed:", pageWidth - margin - 76, finalY + 5.5);
+    doc.text("Total Claimed:", pageWidth - margin - 76, currentY + 5.5);
     doc.setTextColor(...BRAND_COLOR);
-    doc.text(formatCurrency(totalClaimedSum), pageWidth - margin - 4, finalY + 5.5, { align: "right" });
+    doc.text(formatCurrency(totalClaimedSum), pageWidth - margin - 4, currentY + 5.5, {
+      align: "right",
+    });
 
     doc.setTextColor(...DARK_TEXT);
-    doc.text("Total Approved:", pageWidth - margin - 76, finalY + 10.5);
+    doc.text("Total Approved:", pageWidth - margin - 76, currentY + 10.5);
     doc.setTextColor(...BRAND_COLOR);
-    doc.text(formatCurrency(totalApprovedSum), pageWidth - margin - 4, finalY + 10.5, { align: "right" });
+    doc.text(formatCurrency(totalApprovedSum), pageWidth - margin - 4, currentY + 10.5, {
+      align: "right",
+    });
+
+    // -------------------------------------------------------------
+    // SIGNATURE & STAMP SECTION (Hospital & Insurance Verification)
+    // -------------------------------------------------------------
+    let sigY = currentY + 22;
+    const boxWidth = (pageWidth - margin * 2 - 10) / 2; // 2 columns
+
+    // 1. Hospital Verification Box
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(252, 252, 253);
+    doc.roundedRect(margin, sigY, boxWidth, 38, 1.5, 1.5, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("HOSPITAL AUTHORIZATION & STAMP", margin + 4, sigY + 5.5);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...DARK_TEXT);
+
+    doc.text("Authorized Name: _______________________", margin + 4, sigY + 13);
+    doc.text("Signature: _____________________________", margin + 4, sigY + 20);
+    doc.text("Date: __________________________________", margin + 4, sigY + 27);
+
+    // Dotted Official Stamp Box
+    doc.setDrawColor(...MUTED_COLOR);
+    doc.setLineDashPattern([1, 1], 0);
+    doc.rect(margin + boxWidth - 28, sigY + 8, 24, 24, "S");
+    doc.setFontSize(6);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Official Hospital", margin + boxWidth - 16, sigY + 18, { align: "center" });
+    doc.text("Stamp Here", margin + boxWidth - 16, sigY + 22, { align: "center" });
+    doc.setLineDashPattern([], 0); // Reset dash pattern
+
+    // 2. Insurance Company Verification Box
+    const insX = margin + boxWidth + 10;
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(252, 252, 253);
+    doc.roundedRect(insX, sigY, boxWidth, 38, 1.5, 1.5, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_COLOR);
+    doc.text("INSURER APPROVAL & STAMP", insX + 4, sigY + 5.5);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...DARK_TEXT);
+
+    doc.text("Claim Representative: ____________________", insX + 4, sigY + 13);
+    doc.text("Signature: _____________________________", insX + 4, sigY + 20);
+    doc.text("Date: __________________________________", insX + 4, sigY + 27);
+
+    // Dotted Official Stamp Box
+    doc.setDrawColor(...MUTED_COLOR);
+    doc.setLineDashPattern([1, 1], 0);
+    doc.rect(insX + boxWidth - 28, sigY + 8, 24, 24, "S");
+    doc.setFontSize(6);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("Insurer Stamp", insX + boxWidth - 16, sigY + 18, { align: "center" });
+    doc.text("Here", insX + boxWidth - 16, sigY + 22, { align: "center" });
+    doc.setLineDashPattern([], 0); // Reset dash pattern
 
     return doc;
   };
@@ -309,7 +393,9 @@ export default function ClaimsList() {
    * Generate XML Excel Spreadsheet
    */
   const generateExcelXML = (exportData) => {
-    const rowsHtml = exportData.map((c) => `
+    const rowsHtml = exportData
+      .map(
+        (c) => `
       <tr>
         <td style="mso-number-format:'\\@';">${c.claim_number || ""}</td>
         <td>${c.patient_name || ""}</td>
@@ -318,7 +404,9 @@ export default function ClaimsList() {
         <td>${c.total_claimed || 0}</td>
         <td>${c.total_approved || 0}</td>
       </tr>
-    `).join("");
+    `
+      )
+      .join("");
 
     return `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -402,14 +490,14 @@ export default function ClaimsList() {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      "DRAFT": "badge-neutral",
-      "SUBMITTED": "badge-primary",
-      "UNDER_REVIEW": "badge-info",
-      "APPROVED": "badge-success",
-      "PARTIALLY_APPROVED": "badge-warning",
-      "REJECTED": "badge-danger",
-      "SETTLED": "badge-success",
-      "CANCELLED": "badge-neutral"
+      DRAFT: "badge-neutral",
+      SUBMITTED: "badge-primary",
+      UNDER_REVIEW: "badge-info",
+      APPROVED: "badge-success",
+      PARTIALLY_APPROVED: "badge-warning",
+      REJECTED: "badge-danger",
+      SETTLED: "badge-success",
+      CANCELLED: "badge-neutral",
     };
     return statusMap[status] || "badge-neutral";
   };
@@ -477,7 +565,14 @@ export default function ClaimsList() {
       </div>
 
       {error && (
-        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
+        <div
+          className="card"
+          style={{
+            marginBottom: "var(--space-4)",
+            borderColor: "var(--danger)",
+            background: "var(--danger-soft)",
+          }}
+        >
           <div className="card-body">
             <div className="text-danger">
               <i className="bi bi-exclamation-circle me-1"></i> {error}
@@ -490,7 +585,9 @@ export default function ClaimsList() {
         <div className="card-header">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Search</label>
+              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>
+                Search
+              </label>
               <input
                 type="text"
                 className="input"
@@ -502,7 +599,9 @@ export default function ClaimsList() {
             </div>
 
             <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Insurer</label>
+              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>
+                Insurer
+              </label>
               <select
                 className="select"
                 value={insurerFilter}
@@ -511,13 +610,17 @@ export default function ClaimsList() {
               >
                 <option value="">All Insurers</option>
                 {insurers.map((ins) => (
-                  <option key={ins.id} value={ins.id}>{ins.name}</option>
+                  <option key={ins.id} value={ins.id}>
+                    {ins.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="field" style={{ marginBottom: 0 }}>
-              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>Status</label>
+              <label className="field-label" style={{ marginBottom: 0, fontSize: "13px" }}>
+                Status
+              </label>
               <select
                 className="select"
                 value={statusFilter}
@@ -584,13 +687,16 @@ export default function ClaimsList() {
                         <td>
                           <span className={`badge ${getStatusBadge(c.status)}`}>
                             <span className="badge-dot"></span>
-                            {c.status.replace("_", " ")}
+                            {(c.status || "").replace("_", " ")}
                           </span>
                         </td>
                         <td className="cell-numeric">{formatCurrency(c.total_claimed)}</td>
                         <td className="cell-numeric">{formatCurrency(c.total_approved)}</td>
                         <td className="cell-actions">
-                          <Link to={`/insurance/claims/${c.id}`} className="btn btn-secondary btn-sm">
+                          <Link
+                            to={`/insurance/claims/${c.id}`}
+                            className="btn btn-secondary btn-sm"
+                          >
                             <i className="bi bi-eye me-1"></i> View
                           </Link>
                         </td>
@@ -600,17 +706,30 @@ export default function ClaimsList() {
                 </table>
               </div>
 
-              <Pagination page={page} count={total} pageSize={pageSize} onPageChange={setPage} />
+              <Pagination
+                page={page}
+                count={total}
+                pageSize={pageSize}
+                onPageChange={setPage}
+              />
             </>
           )}
         </div>
         {claims.length > 0 && (
           <div className="card-footer">
             <div className="flex gap-2">
-              <span className="badge badge-success"><span className="badge-dot"></span>Approved</span>
-              <span className="badge badge-warning"><span className="badge-dot"></span>Partial</span>
-              <span className="badge badge-danger"><span className="badge-dot"></span>Rejected</span>
-              <span className="badge badge-info"><span className="badge-dot"></span>Under Review</span>
+              <span className="badge badge-success">
+                <span className="badge-dot"></span>Approved
+              </span>
+              <span className="badge badge-warning">
+                <span className="badge-dot"></span>Partial
+              </span>
+              <span className="badge badge-danger">
+                <span className="badge-dot"></span>Rejected
+              </span>
+              <span className="badge badge-info">
+                <span className="badge-dot"></span>Under Review
+              </span>
             </div>
           </div>
         )}

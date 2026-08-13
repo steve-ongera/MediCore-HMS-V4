@@ -152,7 +152,7 @@ export default function ClaimDetail() {
 
       let startY = 27;
 
-      // 2. Claim Summary Header Block (Claim # fully expanded)
+      // 2. Claim Summary Header Block
       autoTable(doc, {
         startY: startY,
         theme: "plain",
@@ -164,7 +164,7 @@ export default function ClaimDetail() {
         },
         columnStyles: {
           0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 32 },
-          1: { fontStyle: "bold", textColor: BRAND_COLOR, cellWidth: 60 }, // Full Claim # display
+          1: { fontStyle: "bold", textColor: BRAND_COLOR, cellWidth: 60 },
           2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 32 },
           3: { cellWidth: 62 },
         },
@@ -288,9 +288,9 @@ export default function ClaimDetail() {
 
       // 4. Totals Box
       let finalY = doc.lastAutoTable.finalY + 5;
-      if (finalY + 22 > pageHeight - 12) {
+      if (finalY + 60 > pageHeight - 15) {
         doc.addPage();
-        finalY = 12;
+        finalY = 15;
       }
 
       doc.setFillColor(...LIGHT_FILL);
@@ -309,6 +309,61 @@ export default function ClaimDetail() {
       doc.text("Total Amount Approved:", pageWidth - margin - 81, finalY + 12);
       doc.setTextColor(...BRAND_COLOR);
       doc.text(`KES ${formatCurrency(claim.total_approved)}`, pageWidth - margin - 4, finalY + 12, { align: "right" });
+
+      // 5. Dual Signatures & Stamp Section
+      let sigY = finalY + 26;
+      if (sigY + 38 > pageHeight - 15) {
+        doc.addPage();
+        sigY = 20;
+      }
+
+      const blockWidth = (pageWidth - (margin * 2) - 12) / 2;
+      const leftX = margin;
+      const rightX = margin + blockWidth + 12;
+
+      // Hospital / Provider Signature Block
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("HOSPITAL AUTHORIZED SIGNATORY", leftX, sigY);
+
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.setLineWidth(0.3);
+
+      // Signature line
+      doc.line(leftX, sigY + 16, leftX + blockWidth, sigY + 16);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Authorized Officer Signature & Seal", leftX, sigY + 20);
+
+      // Printed Name & Date
+      doc.line(leftX, sigY + 30, leftX + (blockWidth * 0.62), sigY + 30);
+      doc.text("Name:", leftX, sigY + 34);
+
+      doc.line(leftX + (blockWidth * 0.67), sigY + 30, leftX + blockWidth, sigY + 30);
+      doc.text("Date:", leftX + (blockWidth * 0.67), sigY + 34);
+
+      // Insurance Representative & Stamp Block
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...DARK_TEXT);
+      doc.text("INSURANCE AUTHORIZATION & STAMP", rightX, sigY);
+
+      // Stamp area box (dashed outline hint)
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.line(rightX, sigY + 16, rightX + blockWidth, sigY + 16);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Insurer Signature & Official Stamp", rightX, sigY + 20);
+
+      // Printed Name & Date
+      doc.line(rightX, sigY + 30, rightX + (blockWidth * 0.62), sigY + 30);
+      doc.text("Name:", rightX, sigY + 34);
+
+      doc.line(rightX + (blockWidth * 0.67), sigY + 30, rightX + blockWidth, sigY + 30);
+      doc.text("Date:", rightX + (blockWidth * 0.67), sigY + 34);
 
       // Save PDF
       doc.save(`Claim_${claim.claim_number}.pdf`);
