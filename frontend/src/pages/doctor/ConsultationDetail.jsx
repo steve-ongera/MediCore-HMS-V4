@@ -1,4 +1,3 @@
-//src/pages/doctor/ConsultationDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { toast } from "../../context/ToastContext";
@@ -319,6 +318,86 @@ export default function ConsultationDetail() {
           consultation.radiology_orders.map((o) => [o.test_name, humanize(o.status), o.is_paid ? "Yes" : "No"])
         );
       }
+
+      // ---- Doctor's Signature, Stamp & Date Section ----
+      ensureSpace(110);
+      y += 10;
+
+      doc.setFontSize(10.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...BRAND_COLOR);
+      doc.text("DOCTOR SIGNATURE & AUTHORIZATION", margin, y);
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y + 5, pageWidth - margin, y + 5);
+      y += 22;
+
+      const colWidth = (pageWidth - margin * 2 - 30) / 3;
+
+      // Column 1: Attending Doctor Details & Signature Line
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("ATTENDING DOCTOR", margin, y);
+
+      doc.setFontSize(9.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 30, 30);
+      doc.text(consultation.doctor_name || "Dr. —", margin, y + 16);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Medical Practitioner", margin, y + 28);
+
+      doc.setDrawColor(180, 185, 195);
+      doc.setLineWidth(0.8);
+      doc.line(margin, y + 58, margin + colWidth, y + 58);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Doctor's Signature", margin, y + 70);
+
+      // Column 2: Official Hospital Stamp Box
+      const col2X = margin + colWidth + 15;
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("OFFICIAL STAMP", col2X, y);
+
+      doc.setDrawColor(...LIGHT_BORDER);
+      doc.setFillColor(...LIGHT_FILL);
+      doc.roundedRect(col2X, y + 10, colWidth, 54, 4, 4, "FD");
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(160, 160, 160);
+      doc.text("[ Official Stamp Here ]", col2X + colWidth / 2, y + 40, { align: "center" });
+
+      // Column 3: Date & Time Signed
+      const col3X = col2X + colWidth + 15;
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("DATE & TIME SIGNED", col3X, y);
+
+      const signDateStr = formatDate(consultation.completed_at || new Date().toISOString());
+      doc.setFontSize(9.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 30, 30);
+      doc.text(signDateStr, col3X, y + 16);
+
+      doc.setDrawColor(180, 185, 195);
+      doc.setLineWidth(0.8);
+      doc.line(col3X, y + 58, col3X + colWidth, y + 58);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...MUTED_COLOR);
+      doc.text("Date", col3X, y + 70);
+
+      y += 85;
 
       // ---- Footer: rule + confidentiality line + pagination on every page ----
       const pageCount = doc.internal.getNumberOfPages();

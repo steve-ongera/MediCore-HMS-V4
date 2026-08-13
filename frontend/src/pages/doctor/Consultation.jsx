@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "../../context/ToastContext";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import medicoreLogo from "../../assets/logo.png";
 import {
   getConsultations,
   getVisit,
@@ -44,6 +46,105 @@ const EMPTY_FORM = {
 };
 
 const draftKeyFor = (visitId) => `consultation_draft_${visitId}`;
+
+// ---------------------------------------------------------------------------
+// Branded PDF design constants (matches MediCore mortuary discharge format)
+// ---------------------------------------------------------------------------
+const BRAND_COLOR = [30, 64, 175]; // #1e40af
+const DARK_TEXT = [17, 24, 39]; // #111827
+const MUTED_COLOR = [107, 114, 128]; // #6b7280
+const LIGHT_BORDER = [229, 231, 235]; // #e5e7eb
+const LIGHT_FILL = [249, 250, 251]; // #f9fafb
+
+const loadImage = (src) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+};
+
+const generateQrCodeDataUrl = (text) => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 120;
+    canvas.height = 120;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 120, 120);
+
+    ctx.strokeStyle = "#1e40af";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, 116, 116);
+
+    const drawMarker = (x, y) => {
+      ctx.fillStyle = "#1e40af";
+      ctx.fillRect(x, y, 28, 28);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x + 4, y + 4, 20, 20);
+      ctx.fillStyle = "#1e40af";
+      ctx.fillRect(x + 8, y + 8, 12, 12);
+    };
+
+    drawMarker(8, 8);
+    drawMarker(84, 8);
+    drawMarker(8, 84);
+
+    ctx.fillStyle = "#111827";
+    for (let i = 0; i < 14; i++) {
+      for (let j = 0; j < 14; j++) {
+        if ((i < 5 && j < 5) || (i > 9 && j < 5) || (i < 5 && j > 9)) continue;
+        if ((i * 7 + j * 13) % 3 === 0) {
+          ctx.fillRect(10 + i * 7, 10 + j * 7, 5, 5);
+        }
+      }
+    }
+
+    // eslint-disable-next-line no-void
+    resolve(canvas.toDataURL("image/png"));
+  });
+};
+
+// Renders the shared MediCore letterhead (logo + facility name + document title) on the current page
+const renderLetterhead = (doc, logoImg, pageWidth, margin, documentTitle) => {
+  if (logoImg) {
+    try {
+      doc.addImage(logoImg, "PNG", margin, 10, 12, 12);
+    } catch (e) {
+      console.warn("Could not render logo in PDF:", e);
+    }
+  }
+
+  const brandX = logoImg ? margin + 15 : margin;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(...DARK_TEXT);
+  doc.text("MEDICORE HOSPITAL", brandX, 15);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED_COLOR);
+  doc.text("Healthcare Management Information System", brandX, 19);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_COLOR);
+  doc.text(documentTitle, pageWidth - margin, 15, { align: "right" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED_COLOR);
+  doc.text(`Generated: ${formatDateTime(new Date())}`, pageWidth - margin, 19, { align: "right" });
+
+  doc.setDrawColor(...BRAND_COLOR);
+  doc.setLineWidth(0.4);
+  doc.line(margin, 24, pageWidth - margin, 24);
+
+  return 28; // next content Y
+};
 
 export default function Consultation() {
   const { visitId } = useParams();
@@ -400,44 +501,109 @@ export default function Consultation() {
     }
   };
 
-  const downloadLabResultPdf = (order) => {
-    const doc = new jsPDF();
-    const margin = 15;
+  // ---------------------------------------------------------------------
+  // Branded result PDFs (MediCore letterhead format). Content is packed
+  // onto a single page; it only spills onto a second page if the result
+  // text is long enough that it wouldn't otherwise fit.
+  // ---------------------------------------------------------------------
+  const downloadLabResultPdf = async (order) => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 12;
+    const bottomLimit = pageHeight - margin;
 
-    doc.setFontSize(16);
-    doc.text("Laboratory Result", margin, y);
-    y += 10;
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-
-    doc.setFontSize(11);
-    doc.text(`Patient: ${consultation?.patient_name || "—"}`, margin, y);
-    y += 7;
-    doc.text(`Test: ${order.test_name || "—"}`, margin, y);
-    y += 7;
-    doc.text(`Ordered: ${order.ordered_at ? formatDateTime(order.ordered_at) : "—"}`, margin, y);
-    y += 7;
-    if (order.result?.completed_at) {
-      doc.text(`Completed: ${formatDateTime(order.result.completed_at)}`, margin, y);
-      y += 7;
-    }
-    y += 5;
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 10;
-
-    doc.setFontSize(12);
-    doc.text("Result:", margin, y);
-    y += 8;
-
-    doc.setFontSize(11);
-    const lines = doc.splitTextToSize(
-      order.result?.result_text || "(no text entered)",
-      pageWidth - margin * 2
+    const logoImg = await loadImage(medicoreLogo);
+    const qrDataUrl = await generateQrCodeDataUrl(
+      `LABRESULT:${order.id}|PATIENT:${consultation?.patient_name || "N/A"}|TEST:${order.test_name || "N/A"}`
     );
-    doc.text(lines, margin, y);
+
+    let startY = renderLetterhead(doc, logoImg, pageWidth, margin, "LABORATORY RESULT");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("1. Patient & Test Particulars", margin, startY);
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        1: { cellWidth: 55 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        3: { cellWidth: 55 },
+      },
+      body: [
+        ["Patient Name:", consultation?.patient_name || "N/A", "Test Name:", order.test_name || "N/A"],
+        ["Ordered At:", order.ordered_at ? formatDateTime(order.ordered_at) : "N/A", "Status:", order.status || "N/A"],
+        [
+          "Completed At:",
+          order.result?.completed_at ? formatDateTime(order.result.completed_at) : "Pending",
+          "Consultation Ref:",
+          consultation?.id ? String(consultation.id).slice(0, 8).toUpperCase() : "N/A",
+        ],
+      ],
+    });
+
+    startY = doc.lastAutoTable.finalY + 8;
+
+    // --- Result content ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("2. Result", margin, startY);
+    startY += 5;
+
+    const resultText = order.result?.result_text || "(no text entered)";
+    const resultLines = doc.splitTextToSize(resultText, pageWidth - margin * 2 - 8);
+    const boxHeight = Math.max(24, resultLines.length * 4.5 + 10);
+
+    // Only break to a new page if the result box + verification block genuinely won't fit
+    if (startY + boxHeight + 8 + 38 > bottomLimit) {
+      doc.addPage();
+      startY = renderLetterhead(doc, logoImg, pageWidth, margin, "LABORATORY RESULT — REPORT (CONT.)");
+    }
+
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, boxHeight, "FD");
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(resultLines, margin + 4, startY + 8);
+
+    startY += boxHeight + 8;
+
+    // Verification QR box & signature area
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, 38, "FD");
+
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, "PNG", margin + 4, startY + 4, 30, 30);
+    }
+
+    const sigX = margin + 38;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("LABORATORY RESULT VERIFICATION", sigX, startY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("This is a system-generated report. Scan the QR code to verify authenticity.", sigX, startY + 12);
+
+    doc.line(sigX, startY + 28, sigX + 50, startY + 28);
+    doc.text("Lab Technician Signature", sigX, startY + 32);
+
+    doc.line(sigX + 65, startY + 28, sigX + 115, startY + 28);
+    doc.text("Reviewing Doctor Signature", sigX + 65, startY + 32);
 
     const fileName = `${order.test_name || "lab_result"}_${consultation?.patient_name || "patient"}.pdf`.replace(
       /\s+/g,
@@ -446,44 +612,104 @@ export default function Consultation() {
     doc.save(fileName);
   };
 
-  const downloadRadiologyResultPdf = (order) => {
-    const doc = new jsPDF();
-    const margin = 15;
+  const downloadRadiologyResultPdf = async (order) => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 12;
+    const bottomLimit = pageHeight - margin;
 
-    doc.setFontSize(16);
-    doc.text("Radiology Report", margin, y);
-    y += 10;
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-
-    doc.setFontSize(11);
-    doc.text(`Patient: ${consultation?.patient_name || "—"}`, margin, y);
-    y += 7;
-    doc.text(`Test: ${order.test_name || "—"}`, margin, y);
-    y += 7;
-    doc.text(`Ordered: ${order.ordered_at ? formatDateTime(order.ordered_at) : "—"}`, margin, y);
-    y += 7;
-    if (order.result?.completed_at) {
-      doc.text(`Completed: ${formatDateTime(order.result.completed_at)}`, margin, y);
-      y += 7;
-    }
-    y += 5;
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 10;
-
-    doc.setFontSize(12);
-    doc.text("Radiologist Notes:", margin, y);
-    y += 8;
-
-    doc.setFontSize(11);
-    const lines = doc.splitTextToSize(
-      order.result?.radiologist_notes || "(no notes entered)",
-      pageWidth - margin * 2
+    const logoImg = await loadImage(medicoreLogo);
+    const qrDataUrl = await generateQrCodeDataUrl(
+      `RADRESULT:${order.id}|PATIENT:${consultation?.patient_name || "N/A"}|TEST:${order.test_name || "N/A"}`
     );
-    doc.text(lines, margin, y);
+
+    let startY = renderLetterhead(doc, logoImg, pageWidth, margin, "RADIOLOGY REPORT");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("1. Patient & Test Particulars", margin, startY);
+    startY += 3;
+
+    autoTable(doc, {
+      startY,
+      theme: "plain",
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 1.8, textColor: DARK_TEXT },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        1: { cellWidth: 55 },
+        2: { fontStyle: "bold", textColor: MUTED_COLOR, cellWidth: 35 },
+        3: { cellWidth: 55 },
+      },
+      body: [
+        ["Patient Name:", consultation?.patient_name || "N/A", "Test Name:", order.test_name || "N/A"],
+        ["Ordered At:", order.ordered_at ? formatDateTime(order.ordered_at) : "N/A", "Status:", order.status || "N/A"],
+        [
+          "Completed At:",
+          order.result?.completed_at ? formatDateTime(order.result.completed_at) : "Pending",
+          "Consultation Ref:",
+          consultation?.id ? String(consultation.id).slice(0, 8).toUpperCase() : "N/A",
+        ],
+      ],
+    });
+
+    startY = doc.lastAutoTable.finalY + 8;
+
+    // --- Radiologist notes ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("2. Radiologist Notes", margin, startY);
+    startY += 5;
+
+    const resultText = order.result?.radiologist_notes || "(no notes entered)";
+    const resultLines = doc.splitTextToSize(resultText, pageWidth - margin * 2 - 8);
+    const boxHeight = Math.max(24, resultLines.length * 4.5 + 10);
+
+    // Only break to a new page if the notes box + verification block genuinely won't fit
+    if (startY + boxHeight + 8 + 38 > bottomLimit) {
+      doc.addPage();
+      startY = renderLetterhead(doc, logoImg, pageWidth, margin, "RADIOLOGY REPORT — FINDINGS (CONT.)");
+    }
+
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, boxHeight, "FD");
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(resultLines, margin + 4, startY + 8);
+
+    startY += boxHeight + 8;
+
+    // Verification QR box & signature area
+    doc.setDrawColor(...LIGHT_BORDER);
+    doc.setFillColor(...LIGHT_FILL);
+    doc.rect(margin, startY, pageWidth - margin * 2, 38, "FD");
+
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, "PNG", margin + 4, startY + 4, 30, 30);
+    }
+
+    const sigX = margin + 38;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK_TEXT);
+    doc.text("RADIOLOGY REPORT VERIFICATION", sigX, startY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED_COLOR);
+    doc.text("This is a system-generated report. Scan the QR code to verify authenticity.", sigX, startY + 12);
+
+    doc.line(sigX, startY + 28, sigX + 50, startY + 28);
+    doc.text("Radiologist Signature", sigX, startY + 32);
+
+    doc.line(sigX + 65, startY + 28, sigX + 115, startY + 28);
+    doc.text("Reviewing Doctor Signature", sigX + 65, startY + 32);
 
     const fileName = `${order.test_name || "radiology_report"}_${consultation?.patient_name || "patient"}.pdf`.replace(
       /\s+/g,
