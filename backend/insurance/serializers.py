@@ -12,20 +12,35 @@ class InsurerSerializer(serializers.ModelSerializer):
 
 
 class PatientInsurancePolicySerializer(serializers.ModelSerializer):
-    patient_name = serializers.CharField(source="patient.full_name", read_only=True)
-    hospital_number = serializers.CharField(source="patient.hospital_number", read_only=True)
     insurer_name = serializers.CharField(source="insurer.name", read_only=True)
-    insurer_type = serializers.CharField(source="insurer.insurer_type", read_only=True)
+    patient_name = serializers.CharField(source="patient.full_name", read_only=True)
     is_currently_valid = serializers.BooleanField(read_only=True)
+    latest_eligibility_status = serializers.SerializerMethodField()
+    last_verified_at = serializers.SerializerMethodField()
 
     class Meta:
         model = PatientInsurancePolicy
         fields = [
-            "id", "patient", "patient_name", "hospital_number", "insurer", "insurer_name", "insurer_type",
-            "member_number", "scheme_name", "principal_member_name", "relationship",
-            "valid_from", "valid_to", "is_active", "is_currently_valid", "registered_by",
+            "id", "patient", "patient_name", "insurer", "insurer_name", "member_number",
+            "valid_from", "valid_to", "is_currently_valid",
+            "latest_eligibility_status", "last_verified_at",
         ]
-        read_only_fields = ["id", "registered_by"]
+
+    def get_latest_eligibility_status(self, obj):
+        """
+        'Verified' means an EligibilityCheck has actually been run against
+        this policy — not just that valid_to hasn't passed. A policy can be
+        date-valid but never actually checked with the insurer, which is
+        exactly the distinction the claim filer needs to see.
+        """
+        check = obj.eligibility_checks.order_by("-created_at").first()
+        if not check:
+            return "NOT_VERIFIED"
+        return "ELIGIBLE" if check.is_eligible else "NOT_ELIGIBLE"
+
+    def get_last_verified_at(self, obj):
+        check = obj.eligibility_checks.order_by("-created_at").first()
+        return check.created_at if check else None
 
 
 class EligibilityCheckSerializer(serializers.ModelSerializer):

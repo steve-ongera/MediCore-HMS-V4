@@ -1,6 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { getPatient, getPatients, getInsurancePolicies, getInvoices, createInsuranceClaim } from "../../services/api";
+import {
+  getPatient, getPatients, getInsurancePolicies, getInvoices, createInsuranceClaim,
+  verifyPolicyEligibility,
+} from "../../services/api";
+import SearchableSelect from "../../components/SearchableSelect.jsx";
+
+const STATUS_LABEL = {
+  ELIGIBLE: "✅ Eligible",
+  NOT_ELIGIBLE: "❌ Not Eligible",
+  NOT_VERIFIED: "⚠ Not Verified",
+};
+const STATUS_COLOR = {
+  ELIGIBLE: "var(--success-strong)",
+  NOT_ELIGIBLE: "var(--danger-strong)",
+  NOT_VERIFIED: "var(--warning-strong)",
+};
 
 export default function FileClaim() {
   const navigate = useNavigate();
@@ -14,6 +29,7 @@ export default function FileClaim() {
 
   const [policies, setPolicies] = useState([]);
   const [selectedPolicy, setSelectedPolicy] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   const [invoices, setInvoices] = useState([]);
   const [selectedInvoiceIds, setSelectedInvoiceIds] = useState([]);
@@ -21,9 +37,8 @@ export default function FileClaim() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [initializing, setInitializing] = useState(!!patientIdParam);
+  const [loading, setLoading] = useState(false);
 
-  // Arrived from Billing.jsx with ?patient=xxx&invoice=yyy — load that
-  // patient directly instead of making staff search for them again.
   useEffect(() => {
     if (patientIdParam) {
       loadPatientFromParam(patientIdParam);
@@ -31,12 +46,14 @@ export default function FileClaim() {
   }, [patientIdParam]);
 
   const loadPatientFromParam = async (patientId) => {
+    setLoading(true);
     try {
       const patient = await getPatient(patientId);
       setSelectedPatient(patient);
     } catch (err) {
       setError(err.message);
     } finally {
+      setLoading(false);
       setInitializing(false);
     }
   };
@@ -48,8 +65,6 @@ export default function FileClaim() {
     }
   }, [selectedPatient]);
 
-  // Once invoices load, if we arrived with a specific ?invoice= target,
-  // pre-check it automatically.
   useEffect(() => {
     if (invoiceIdParam && invoices.some((inv) => inv.id === invoiceIdParam)) {
       setSelectedInvoiceIds((prev) => (prev.includes(invoiceIdParam) ? prev : [...prev, invoiceIdParam]));
@@ -59,10 +74,11 @@ export default function FileClaim() {
   const handlePatientSearch = async (e) => {
     e.preventDefault();
     if (!patientQuery.trim()) return;
+    setLoading(true);
     try {
       const data = await getPatients({ search: patientQuery });
       setPatientResults(data.results ?? data);
-    } catch (err) { setError(err.message); }
+    } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
   const loadPolicies = async (patientId) => {
@@ -88,11 +104,33 @@ export default function FileClaim() {
     .filter((inv) => selectedInvoiceIds.includes(inv.id))
     .reduce((sum, inv) => sum + Number(inv.balance), 0);
 
+  const currentPolicy = policies.find((p) => p.id === selectedPolicy);
+
+  const handleVerifyNow = async () => {
+    if (!selectedPolicy) return;
+    setVerifying(true);
+    setError("");
+    try {
+      await verifyPolicyEligibility(selectedPolicy);
+      await loadPolicies(selectedPatient.id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedPatient || !selectedPolicy || selectedInvoiceIds.length === 0) {
       setError("Select a patient, policy, and at least one invoice.");
       return;
+    }
+    if (currentPolicy?.latest_eligibility_status === "NOT_VERIFIED") {
+      const proceed = window.confirm(
+        "This policy has never been verified with the insurer. File the claim anyway?"
+      );
+      if (!proceed) return;
     }
     setSubmitting(true);
     try {
@@ -104,7 +142,7 @@ export default function FileClaim() {
     } catch (err) { setError(err.message); } finally { setSubmitting(false); }
   };
 
-  if (initializing) {
+  if (initializing || loading) {
     return (
       <div className="loading-screen">
         <div className="spinner spinner-lg"></div>
@@ -123,7 +161,7 @@ export default function FileClaim() {
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={() => navigate("/insurance/claims")}>
-            <i className="bi bi-arrow-left  me-1"></i> Back to Claims
+            <i className="bi bi-arrow-left me-1"></i> Back to Claims
           </button>
         </div>
       </div>
@@ -132,7 +170,7 @@ export default function FileClaim() {
         <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
           <div className="card-body">
             <div className="text-danger">
-              <i className="bi bi-exclamation-circle  me-1"></i> {error}
+              <i className="bi bi-exclamation-circle me-1"></i> {error}
             </div>
           </div>
         </div>
@@ -142,7 +180,7 @@ export default function FileClaim() {
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
           <div className="card-header">
             <h5 className="card-title">
-              <i className="bi bi-search  me-1"></i> Step 1: Find Patient
+              <i className="bi bi-search me-1"></i> Step 1: Find Patient
             </h5>
           </div>
           <div className="card-body">
@@ -160,7 +198,7 @@ export default function FileClaim() {
                 </div>
                 <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
                   <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
-                    <i className="bi bi-search  me-1"></i> Search
+                    <i className="bi bi-search me-1"></i> Search
                   </button>
                 </div>
               </div>
@@ -193,7 +231,7 @@ export default function FileClaim() {
                               className="btn btn-primary btn-sm"
                               onClick={() => setSelectedPatient(p)}
                             >
-                              <i className="bi bi-check  me-1"></i> Select
+                              <i className="bi bi-check me-1"></i> Select
                             </button>
                           </td>
                         </tr>
@@ -217,7 +255,7 @@ export default function FileClaim() {
                 </div>
                 <div>
                   <div className="text-sm text-success font-semibold">
-                    <i className="bi bi-check-circle  me-1"></i> Selected Patient
+                    <i className="bi bi-check-circle me-1"></i> Selected Patient
                   </div>
                   <div className="font-bold">{selectedPatient.full_name}</div>
                   <div className="text-sm text-muted">
@@ -229,7 +267,7 @@ export default function FileClaim() {
                   className="btn btn-ghost btn-sm ml-auto"
                   onClick={() => { navigate("/insurance/claims/new"); setSelectedPatient(null); }}
                 >
-                  <i className="bi bi-x  me-1"></i> Change Patient
+                  <i className="bi bi-x me-1"></i> Change Patient
                 </button>
               </div>
             </div>
@@ -238,7 +276,7 @@ export default function FileClaim() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-file-earmark-text  me-1"></i> Step 2: Select Policy
+                <i className="bi bi-file-earmark-text me-1"></i> Step 2: Select Policy
               </h5>
             </div>
             <div className="card-body">
@@ -252,27 +290,68 @@ export default function FileClaim() {
                     This patient has no registered insurance policy yet.
                   </p>
                   <Link to="/insurance/policies" className="btn btn-primary">
-                    <i className="bi bi-plus-circle  me-1"></i> Register Policy
+                    <i className="bi bi-plus-circle me-1"></i> Register Policy
                   </Link>
                 </div>
               ) : (
-                <div className="field">
-                  <label className="field-label">Insurance Policy <span className="required">*</span></label>
-                  <select
-                    className="select"
-                    value={selectedPolicy}
-                    onChange={(e) => setSelectedPolicy(e.target.value)}
-                    required
-                  >
-                    <option value="">Select policy</option>
-                    {policies.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.insurer_name} — {p.member_number} 
-                        {!p.is_currently_valid && " (EXPIRED)"}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <>
+                  <div className="field">
+                    <label className="field-label">Insurance Policy <span className="required">*</span></label>
+                    <SearchableSelect
+                      options={policies}
+                      value={selectedPolicy}
+                      onChange={setSelectedPolicy}
+                      getKey={(p) => p.id}
+                      getSearchText={(p) => `${p.insurer_name} ${p.member_number} ${p.patient_name}`}
+                      placeholder="Search by insurer or member number..."
+                      getLabel={(p) => (
+                        <div>
+                          <div>
+                            <strong>{p.patient_name}</strong> — {p.insurer_name} ({p.member_number})
+                          </div>
+                          <div style={{ fontSize: "0.85em" }}>
+                            <span style={{ color: STATUS_COLOR[p.latest_eligibility_status] }}>
+                              {STATUS_LABEL[p.latest_eligibility_status]}
+                            </span>
+                            {" · "}
+                            {p.is_currently_valid ? "Policy Active" : "Policy Expired"}
+                            {p.last_verified_at && ` · Last checked ${new Date(p.last_verified_at).toLocaleDateString()}`}
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </div>
+
+                  {currentPolicy && (
+                    <div className="flex items-center gap-3 flex-wrap" style={{ marginTop: "var(--space-3)" }}>
+                      <span style={{ color: STATUS_COLOR[currentPolicy.latest_eligibility_status] }}>
+                        {STATUS_LABEL[currentPolicy.latest_eligibility_status]}
+                      </span>
+                      <span className="text-sm text-muted">—</span>
+                      <span className="text-sm">
+                        {currentPolicy.is_currently_valid ? "Policy dates are active" : "Policy dates have expired"}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={handleVerifyNow}
+                        disabled={verifying}
+                      >
+                        {verifying ? (
+                          <>
+                            <span className="spinner" style={{ width: "14px", height: "14px", borderWidth: "2px", marginRight: "var(--space-1)" }}></span>
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            <i className="bi bi-shield-check me-1"></i>
+                            Verify Eligibility Now
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -280,7 +359,7 @@ export default function FileClaim() {
           <div className="card" style={{ marginBottom: "var(--space-6)" }}>
             <div className="card-header">
               <div className="flex items-center gap-3 flex-wrap">
-                <i className="bi bi-receipt  me-1"></i>
+                <i className="bi bi-receipt me-1"></i>
                 <h5 className="card-title" style={{ marginBottom: 0 }}>Step 3: Select Invoices to Claim</h5>
               </div>
               <div>
@@ -307,6 +386,7 @@ export default function FileClaim() {
                           <th style={{ width: "40px" }}>
                             <input
                               type="checkbox"
+                              className="checkbox"
                               checked={selectedInvoiceIds.length === invoices.length && invoices.length > 0}
                               onChange={() => {
                                 if (selectedInvoiceIds.length === invoices.length) {
@@ -329,6 +409,7 @@ export default function FileClaim() {
                             <td>
                               <input
                                 type="checkbox"
+                                className="checkbox"
                                 checked={selectedInvoiceIds.includes(inv.id)}
                                 onChange={() => toggleInvoice(inv.id)}
                               />
@@ -338,7 +419,7 @@ export default function FileClaim() {
                             <td>
                               <span className="tag">{inv.source_type}</span>
                             </td>
-                            <td className="cell-numeric">KES {inv.balance}</td>
+                            <td className="cell-numeric">KES {Number(inv.balance).toLocaleString()}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -362,7 +443,7 @@ export default function FileClaim() {
                           <i className="bi bi-currency-dollar"></i>
                         </div>
                       </div>
-                      <div className="stat-card__value">KES {totalSelected}</div>
+                      <div className="stat-card__value">KES {totalSelected.toLocaleString()}</div>
                     </div>
                   </div>
                 </>
@@ -373,7 +454,7 @@ export default function FileClaim() {
           <div className="card">
             <div className="card-header">
               <h5 className="card-title">
-                <i className="bi bi-file-check  me-1"></i> Step 4: Submit Claim
+                <i className="bi bi-file-check me-1"></i> Step 4: Submit Claim
               </h5>
             </div>
             <div className="card-body">
@@ -385,6 +466,7 @@ export default function FileClaim() {
                     placeholder="Additional notes for the claim..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
                   />
                 </div>
 
@@ -403,12 +485,12 @@ export default function FileClaim() {
                   >
                     {submitting ? (
                       <>
-                        <span className="spinner spinner-sm" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
+                        <span className="spinner" style={{ display: "inline-block", width: "16px", height: "16px", marginRight: "var(--space-2)" }}></span>
                         Filing...
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-file-check  me-1"></i> File Claim
+                        <i className="bi bi-file-check me-1"></i> File Claim
                       </>
                     )}
                   </button>

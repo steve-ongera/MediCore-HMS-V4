@@ -410,6 +410,7 @@ export const getInsurancePolicies = (params) => unwrap(client.get(`/insurance-po
 export const createInsurancePolicy = (payload) => unwrap(client.post("/insurance-policies/", payload));
 export const verifyEligibility = (policyId) => unwrap(client.post(`/insurance-policies/${policyId}/verify-eligibility/`));
 export const getEligibilityHistory = (policyId) => unwrap(client.get(`/insurance-policies/${policyId}/eligibility-history/`));
+export const verifyPolicyEligibility = (policyId) => unwrap(client.post(`/insurance-policies/${policyId}/verify-eligibility/`));
 
 export const getInsuranceClaims = (params) => unwrap(client.get(`/insurance-claims/${qs(params)}`));
 export const getInsuranceClaim = (id) => unwrap(client.get(`/insurance-claims/${id}/`));

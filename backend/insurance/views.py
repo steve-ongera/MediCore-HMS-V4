@@ -39,6 +39,7 @@ class PatientInsurancePolicyViewSet(BaseModelViewSet):
     serializer_class = PatientInsurancePolicySerializer
     search_fields = ["member_number", "patient__full_name", "patient__hospital_number"]
     filterset_fields = ["insurer", "is_active"]
+    pagination_class = None  # this endpoint always returns the full result set, no pagination
 
     def perform_create(self, serializer):
         serializer.save(registered_by=self.request.user)
