@@ -64,6 +64,7 @@ class InsuranceClaimViewSet(BaseModelViewSet):
     """
     queryset = InsuranceClaim.objects.select_related("patient", "policy__insurer").prefetch_related("items__invoice").all()
     search_fields = ["claim_number", "patient__full_name", "patient__hospital_number"]
+    
 
     def get_serializer_class(self):
         if self.action == "list":

@@ -32,6 +32,7 @@ export default function FileClaim() {
   const [verifying, setVerifying] = useState(false);
 
   const [invoices, setInvoices] = useState([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [selectedInvoiceIds, setSelectedInvoiceIds] = useState([]);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
@@ -88,12 +89,36 @@ export default function FileClaim() {
     } catch (err) { setError(err.message); }
   };
 
+  // Fetches ALL invoices for the patient, walking every page rather than
+  // stopping at page 1 — a patient with >100 invoices (paid + unpaid mixed
+  // in) could otherwise have unpaid ones sitting on page 2+ that never even
+  // get fetched, so the balance>0 filter below never gets a chance to see them.
   const loadInvoices = async (patientId) => {
+    setInvoicesLoading(true);
     try {
-      const data = await getInvoices({ patient: patientId, page_size: 100 });
-      const results = (data.results ?? data).filter((inv) => Number(inv.balance) > 0);
-      setInvoices(results);
-    } catch (err) { setError(err.message); }
+      let allResults = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const data = await getInvoices({ patient: patientId, page_size: 100, page });
+        const pageResults = data.results ?? data;
+        allResults = allResults.concat(pageResults);
+
+        // Support both DRF-style {next: url|null} and plain-array responses
+        hasMore = Array.isArray(data) ? false : !!data.next;
+        page += 1;
+
+        // Safety net in case of an unexpected pagination shape
+        if (page > 500) break;
+      }
+
+      setInvoices(allResults.filter((inv) => Number(inv.balance) > 0));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setInvoicesLoading(false);
+    }
   };
 
   const toggleInvoice = (id) => {
@@ -364,12 +389,19 @@ export default function FileClaim() {
               </div>
               <div>
                 <span className="text-tertiary text-sm">
-                  {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} available
+                  {invoicesLoading
+                    ? "Loading invoices..."
+                    : `${invoices.length} invoice${invoices.length !== 1 ? "s" : ""} available`}
                 </span>
               </div>
             </div>
             <div className="card-body">
-              {invoices.length === 0 ? (
+              {invoicesLoading ? (
+                <div className="empty-state">
+                  <div className="spinner" style={{ margin: "0 auto var(--space-3)" }}></div>
+                  <p className="empty-state__desc">Loading all outstanding invoices...</p>
+                </div>
+              ) : invoices.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-state__icon">
                     <i className="bi bi-receipt"></i>
