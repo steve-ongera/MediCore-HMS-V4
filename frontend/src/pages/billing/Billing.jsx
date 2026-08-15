@@ -74,6 +74,11 @@ export default function Billing() {
       render: (row) => row.patient_name || "—",
     },
     {
+      key: "branch_name",
+      label: "Hospital",
+      render: (row) => row.branch_name || "—",
+    },
+    {
       key: "source_type",
       label: "Type",
       render: (row) => (

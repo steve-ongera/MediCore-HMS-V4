@@ -175,15 +175,19 @@ class VisitSerializer(serializers.ModelSerializer):
 class InvoiceSerializer(serializers.ModelSerializer):
     balance = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     patient_name = serializers.CharField(source="patient.full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
         fields = [
             "id", "invoice_number", "patient", "patient_name", "visit", "source_type",
             "description", "amount", "amount_paid", "balance", "status", "created_at",
+            "branch", "branch_name",
         ]
-        read_only_fields = ["id", "invoice_number", "amount_paid", "status", "created_at"]
+        read_only_fields = ["id", "invoice_number", "amount_paid", "status", "created_at", "branch"]
 
+    def get_branch_name(self, obj):
+        return obj.branch.name if obj.branch_id else None
 
 class PaymentSerializer(serializers.ModelSerializer):
     cashier_name = serializers.CharField(source="cashier.get_full_name", read_only=True)
