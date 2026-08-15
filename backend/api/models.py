@@ -45,7 +45,8 @@ class BaseModel(models.Model):
 # Accounts / RBAC
 # ---------------------------------------------------------------------------
 class Role(models.TextChoices):
-    SUPER_ADMIN = "SUPER_ADMIN", "Super Admin"
+    GROUP_ADMIN = "GROUP_ADMIN", "Group Admin / Owner"  # NEW — the only cross-branch role
+    SUPER_ADMIN = "SUPER_ADMIN", "Super Admin"           # unchanged, but now branch-scoped
     RECEPTIONIST = "RECEPTIONIST", "Receptionist"
     CASHIER = "CASHIER", "Cashier"
     NURSE = "NURSE", "Nurse"
@@ -73,6 +74,10 @@ class User(AbstractUser):
     )
     profile_photo = models.ImageField(upload_to="staff_photos/", null=True, blank=True)
     is_active_staff = models.BooleanField(default=True)
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.SET_NULL, related_name="staff",
+        help_text="This user's primary/home branch. GROUP_ADMIN users may leave this null since they operate across all branches.",
+    )
     password_changed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -150,6 +155,11 @@ class Patient(BaseModel):
     next_of_kin_name = models.CharField(max_length=150, blank=True)
     next_of_kin_phone = models.CharField(max_length=20, blank=True)
     next_of_kin_relationship = models.CharField(max_length=50, blank=True)
+    
+    home_branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.SET_NULL, related_name="patients_registered",
+        help_text="Where this patient was first registered. The patient RECORD is group-wide and visible/searchable at any branch — this field is informational only, not an access restriction."
+    )
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="patients_registered")
 
@@ -230,6 +240,7 @@ class Visit(BaseModel):
     )
     consultation_type = models.CharField(max_length=20, choices=ConsultationType.choices, default=ConsultationType.GENERAL)
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    branch = models.ForeignKey("branches.Branch", null=True, on_delete=models.PROTECT, related_name="visits")
     status = models.CharField(max_length=20, choices=VisitStatus.choices, default=VisitStatus.REGISTERED)
     visit_date = models.DateTimeField(auto_now_add=True)
     registered_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="visits_registered")
@@ -277,6 +288,10 @@ class Invoice(BaseModel):
     description = models.CharField(max_length=255, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="invoices",
+        help_text="Denormalized from visit.branch for fast revenue reporting without a join — set automatically whenever an invoice is created."
+    )
     status = models.CharField(max_length=20, choices=InvoiceStatus.choices, default=InvoiceStatus.UNPAID)
 
     class Meta:
@@ -319,6 +334,7 @@ class Payment(BaseModel):
     reference_number = models.CharField(max_length=100, blank=True)  # M-Pesa code, card auth, insurance claim no.
     cashier = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="payments_processed")
     qr_code = models.ImageField(upload_to="receipts/qr/", null=True, blank=True)
+    branch = models.ForeignKey("branches.Branch", null=True, on_delete=models.PROTECT, related_name="payments")
     paid_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

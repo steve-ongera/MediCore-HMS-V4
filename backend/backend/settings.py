@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "pacs",
     "doctormgmt",
     "carecoordination",
+    "branches",
 ]
 
 MIDDLEWARE = [
@@ -103,6 +104,7 @@ MIDDLEWARE = [
     "api.middleware.AuditLogMiddleware",  # captures request.user + IP for signals
     "security.middleware.LoginRateLimitMiddleware",
     "security.middleware.SessionIdleTimeoutMiddleware",
+    "branches.middleware.BranchContextMiddleware",
 ]
 
 
