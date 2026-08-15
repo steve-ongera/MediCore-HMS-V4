@@ -21,6 +21,23 @@ from .serializers import (
     BillCancellationSerializer, CancelBillSerializer,
 )
 
+from branches.permissions import get_accessible_branch_ids
+
+
+def get(self, request):
+    accessible = get_accessible_branch_ids(request.user)
+    branch_param = request.query_params.get("branch")
+
+    if accessible is None:  # GROUP_ADMIN
+        branch_filter = {"branch_id": branch_param} if branch_param else {}
+    else:
+        target = branch_param if branch_param in [str(b) for b in accessible] else accessible[0]
+        branch_filter = {"branch_id": target}
+
+    # then apply branch_filter to every queryset in the view, e.g.:
+    # payments = Payment.objects.filter(paid_at__date__gte=date_from, paid_at__date__lte=date_to, **branch_filter)
+    # invoices_in_range = Invoice.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to, **branch_filter)
+    # ... apply the same **branch_filter pattern to every other queryset in the view ...
 
 class RefundViewSet(viewsets.ModelViewSet):
     queryset = Refund.objects.select_related("payment__invoice__patient", "requested_by", "approved_by").all()

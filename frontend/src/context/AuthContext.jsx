@@ -24,6 +24,7 @@ export const ROLES = {
   MEDICAL_RECORDS_OFFICER: "MEDICAL_RECORDS_OFFICER",
   BIOMEDICAL_ENGINEER: "BIOMEDICAL_ENGINEER",
   IT_SUPPORT_OFFICER: "IT_SUPPORT_OFFICER",
+  GROUP_ADMIN: "GROUP_ADMIN",
 };
 
 export function AuthProvider({ children }) {
@@ -104,6 +105,10 @@ export function AuthProvider({ children }) {
 
   // Super Admin always passes, regardless of which roles are asked for.
   // hasRole() with no args just checks "is there a logged-in user".
+  // NOTE: because of the Super Admin bypass below, hasRole("GROUP_ADMIN")
+  // is NOT a safe way to check GROUP_ADMIN-exclusivity — it also returns
+  // true for SUPER_ADMIN. Use the separate isGroupAdmin boolean for any
+  // check that must be GROUP_ADMIN-only (e.g. the branch switcher).
   const hasRole = useCallback(
     (...roles) => {
       if (!user?.role) return false;
@@ -114,10 +119,14 @@ export function AuthProvider({ children }) {
     [user]
   );
 
+  // Strict, non-bypassed check — true only for an actual GROUP_ADMIN account.
+  const isGroupAdmin = user?.role === ROLES.GROUP_ADMIN;
+
   const value = {
     user,
     role: user?.role || null,
     isAuthenticated: !!user,
+    isGroupAdmin,
     loading,
     login,
     verifyOtp,

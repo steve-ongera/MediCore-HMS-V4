@@ -66,16 +66,17 @@ class SoftDeleteAdminMixin:
 # ---------------------------------------------------------------------------
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    list_display = ("username", "get_full_name", "role", "department", "phone", "is_active_staff", "is_staff", "is_superuser")
-    list_filter = ("role", "department", "is_active_staff", "is_staff", "is_superuser")
+    list_display = ("username", "get_full_name", "role", "branch", "department", "phone", "is_active_staff", "is_staff", "is_superuser")
+    list_filter = ("role", "branch", "department", "is_active_staff", "is_staff", "is_superuser")
     search_fields = ("username", "first_name", "last_name", "email", "phone")
     ordering = ("username",)
+    autocomplete_fields = ("branch",)
 
     fieldsets = DjangoUserAdmin.fieldsets + (
-        ("Hospital Role", {"fields": ("role", "phone", "department", "profile_photo", "is_active_staff")}),
+        ("Hospital Role", {"fields": ("role", "phone", "department", "branch", "profile_photo", "is_active_staff")}),
     )
     add_fieldsets = DjangoUserAdmin.add_fieldsets + (
-        ("Hospital Role", {"fields": ("role", "phone", "department", "is_active_staff")}),
+        ("Hospital Role", {"fields": ("role", "phone", "department", "branch", "is_active_staff")}),
     )
 
     @admin.display(description="Full Name")

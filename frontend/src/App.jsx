@@ -275,6 +275,8 @@ import CarePlanDetail from "./pages/carecoordination/CarePlanDetail.jsx";
 import CreateCarePlan from "./pages/carecoordination/CreateCarePlan.jsx";
 import AllFollowUpTasks from "./pages/carecoordination/AllFollowUpTasks.jsx";
 
+import BranchManagement from "./pages/branches/BranchManagement.jsx";
+
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
 function LegacyPaymentsRedirect() {
@@ -911,6 +913,7 @@ export default function App() {
         <Route path="/moh/lab-radiology" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><LabRadiologyReport /></ProtectedRoute>} />
         <Route path="/moh/pharmacy" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><PharmacyCommoditiesReport /></ProtectedRoute>} />
         <Route path="/moh/theatre-emergency" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.HEALTH_RECORDS_OFFICER, ROLES.MEDICAL_RECORDS_OFFICER, ROLES.ACCOUNTANT]}><TheatreEmergencyReport /></ProtectedRoute>} />
+        <Route path="/branches" element={<ProtectedRoute allowedRoles={[ROLES.GROUP_ADMIN]}><BranchManagement /></ProtectedRoute>} />
 
 
         {/* Visible to every authenticated user — no role restriction */}

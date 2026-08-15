@@ -279,7 +279,6 @@ class InvoiceStatus(models.TextChoices):
     PAID = "PAID", "Paid"
     CANCELLED = "CANCELLED", "Cancelled"
 
-
 class Invoice(BaseModel):
     invoice_number = models.CharField(max_length=30, unique=True, editable=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="invoices")
@@ -289,8 +288,11 @@ class Invoice(BaseModel):
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     branch = models.ForeignKey(
-        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="invoices",
-        help_text="Denormalized from visit.branch for fast revenue reporting without a join — set automatically whenever an invoice is created."
+        "branches.Branch",
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="invoices",
+        help_text="Denormalized from visit.branch for fast revenue reporting without a join — set automatically whenever an invoice is created.",
     )
     status = models.CharField(max_length=20, choices=InvoiceStatus.choices, default=InvoiceStatus.UNPAID)
 
@@ -300,6 +302,8 @@ class Invoice(BaseModel):
     def save(self, *args, **kwargs):
         if not self.invoice_number:
             self.invoice_number = generate_invoice_number()
+        if not self.branch_id and self.visit_id:
+            self.branch_id = self.visit.branch_id
         super().save(*args, **kwargs)
 
     @property
@@ -317,8 +321,8 @@ class Invoice(BaseModel):
 
     def __str__(self):
         return f"{self.invoice_number} ({self.status})"
-
-
+    
+    
 class PaymentMethod(models.TextChoices):
     CASH = "CASH", "Cash"
     MPESA = "MPESA", "M-Pesa"
@@ -343,6 +347,8 @@ class Payment(BaseModel):
     def save(self, *args, **kwargs):
         if not self.receipt_number:
             self.receipt_number = generate_receipt_number()
+        if not self.branch_id and self.invoice_id:
+            self.branch_id = self.invoice.branch_id
         super().save(*args, **kwargs)
 
     def __str__(self):

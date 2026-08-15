@@ -4919,3 +4919,124 @@ fieldset legend {
   color: var(--text-secondary);
   word-break: break-all;
 }
+
+/* ==========================================================================
+   BRANCH SWITCHER
+   ========================================================================== */
+
+.navbar__branch-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+  height: 36px;
+}
+
+.navbar__branch-switcher:hover {
+  border-color: var(--border-strong);
+}
+
+.navbar__branch-icon {
+  color: var(--text-tertiary);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.navbar__branch-select {
+  background: transparent;
+  border: none;
+  padding: var(--space-1) var(--space-4) var(--space-1) 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23737d89' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  padding-right: var(--space-5);
+  min-width: 160px;
+}
+
+.navbar__branch-select:hover {
+  color: var(--text-primary);
+}
+
+.navbar__branch-select:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+.navbar__branch-select option {
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: var(--space-2);
+}
+
+/* Branch Badge (read-only) */
+.navbar__branch-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--primary-soft);
+  border-radius: var(--radius-full);
+  color: var(--primary-700);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  border: 1px solid var(--primary-soft-strong);
+}
+
+.navbar__branch-badge i {
+  font-size: 13px;
+  color: var(--primary-500);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .navbar__branch-switcher {
+    padding: var(--space-1);
+    height: 32px;
+  }
+
+  .navbar__branch-icon {
+    display: none;
+  }
+
+  .navbar__branch-select {
+    min-width: 120px;
+    font-size: var(--fs-xs);
+    padding-right: var(--space-4);
+  }
+
+  .navbar__branch-badge {
+    font-size: var(--fs-2xs);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .navbar__branch-badge i {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar__branch-select {
+    min-width: 100px;
+    font-size: var(--fs-2xs);
+  }
+
+  .navbar__branch-badge span {
+    display: none;
+  }
+
+  .navbar__branch-badge i {
+    margin: 0;
+  }
+}

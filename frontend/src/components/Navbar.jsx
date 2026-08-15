@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import BranchSwitcher from "./BranchSwitcher.jsx";
 import ChatDropdown from "./ChatDropdown.jsx";
 import NotificationBell from "./NotificationBell.jsx";
 import PageSearch from "./PageSearch.jsx";
@@ -97,6 +98,8 @@ export default function Navbar({ onToggleSidebar }) {
         <PageSearch />
 
         <div className="navbar__right">
+          <BranchSwitcher />
+
           <ChatDropdown />
 
           <button

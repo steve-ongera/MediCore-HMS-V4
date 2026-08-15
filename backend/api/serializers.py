@@ -1,3 +1,4 @@
+#api/serializers.py
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from api.models import ConsultationProcedure
@@ -11,18 +12,22 @@ from api.models import (
     OTCSale, OTCSaleItem, BulkPayment , BulkPaymentLine ,
 )
 
+from branches.models  import Branch
+
 
 # ---------------------------------------------------------------------------
 # Accounts
 # ---------------------------------------------------------------------------
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = User
         fields = [
             "id", "username", "email", "first_name", "last_name", "full_name",
             "role", "phone", "department", "profile_photo", "is_active_staff", "is_active",
+            "branch", "branch_name",
         ]
         read_only_fields = ["id"]
 

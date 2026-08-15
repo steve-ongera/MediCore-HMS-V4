@@ -69,6 +69,8 @@ from tickets.models import Ticket, TicketStatus
 from security.models import AccountLockout, LoginAttempt, LoginAttemptStatus, SecurityAuditLog
 from api.models import Medicine
 
+from branches.mixins import BranchScopedViewSetMixin
+
 
 
 # ---------------------------------------------------------------------------
@@ -383,7 +385,7 @@ class MedicalHistoryNoteViewSet(BaseModelViewSet):
 # ---------------------------------------------------------------------------
 # Visits
 # ---------------------------------------------------------------------------
-class VisitViewSet(BaseModelViewSet):
+class VisitViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
     queryset = Visit.objects.select_related("patient", "department", "doctor").all().order_by("-visit_date")
     serializer_class = VisitSerializer
     filterset_class = VisitFilter
@@ -412,7 +414,7 @@ from django.db.models import Sum, Count, Q, F
 from django.db.models.functions import Coalesce
 
 
-class InvoiceViewSet(BaseModelViewSet):
+class InvoiceViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
     queryset = Invoice.objects.select_related("patient", "visit").all().order_by("-created_at")
     serializer_class = InvoiceSerializer
     filterset_class = InvoiceFilter
@@ -439,7 +441,7 @@ class InvoiceViewSet(BaseModelViewSet):
         )
         return Response(aggregates)
 
-class PaymentViewSet(BaseModelViewSet):
+class PaymentViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
     permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
     queryset = Payment.objects.select_related("invoice", "cashier").all()
     serializer_class = PaymentSerializer

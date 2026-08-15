@@ -14,6 +14,12 @@ const client = axios.create({
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  const currentBranch = localStorage.getItem("current_branch_id");
+  if (currentBranch) {
+    config.headers["X-Branch-Context"] = currentBranch;
+  }
+
   return config;
 });
 
@@ -979,6 +985,14 @@ export const completeFollowUpTask = (id, payload) => unwrap(client.post(`/follow
 export const markFollowUpMissed = (id, payload) => unwrap(client.post(`/follow-up-tasks/${id}/mark-missed/`, payload));
 export const cancelFollowUpTask = (id) => unwrap(client.post(`/follow-up-tasks/${id}/cancel/`));
 export const  addMilestone = (id) => unwrap(client.get("/follow-up-task/add-milestone"));
+
+export const getMyAccessibleBranches = () => unwrap(client.get("/branches/my-accessible/"));
+export const getBranches = (params) => unwrap(client.get(`/branches/${qs(params)}`));
+export const createBranch = (payload) => unwrap(client.post("/branches/", payload));
+export const updateBranch = (id, payload) => unwrap(client.patch(`/branches/${id}/`, payload));
+export const assignBranchStaff = (payload) => unwrap(client.post("/branch-staff-assignments/", payload));
+
+
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
 // ---------------------------------------------------------------------------

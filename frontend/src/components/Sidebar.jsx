@@ -380,6 +380,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Group Management",
+    roles: [ROLES.GROUP_ADMIN],
+    links: [
+      { to: "/branches", label: "Branch Management", icon: "bi-diagram-3" },
+      { to: "/executive", label: "Group Executive Dashboard", icon: "bi-graph-up-arrow" },
+    ],
+  },
+  {
     label: "Account",
     links: [
       { to: "/profile", label: "My Profile", icon: "bi-person-circle" },
