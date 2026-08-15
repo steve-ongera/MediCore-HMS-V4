@@ -12,7 +12,7 @@ class BranchSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "code", "level", "address", "county", "phone", "email", "kra_pin", "sha_facility_code", "is_headquarters", "is_active", "staff_count"]
 
     def get_staff_count(self, obj):
-        return obj.staff.filter(is_active_staff=True, is_deleted=False).count()
+        return obj.staff.filter(is_active_staff=True).count()
 
 
 class BranchStaffAssignmentSerializer(serializers.ModelSerializer):

@@ -1,17 +1,35 @@
+#api/permissions.py
 from rest_framework.permissions import BasePermission
 from api.models import Role
 
 
+def _is_super_or_group_admin(user):
+    """
+    GROUP_ADMIN is a superset role above SUPER_ADMIN — it should pass every
+    gate SUPER_ADMIN passes, plus true Django superusers, consistent with
+    branches.permissions.get_accessible_branch_ids' same convention.
+    """
+    return bool(
+        user.role == Role.SUPER_ADMIN
+        or user.role == Role.GROUP_ADMIN
+        or user.is_superuser
+    )
+
+
 class IsSuperAdmin(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.role == Role.SUPER_ADMIN)
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and _is_super_or_group_admin(request.user)
+        )
 
 
 class HasRole(BasePermission):
     """
     Generic role-gate. Set `allowed_roles` on the view, e.g.:
         allowed_roles = [Role.RECEPTIONIST, Role.SUPER_ADMIN]
-    Super Admin is always allowed through, regardless of allowed_roles.
+    Super Admin and Group Admin are always allowed through, regardless of allowed_roles.
     If a view sets NO allowed_roles, access is denied by default (fail-closed) —
     this is the opposite of the old behavior, which silently allowed any
     authenticated user through when a view forgot to set allowed_roles.
@@ -20,11 +38,11 @@ class HasRole(BasePermission):
     def has_permission(self, request, view):
         if not (request.user and request.user.is_authenticated):
             return False
-        if request.user.role == Role.SUPER_ADMIN:
+        if _is_super_or_group_admin(request.user):
             return True
         allowed_roles = getattr(view, "allowed_roles", None)
         if not allowed_roles:
-            return False  # fail-closed: an unconfigured view denies everyone but Super Admin
+            return False  # fail-closed: an unconfigured view denies everyone but Super Admin / Group Admin
         return request.user.role in allowed_roles
 
 
@@ -185,6 +203,4 @@ class ReadOnlyOrSuperAdmin(BasePermission):
             return False
         if request.method in self.SAFE_METHODS:
             return True
-        return request.user.role == Role.SUPER_ADMIN
-    
-    
+        return _is_super_or_group_admin(request.user)
