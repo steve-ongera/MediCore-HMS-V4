@@ -224,14 +224,19 @@ class QueueEntrySerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="patient.full_name", read_only=True)
     hospital_number = serializers.CharField(source="patient.hospital_number", read_only=True)
     assigned_to_name = serializers.CharField(source="assigned_to.get_full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = QueueEntry
         fields = [
             "id", "patient", "patient_name", "hospital_number", "visit", "queue_type", "status",
             "assigned_to", "assigned_to_name", "priority", "called_at", "completed_at", "created_at",
+            "branch_name",
         ]
         read_only_fields = ["id", "created_at"]
+
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
 
 
 # ---------------------------------------------------------------------------

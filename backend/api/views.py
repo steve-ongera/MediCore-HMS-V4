@@ -616,12 +616,24 @@ class PaymentViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
 # Queue Management
 # ---------------------------------------------------------------------------
 class QueueEntryViewSet(BaseModelViewSet):
-    queryset = QueueEntry.objects.select_related("patient", "visit", "assigned_to").exclude(
+    queryset = QueueEntry.objects.select_related("patient", "visit", "visit__branch", "assigned_to").exclude(
         status__in=[QueueStatus.COMPLETED, QueueStatus.CANCELLED]
     )
     serializer_class = QueueEntrySerializer
     filterset_class = QueueEntryFilter
     search_fields = ["patient__full_name", "patient__hospital_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # QueueEntry has no branch field of its own — it's derived from
+        # visit.branch. Applied here (not just in `list`) so it covers
+        # my-queue too: a nurse/doctor's dashboard should only ever show
+        # patients waiting at their own branch, same as the main board.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:  # None = GROUP_ADMIN/superuser, sees every branch
+            qs = qs.filter(visit__branch_id__in=accessible)
+        return qs
 
     @action(detail=True, methods=["post"], url_path="call-next")
     def call_next(self, request, pk=None):
@@ -634,7 +646,7 @@ class QueueEntryViewSet(BaseModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="my-queue")
     def my_queue(self, request):
-        """Doctor/Nurse dashboard: entries assigned to me or waiting in my queue type."""
+        """Doctor/Nurse dashboard: entries assigned to me or waiting in my queue type, at my branch."""
         queue_type = request.query_params.get("queue_type", QueueType.DOCTOR if request.user.role == Role.DOCTOR else QueueType.NURSE)
         entries = self.get_queryset().filter(queue_type=queue_type).order_by("-priority", "created_at")
         return Response(QueueEntrySerializer(entries, many=True).data)

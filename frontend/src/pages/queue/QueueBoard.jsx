@@ -162,6 +162,14 @@ export default function QueueBoard() {
                           {getWaitTime(entry.created_at)}
                         </span>
                       </div>
+                      {entry.branch_name && (
+                        <div className="mt-1">
+                          <span className="tag tag-sm" title="Branch">
+                            <i className="bi bi-building me-1"></i>
+                            {entry.branch_name}
+                          </span>
+                        </div>
+                      )}
                       <div className="mt-2 d-flex gap-1 flex-wrap">
                         <StatusBadge status={entry.status} />
                         <button
