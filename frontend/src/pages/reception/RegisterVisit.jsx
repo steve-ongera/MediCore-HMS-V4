@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "../../context/ToastContext";
-import { registerVisit, getPatients, getDepartments } from "../../services/api";
+import { registerVisit, getPatients, getDepartments, searchPatient } from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { formatCurrency } from "../../utils/formatters";
 
@@ -38,6 +38,8 @@ export default function RegisterVisit() {
   };
 
   const loadPatients = async () => {
+    // Initial/default list before typing — branch-scoped is fine here,
+    // it's just a starting point for browsing your own recent patients.
     try {
       const data = await getPatients({ page: 1, page_size: 100 });
       setPatients(data.results || []);
@@ -52,8 +54,14 @@ export default function RegisterVisit() {
       return;
     }
     try {
-      const data = await getPatients({ search: query, page: 1, page_size: 20 });
-      setPatients(data.results || []);
+      // Deliberately using /patients/search/ (searchPatient) here, NOT
+      // getPatients() — getPatients hits the branch-scoped list action, so
+      // it can only ever return patients registered at the receptionist's
+      // own branch. A visit can be registered here for ANY patient
+      // regardless of which branch they first registered at — the search
+      // endpoint is the one built to stay group-wide.
+      const data = await searchPatient(query);
+      setPatients(data.patients || []);
     } catch (err) {
       console.error("Search failed:", err);
     }

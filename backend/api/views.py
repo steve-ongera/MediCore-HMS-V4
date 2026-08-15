@@ -421,7 +421,7 @@ class PatientViewSet(BaseModelViewSet):
     def search(self, request):
         """
         Duplicate-check search used before registering a new patient.
-        Matches on phone, national_id, or hospital_number.
+        Matches on full name, phone, national_id, or hospital_number.
         Deliberately group-wide — unfiltered by branch — so reception can
         catch a patient who already exists under a different branch before
         creating a duplicate record.
@@ -430,8 +430,11 @@ class PatientViewSet(BaseModelViewSet):
         if not query:
             return Response({"detail": "Provide a search query (?q=)."}, status=status.HTTP_400_BAD_REQUEST)
 
-        matches = Patient.objects.filter(
-            Q(phone__icontains=query) | Q(national_id__iexact=query) | Q(hospital_number__iexact=query)
+        matches = Patient.objects.select_related("home_branch").filter(
+            Q(full_name__icontains=query)
+            | Q(phone__icontains=query)
+            | Q(national_id__iexact=query)
+            | Q(hospital_number__iexact=query)
         )
         if matches.exists():
             return Response({
@@ -553,7 +556,7 @@ class InvoiceViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
 
 class PaymentViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
     permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
-    queryset = Payment.objects.select_related("invoice", "cashier").all()
+    queryset = Payment.objects.select_related("invoice", "cashier", "branch").order_by("-paid_at", "-id").all()
     serializer_class = PaymentSerializer
     filterset_class = PaymentFilter
     search_fields = ["receipt_number", "invoice__invoice_number", "invoice__patient__full_name"]
