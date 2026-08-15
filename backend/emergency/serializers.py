@@ -110,6 +110,7 @@ class EmergencyVisitSerializer(serializers.ModelSerializer):
     bay_number = serializers.CharField(source="bay.bay_number", read_only=True)
     attending_doctor_name = serializers.CharField(source="attending_doctor.get_full_name", read_only=True)
     duration_hours = serializers.SerializerMethodField()
+    branch_name = serializers.SerializerMethodField()
 
     vitals = TriageVitalsSerializer(many=True, read_only=True)
     notes = EmergencyNoteSerializer(many=True, read_only=True)
@@ -124,7 +125,7 @@ class EmergencyVisitSerializer(serializers.ModelSerializer):
             "bay", "bay_number", "triage_level", "arrival_mode", "chief_complaint",
             "attending_doctor", "attending_doctor_name", "registered_by", "status",
             "arrived_at", "disposition_at", "disposition_notes", "admission", "duration_hours",
-            "vitals", "notes", "procedures", "medication_orders", "bay_charges",
+            "vitals", "notes", "procedures", "medication_orders", "bay_charges", "branch_name",
         ]
         read_only_fields = [
             "id", "visit_number", "registered_by", "status", "arrived_at",
@@ -134,7 +135,31 @@ class EmergencyVisitSerializer(serializers.ModelSerializer):
     def get_duration_hours(self, obj):
         return round(obj.duration_hours, 2)
 
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
 
+
+class EmergencyVisitListSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source="patient.full_name", read_only=True)
+    hospital_number = serializers.CharField(source="patient.hospital_number", read_only=True)
+    bay_number = serializers.CharField(source="bay.bay_number", read_only=True)
+    duration_hours = serializers.SerializerMethodField()
+    branch_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmergencyVisit
+        fields = [
+            "id", "visit_number", "patient_name", "hospital_number", "bay_number",
+            "triage_level", "arrival_mode", "status", "arrived_at", "duration_hours", "branch_name",
+        ]
+
+    def get_duration_hours(self, obj):
+        return round(obj.duration_hours, 2)
+
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
+    
+    
 class EmergencyVisitListSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="patient.full_name", read_only=True)
     hospital_number = serializers.CharField(source="patient.hospital_number", read_only=True)

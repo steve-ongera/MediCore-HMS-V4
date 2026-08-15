@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getPatients, getAvailableEmergencyBays, getUsers, registerEmergencyVisit } from "../../services/api";
+import { getAvailableEmergencyBays, getUsers, registerEmergencyVisit, searchPatient } from "../../services/api";
 
 export default function RegisterEmergency() {
   const navigate = useNavigate();
@@ -46,8 +46,13 @@ export default function RegisterEmergency() {
     e.preventDefault();
     if (!patientQuery.trim()) return;
     try {
-      const data = await getPatients({ search: patientQuery });
-      setPatientResults(data.results ?? data);
+      // Deliberately group-wide — NOT getPatients() (that's the
+      // branch-scoped list action). A patient is a centralized record
+      // across every branch; an emergency can be registered for anyone
+      // regardless of where they first registered, so this must use the
+      // dedicated /patients/search/ endpoint instead.
+      const data = await searchPatient(patientQuery);
+      setPatientResults(data.patients || []);
     } catch (err) {
       setError(err.message);
     }
@@ -153,6 +158,7 @@ export default function RegisterEmergency() {
                       <th>Name</th>
                       <th>Hospital #</th>
                       <th>Phone</th>
+                      <th>Branch</th>
                       <th className="cell-actions"></th>
                     </tr>
                   </thead>
@@ -162,6 +168,7 @@ export default function RegisterEmergency() {
                         <td className="cell-primary">{p.full_name}</td>
                         <td className="cell-mono">{p.hospital_number}</td>
                         <td>{p.phone}</td>
+                        <td>{p.home_branch_name || "—"}</td>
                         <td className="cell-actions">
                           <button
                             type="button"
@@ -193,6 +200,7 @@ export default function RegisterEmergency() {
                     <div className="font-bold">{selectedPatient.full_name}</div>
                     <div className="text-sm text-muted">
                       {selectedPatient.hospital_number} • {selectedPatient.phone}
+                      {selectedPatient.home_branch_name && ` • Registered at ${selectedPatient.home_branch_name}`}
                     </div>
                   </div>
                   <button

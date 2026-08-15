@@ -42,9 +42,22 @@ class EmergencyBayViewSet(BaseModelViewSet):
 
 
 class EmergencyVisitViewSet(BaseModelViewSet):
-    queryset = EmergencyVisit.objects.select_related("patient", "bay", "attending_doctor").all()
+    queryset = EmergencyVisit.objects.select_related("patient", "bay", "attending_doctor", "visit", "visit__branch").all()
     filterset_fields = ["status", "triage_level", "arrival_mode"]
     search_fields = ["visit_number", "patient__full_name", "patient__hospital_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # EmergencyVisit has no branch field of its own — derived through
+        # visit.branch, same pattern as QueueEntry. Applied here so it
+        # covers list, active, retrieve, and every detail action (billing,
+        # add-charge, disposition, etc.) via get_object() — a user can't
+        # act on another branch's ED encounter even by guessing the ID.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:  # None = GROUP_ADMIN/superuser, sees every branch
+            qs = qs.filter(visit__branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -69,8 +82,24 @@ class EmergencyVisitViewSet(BaseModelViewSet):
                 raise ValidationError({"bay": "Bay is not available."})
 
         with transaction.atomic():
-            visit = ensure_emergency_visit(patient, doctor_id=data.get("attending_doctor"), registered_by=request.user) \
-                if False else ensure_emergency_visit(patient, registered_by=request.user)
+            visit = ensure_emergency_visit(patient, registered_by=request.user)
+
+            # An ED encounter belongs to the hospital actually treating the
+            # patient right now — never the patient's home_branch. This is
+            # set explicitly here regardless of what ensure_emergency_visit()
+            # does internally, so a walk-in from another branch's patient
+            # record still correctly bills/lists under THIS branch.
+            from branches.permissions import get_accessible_branch_ids
+            accessible = get_accessible_branch_ids(request.user)
+            if accessible is None:
+                # GROUP_ADMIN registering directly — respect an explicit
+                # branch if sent, never silently guess one.
+                branch_id = request.data.get("branch") or request.user.branch_id
+            else:
+                branch_id = request.user.branch_id
+            if branch_id and visit.branch_id != branch_id:
+                visit.branch_id = branch_id
+                visit.save(update_fields=["branch"])
 
             ed_visit = EmergencyVisit.objects.create(
                 patient=patient,
@@ -286,8 +315,8 @@ class EmergencyVisitViewSet(BaseModelViewSet):
                 ed_visit.bay.save(update_fields=["status"])
 
         return Response(EmergencyVisitSerializer(ed_visit).data)
-
-
+    
+    
 class TriageVitalsViewSet(BaseModelViewSet):
     queryset = TriageVitals.objects.all()
     serializer_class = TriageVitalsSerializer
