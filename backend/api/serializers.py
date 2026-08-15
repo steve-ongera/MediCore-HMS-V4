@@ -97,7 +97,7 @@ class PatientSerializer(serializers.ModelSerializer):
     age = serializers.IntegerField(read_only=True)
     allergies = AllergySerializer(many=True, read_only=True)
     medical_history = MedicalHistoryNoteSerializer(many=True, read_only=True)
-    home_branch_name = serializers.CharField(source="home_branch.name", read_only=True, default=None)
+    home_branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
@@ -112,15 +112,43 @@ class PatientSerializer(serializers.ModelSerializer):
         # never trust the payload for this (same reasoning as UserViewSet.perform_create)
         read_only_fields = ["id", "hospital_number", "created_by", "created_at", "home_branch"]
 
+    def get_home_branch_name(self, obj):
+        return obj.home_branch.name if obj.home_branch_id else None
+
+    def validate_national_id(self, value):
+        # Treat blank/whitespace-only submissions as "no ID provided" (NULL),
+        # not as an empty-string value — empty strings collide with each
+        # other under the unique constraint, NULLs never do.
+        if not value or not value.strip():
+            return None
+        return value.strip()
+
+    def validate(self, attrs):
+        dob = attrs.get("dob")
+        national_id = attrs.get("national_id")
+        guardian_name = attrs.get("guardian_name")
+        is_minor = dob is not None and (dob.year > 2008)  # rough check, refined via age property elsewhere
+        if not is_minor and not national_id and not self.instance:
+            # Adults should generally have a National ID; keep as a soft warning, not a hard block,
+            # since some adults legitimately lack one (e.g. undocumented, foreign patients).
+            pass
+        return attrs
+
 
 class PatientSearchResultSerializer(serializers.ModelSerializer):
+    """Lightweight serializer used by the duplicate-check search endpoint."""
+
     age = serializers.IntegerField(read_only=True)
-    home_branch_name = serializers.CharField(source="home_branch.name", read_only=True, default=None)
+    home_branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
         fields = ["id", "hospital_number", "full_name", "gender", "age", "phone", "national_id", "home_branch_name"]
 
+    def get_home_branch_name(self, obj):
+        return obj.home_branch.name if obj.home_branch_id else None
+    
+    
 # ---------------------------------------------------------------------------
 # Visits
 # ---------------------------------------------------------------------------

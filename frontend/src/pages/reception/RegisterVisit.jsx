@@ -177,11 +177,18 @@ export default function RegisterVisit() {
                         onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-hover)'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
-                        <div>
-                          <strong>{p.full_name}</strong>
-                          <span className="text-muted text-xs" style={{ marginLeft: 'var(--space-2)' }}>
-                            {p.hospital_number}
-                          </span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
+                          <div>
+                            <strong>{p.full_name}</strong>
+                            <span className="text-muted text-xs" style={{ marginLeft: 'var(--space-2)' }}>
+                              {p.hospital_number}
+                            </span>
+                          </div>
+                          {p.home_branch_name && (
+                            <span className="tag tag-sm" title="Registered branch">
+                              {p.home_branch_name}
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-tertiary">
                           {p.phone} {p.national_id ? `· ${p.national_id}` : ""}
@@ -209,6 +216,7 @@ export default function RegisterVisit() {
                     <strong>{selectedPatient.full_name}</strong>
                     <span className="text-muted text-xs" style={{ marginLeft: 'var(--space-2)' }}>
                       {selectedPatient.hospital_number} · {selectedPatient.age || "N/A"} years
+                      {selectedPatient.home_branch_name && ` · Registered at ${selectedPatient.home_branch_name}`}
                     </span>
                   </span>
                 </div>
