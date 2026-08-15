@@ -128,16 +128,18 @@ class VisitSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="patient.full_name", read_only=True)
     department_name = serializers.CharField(source="department.name", read_only=True)
     doctor_name = serializers.CharField(source="doctor.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = Visit
         fields = [
             "id", "visit_number", "patient", "patient_name", "department", "department_name",
             "doctor", "doctor_name", "consultation_type", "consultation_fee", "status",
-            "visit_date", "registered_by",
+            "visit_date", "registered_by", "branch", "branch_name",
         ]
-        read_only_fields = ["id", "visit_number", "consultation_fee", "status", "visit_date", "registered_by"]
-
+        # branch is set server-side from the registering user's branch —
+        # never trust the payload for this (same reasoning as Patient/User).
+        read_only_fields = ["id", "visit_number", "consultation_fee", "status", "visit_date", "registered_by", "branch"]
 
 # ---------------------------------------------------------------------------
 # Billing

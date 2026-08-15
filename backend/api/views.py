@@ -481,18 +481,33 @@ class MedicalHistoryNoteViewSet(BaseModelViewSet):
 # Visits
 # ---------------------------------------------------------------------------
 class VisitViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
-    queryset = Visit.objects.select_related("patient", "department", "doctor").all().order_by("-visit_date")
+    queryset = Visit.objects.select_related("patient", "department", "doctor", "branch").all().order_by("-visit_date")
     serializer_class = VisitSerializer
     filterset_class = VisitFilter
     search_fields = ["visit_number", "patient__full_name", "patient__hospital_number"]
     ordering_fields = ["visit_date"]
-    
+
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def perform_create(self, serializer):
-        visit = serializer.save(registered_by=self.request.user, status=VisitStatus.AWAITING_PAYMENT)
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+
+        if accessible is None:
+            # GROUP_ADMIN registering a visit directly — respect an explicit
+            # branch if sent, never silently guess one.
+            branch_id = self.request.data.get("branch") or self.request.user.branch_id
+            visit = serializer.save(
+                registered_by=self.request.user, status=VisitStatus.AWAITING_PAYMENT, branch_id=branch_id,
+            )
+            return visit
+
+        visit = serializer.save(
+            registered_by=self.request.user, status=VisitStatus.AWAITING_PAYMENT,
+            branch_id=self.request.user.branch_id,
+        )
         return visit
-    
+
     def perform_destroy(self, instance):
         # Soft-delete via BaseModel's existing pattern, not a hard delete —
         # matches every other module's destroy behavior in this system.

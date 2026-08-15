@@ -183,6 +183,7 @@ export default function VisitList() {
                     <tr>
                       <th>Visit #</th>
                       <th>Patient</th>
+                      <th>Branch</th>
                       <th>Department</th>
                       <th>Type</th>
                       <th>Status</th>
@@ -205,6 +206,7 @@ export default function VisitList() {
                             </div>
                           </div>
                         </td>
+                        <td>{v.branch_name || "—"}</td>
                         <td>{v.department_name}</td>
                         <td>
                           <span className="tag">{v.consultation_type}</span>
