@@ -995,14 +995,19 @@ table {
   display: grid;
   place-items: center;
   color: var(--gray-600);
+  transition: transform var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
 }
+
 
 .sidebar__link:hover .sidebar__link-icon {
   color: var(--primary-700);
+  transform: scale(1.15);
 }
 
 .sidebar__link.is-active .sidebar__link-icon {
   color: var(--gray-0);
+  transform: scale(1);
 }
 
 .sidebar__link-text {
