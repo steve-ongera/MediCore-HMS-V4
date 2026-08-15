@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "../../context/ToastContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   getUsers,
   createUser,
@@ -10,6 +11,7 @@ import {
   createDepartment,
   updateDepartment,
   deleteDepartment,
+  getBranches,
 } from "../../services/api";
 import DataTable from "../../components/DataTable";
 import Modal from "../../components/Modal";
@@ -22,10 +24,13 @@ const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
 
 export default function Settings() {
+  const { user: currentUser, isGroupAdmin } = useAuth();
+
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeptModal, setShowDeptModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -54,6 +59,7 @@ export default function Settings() {
     role: "",
     phone: "",
     password: "",
+    branch: "",
   });
 
   const [deptForm, setDeptForm] = useState({
@@ -62,6 +68,10 @@ export default function Settings() {
     description: "",
     is_active: true,
   });
+
+  useEffect(() => {
+    loadBranches();
+  }, []);
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -91,6 +101,22 @@ export default function Settings() {
       return { results: data, count: data.length };
     }
     return { results: data?.results || [], count: data?.count ?? (data?.results?.length || 0) };
+  };
+
+  const loadBranches = async () => {
+    try {
+      // Group Admin sees every branch; a branch-scoped Super Admin only
+      // ever needs their own branch anyway (the field is locked for them),
+      // but fetching the full accessible set here keeps this simple and
+      // correct either way — the backend already scopes what /branches/
+      // returns per role.
+      const data = await getBranches({ page_size: 200 });
+      const { results } = normalizeListResponse(data);
+      setBranches(results);
+    } catch (err) {
+      // Non-fatal — the branch field just won't have options if this fails.
+      console.error("Failed to load branches", err);
+    }
   };
 
   const loadUsers = async (page = 1) => {
@@ -151,16 +177,24 @@ export default function Settings() {
 
     setSubmitting(true);
     try {
+      // A branch-scoped Super Admin can only ever create/edit users into
+      // their own branch — enforce that here too, not just via the
+      // disabled input, so a stale form state can't slip a different
+      // branch through.
+      const payload = isGroupAdmin
+        ? userForm
+        : { ...userForm, branch: currentUser?.branch || null };
+
       if (editingUser) {
-        const { password, ...updateData } = userForm;
+        const { password, ...updateData } = payload;
         await updateUser(editingUser.id, updateData);
         toast.success("User updated successfully");
       } else {
-        await createUser(userForm);
+        await createUser(payload);
         toast.success("User created successfully");
       }
       setShowUserModal(false);
-      setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
+      setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "", branch: "" });
       setEditingUser(null);
       setResetPassword("");
       loadUsers(userPage);
@@ -256,10 +290,21 @@ export default function Settings() {
         role: user.role,
         phone: user.phone || "",
         password: "",
+        branch: user.branch || (isGroupAdmin ? "" : currentUser?.branch || ""),
       });
     } else {
       setEditingUser(null);
-      setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
+      setUserForm({
+        username: "",
+        email: "",
+        first_name: "",
+        last_name: "",
+        role: "",
+        phone: "",
+        password: "",
+        // Group Admin must pick explicitly; anyone else auto-gets their own branch.
+        branch: isGroupAdmin ? "" : currentUser?.branch || "",
+      });
     }
     setShowUserModal(true);
   };
@@ -304,6 +349,11 @@ export default function Settings() {
       key: "role",
       label: "Role",
       render: (row) => ROLE_LABELS[row.role] || row.role || "—",
+    },
+    {
+      key: "branch",
+      label: "Branch",
+      render: (row) => row.branch_name || "—",
     },
     {
       key: "phone",
@@ -579,7 +629,7 @@ export default function Settings() {
           setShowUserModal(false);
           setEditingUser(null);
           setResetPassword("");
-          setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "" });
+          setUserForm({ username: "", email: "", first_name: "", last_name: "", role: "", phone: "", password: "", branch: "" });
         }}
         title={editingUser ? "Edit User" : "Add User"}
         size="lg"
@@ -692,6 +742,40 @@ export default function Settings() {
               onChange={(e) => setUserForm((prev) => ({ ...prev, phone: e.target.value }))}
             />
           </div>
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="user_branch">
+            Branch {isGroupAdmin && <span className="required">*</span>}
+          </label>
+          {isGroupAdmin ? (
+            <select
+              id="user_branch"
+              className="select"
+              value={userForm.branch}
+              onChange={(e) => setUserForm((prev) => ({ ...prev, branch: e.target.value }))}
+            >
+              <option value="">Select branch</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} ({b.level})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <input
+                id="user_branch"
+                type="text"
+                className="input"
+                value={currentUser?.branch_name || "No Branch"}
+                disabled
+              />
+              <div className="text-2xs text-tertiary" style={{ marginTop: "var(--space-1)" }}>
+                Users you create are automatically assigned to your branch.
+              </div>
+            </>
+          )}
         </div>
 
         {!editingUser ? (

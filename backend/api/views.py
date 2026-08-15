@@ -254,7 +254,7 @@ class UserViewSet(BaseModelViewSet):
     """
     permission_classes = [WithinUserLimit]
     queryset = User.objects.all().order_by("first_name")
-    filterset_fields = ["role", "department", "is_active_staff"]
+    filterset_fields = ["role", "department", "is_active_staff", "branch"]
     search_fields = ["username", "first_name", "last_name", "email", "phone"]
     ordering_fields = ["first_name", "date_joined"]
 
@@ -262,6 +262,41 @@ class UserViewSet(BaseModelViewSet):
         if self.action == "create":
             return UserCreateSerializer
         return UserSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is None:
+            return qs  # GROUP_ADMIN / superuser — see staff across every branch
+        return qs.filter(branch_id__in=accessible)
+
+    def perform_create(self, serializer):
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+
+        if accessible is None:
+            # GROUP_ADMIN can create a user in any branch, but must say which one.
+            branch_id = self.request.data.get("branch")
+            if not branch_id:
+                raise ValidationError({"branch": "As a Group Admin, you must specify which branch this user belongs to."})
+            serializer.save(branch_id=branch_id)
+            return
+
+        # Everyone else — always their own branch, never trusting the payload.
+        serializer.save(branch_id=self.request.user.branch_id)
+
+    def perform_update(self, serializer):
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+
+        if accessible is None:
+            serializer.save()  # GROUP_ADMIN can move a user between branches freely
+            return
+
+        # A branch-scoped Super Admin can edit a user's other fields, but
+        # can never reassign them to a different branch via this endpoint.
+        serializer.save(branch_id=self.request.user.branch_id)
 
     @action(detail=True, methods=["post"], url_path="reset-password")
     def reset_password(self, request, pk=None):
