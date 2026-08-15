@@ -177,6 +177,11 @@ export default function Payments() {
       render: (row) => row.patient_name || "—",
     },
     {
+      key: "branch_name",
+      label: "Hospital",
+      render: (row) => row.branch_name || "—",
+    },
+    {
       key: "amount",
       label: "Amount",
       render: (row) => (
@@ -376,7 +381,8 @@ export default function Payments() {
               <option value="">Select an invoice</option>
               {invoices.map((inv) => (
                 <option key={inv.id} value={inv.id}>
-                  {inv.invoice_number} - {inv.patient_name} ({inv.source_type}) - Balance: {formatCurrency(inv.balance)}
+                  {inv.invoice_number} - {inv.patient_name}
+                  {inv.branch_name ? ` - ${inv.branch_name}` : ""} ({inv.source_type}) - Balance: {formatCurrency(inv.balance)}
                 </option>
               ))}
             </select>

@@ -589,8 +589,14 @@ class PaymentViewSet(BranchScopedViewSetMixin, BaseModelViewSet):
         if payment.qr_code:
             qr_code_url = request.build_absolute_uri(payment.qr_code.url)
 
+        # Prefer the payment's own branch (set at creation from invoice.branch —
+        # see Payment.save()); fall back to the invoice's branch directly in
+        # case an older payment predates that denormalization.
+        branch = payment.branch or invoice.branch
+        hospital_name = branch.name if branch else "Medicore Hospital"
+
         return Response({
-            "hospital_name": "City General Hospital",
+            "hospital_name": hospital_name,
             "receipt_number": payment.receipt_number,
             "patient_name": invoice.patient.full_name,
             "visit_number": invoice.visit.visit_number if invoice.visit else None,

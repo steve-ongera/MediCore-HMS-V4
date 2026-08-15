@@ -193,14 +193,19 @@ class PaymentSerializer(serializers.ModelSerializer):
     cashier_name = serializers.CharField(source="cashier.get_full_name", read_only=True)
     invoice_number = serializers.CharField(source="invoice.invoice_number", read_only=True)
     patient_name = serializers.CharField(source="invoice.patient.full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
         fields = [
             "id", "receipt_number", "invoice", "invoice_number", "patient_name", "amount",
             "method", "reference_number", "cashier", "cashier_name", "qr_code", "paid_at",
+            "branch", "branch_name",
         ]
-        read_only_fields = ["id", "receipt_number", "cashier", "qr_code", "paid_at"]
+        read_only_fields = ["id", "receipt_number", "cashier", "qr_code", "paid_at", "branch"]
+
+    def get_branch_name(self, obj):
+        return obj.branch.name if obj.branch_id else None
 
     def validate(self, attrs):
         invoice = attrs.get("invoice") or getattr(self.instance, "invoice", None)
