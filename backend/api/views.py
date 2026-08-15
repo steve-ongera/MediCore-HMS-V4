@@ -359,14 +359,72 @@ class PatientViewSet(BaseModelViewSet):
     search_fields = ["full_name", "phone", "national_id", "hospital_number"]
     ordering_fields = ["full_name", "created_at"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Only the LIST view is branch-scoped. Retrieve, search, visits, and
+        # summary deliberately stay unfiltered — the patient record is
+        # group-wide (Patient.home_branch is informational only, per the
+        # model's own docstring), and reception at any branch needs to be
+        # able to pull up / attach a visit to a patient who first registered
+        # elsewhere. Only the day-to-day patient list is scoped down to
+        # "patients that belong to my branch".
+        if self.action == "list":
+            from branches.permissions import get_accessible_branch_ids
+            accessible = get_accessible_branch_ids(self.request.user)
+            if accessible is not None:  # None = GROUP_ADMIN/superuser, sees everyone
+                qs = qs.filter(home_branch_id__in=accessible)
+        return qs
+
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is None:
+            # GROUP_ADMIN registering directly — respect an explicit branch
+            # if sent, never silently guess one.
+            branch_id = self.request.data.get("home_branch") or self.request.user.branch_id
+            serializer.save(created_by=self.request.user, home_branch_id=branch_id)
+            return
+        # Everyone else — always their own branch, never trusting the payload.
+        serializer.save(created_by=self.request.user, home_branch_id=self.request.user.branch_id)
+
+    def _check_branch_write_access(self, patient):
+        """
+        A user can only EDIT or DELETE a patient whose home_branch is
+        within their accessible branches. GROUP_ADMIN/superuser bypass this
+        (accessible=None), same convention as everywhere else in the app
+        (UserViewSet, get_accessible_branch_ids). This never touches read
+        access — retrieve/search/visits/summary stay open to any branch,
+        only writes are locked down.
+        """
+        from branches.permissions import get_accessible_branch_ids
+        from rest_framework.exceptions import PermissionDenied
+
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is None:
+            return
+        if patient.home_branch_id and patient.home_branch_id not in accessible:
+            raise PermissionDenied(
+                "This patient is registered at a different branch. "
+                "You can view their record, but only staff at their home branch can edit it."
+            )
+
+    def perform_update(self, serializer):
+        self._check_branch_write_access(serializer.instance)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        # Branch check first, then the usual global soft-delete pattern.
+        self._check_branch_write_access(instance)
+        instance.soft_delete()
 
     @action(detail=False, methods=["get"], url_path="search")
     def search(self, request):
         """
         Duplicate-check search used before registering a new patient.
         Matches on phone, national_id, or hospital_number.
+        Deliberately group-wide — unfiltered by branch — so reception can
+        catch a patient who already exists under a different branch before
+        creating a duplicate record.
         """
         query = request.query_params.get("q", "").strip()
         if not query:
@@ -385,13 +443,15 @@ class PatientViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="visits")
     def visits(self, request, pk=None):
+        # No branch filtering — a patient's visit history is group-wide,
+        # same reasoning as retrieve/search/summary above.
         patient = self.get_object()
         visits = patient.visits.all().order_by("-visit_date")
         return Response(VisitSerializer(visits, many=True).data)
 
     @action(detail=True, methods=["get"], url_path="summary")
     def summary(self, request, pk=None):
-        """Full clinical snapshot shown on the doctor's consultation screen."""
+        """Full clinical snapshot shown on the doctor's consultation screen. No branch filtering — same reasoning as above."""
         patient = self.get_object()
         return Response({
             "patient": PatientSerializer(patient).data,
@@ -403,8 +463,8 @@ class PatientViewSet(BaseModelViewSet):
                 many=True,
             ).data,
         })
-
-
+        
+        
 class AllergyViewSet(BaseModelViewSet):
     queryset = Allergy.objects.all()
     serializer_class = AllergySerializer

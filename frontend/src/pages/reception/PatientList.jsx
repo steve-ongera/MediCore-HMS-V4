@@ -184,6 +184,7 @@ export default function PatientList() {
     const tableColumns = [
       { header: "Hospital #", dataKey: "hospital_number" },
       { header: "Full Name", dataKey: "full_name" },
+      { header: "Branch", dataKey: "home_branch_name" },
       { header: "Gender", dataKey: "gender" },
       { header: "Age", dataKey: "age" },
       { header: "Phone", dataKey: "phone" },
@@ -194,6 +195,7 @@ export default function PatientList() {
     const tableRows = exportData.map((p) => ({
       hospital_number: p.hospital_number || "-",
       full_name: p.full_name || "-",
+      home_branch_name: p.home_branch_name || "-",
       gender: p.gender || "-",
       age: p.age ? String(p.age) : "-",
       phone: p.phone || "-",
@@ -224,13 +226,14 @@ export default function PatientList() {
         fillColor: LIGHT_FILL,
       },
       columnStyles: {
-        0: { cellWidth: 36, minCellWidth: 36, fontStyle: "bold" }, // Full Hospital # visibility
-        1: { cellWidth: 44, fontStyle: "bold" },                   // Patient Name
-        2: { cellWidth: 18 },                                      // Gender
-        3: { cellWidth: 14 },                                      // Age
-        4: { cellWidth: 28 },                                      // Phone
-        5: { cellWidth: 24 },                                      // National ID
-        6: { cellWidth: 22 },                                      // Registered Date
+        0: { cellWidth: 32, minCellWidth: 32, fontStyle: "bold" }, // Hospital #
+        1: { cellWidth: 38, fontStyle: "bold" },                   // Patient Name
+        2: { cellWidth: 24 },                                      // Branch
+        3: { cellWidth: 16 },                                      // Gender
+        4: { cellWidth: 12 },                                      // Age
+        5: { cellWidth: 26 },                                      // Phone
+        6: { cellWidth: 22 },                                      // National ID
+        7: { cellWidth: 20 },                                      // Registered Date
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
@@ -254,8 +257,8 @@ export default function PatientList() {
    * Generate CSV File Format
    */
   const generateCSV = (exportData) => {
-    const headers = ["Hospital #", "Full Name", "Gender", "Age", "Phone", "National ID", "Registered Date"];
-    
+    const headers = ["Hospital #", "Full Name", "Branch", "Gender", "Age", "Phone", "National ID", "Registered Date"];
+
     const escapeCsv = (val) => {
       if (val === null || val === undefined) return '""';
       const str = String(val).replace(/"/g, '""');
@@ -265,6 +268,7 @@ export default function PatientList() {
     const rows = exportData.map((p) => [
       escapeCsv(p.hospital_number),
       escapeCsv(p.full_name),
+      escapeCsv(p.home_branch_name),
       escapeCsv(p.gender),
       escapeCsv(p.age),
       escapeCsv(p.phone),
@@ -283,6 +287,7 @@ export default function PatientList() {
       <tr>
         <td style="mso-number-format:'\\@';">${p.hospital_number || ""}</td>
         <td>${p.full_name || ""}</td>
+        <td>${p.home_branch_name || ""}</td>
         <td>${p.gender || ""}</td>
         <td>${p.age || ""}</td>
         <td style="mso-number-format:'\\@';">${p.phone || ""}</td>
@@ -314,6 +319,7 @@ export default function PatientList() {
               <tr style="background-color: #1e40af; color: #ffffff; font-weight: bold;">
                 <th>Hospital #</th>
                 <th>Full Name</th>
+                <th>Branch</th>
                 <th>Gender</th>
                 <th>Age</th>
                 <th>Phone</th>
@@ -389,6 +395,11 @@ export default function PatientList() {
           </div>
         </Link>
       ),
+    },
+    {
+      key: "home_branch_name",
+      label: "Branch",
+      render: (row) => row.home_branch_name || "—",
     },
     {
       key: "phone",

@@ -130,16 +130,21 @@ class MedicalHistoryInline(admin.TabularInline):
 
 @admin.register(Patient)
 class PatientAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
-    list_display = ("hospital_number", "full_name", "gender", "age_display", "phone", "national_id", "is_deleted")
-    list_filter = ("gender", "is_deleted")
+    list_display = ("hospital_number", "full_name", "gender", "age_display", "phone", "national_id", "home_branch", "is_deleted")
+    list_filter = ("gender", "home_branch", "is_deleted")
     search_fields = ("hospital_number", "full_name", "phone", "national_id")
     readonly_fields = ("hospital_number",)
+    autocomplete_fields = ("home_branch",)
     inlines = [AllergyInline, MedicalHistoryInline]
     fieldsets = (
         ("Identification", {"fields": ("hospital_number", "full_name", "gender", "dob", "national_id")}),
         ("Contact", {"fields": ("phone", "address")}),
         ("Guardian (Minors)", {"fields": ("guardian_name", "guardian_phone", "guardian_relationship")}),
         ("Next of Kin", {"fields": ("next_of_kin_name", "next_of_kin_phone", "next_of_kin_relationship")}),
+        # home_branch is informational (where the patient first registered) —
+        # the record itself stays group-wide/visible at any branch. Kept in
+        # its own section so it doesn't read as an access restriction here.
+        ("Branch", {"fields": ("home_branch",)}),
         ("Meta", {"fields": ("created_by", "is_deleted", "deleted_at")}),
     )
 
@@ -153,11 +158,11 @@ class PatientAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 # ---------------------------------------------------------------------------
 @admin.register(Visit)
 class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
-    list_display = ("visit_number", "patient", "department", "doctor", "status", "consultation_fee_display", "visit_date")
-    list_filter = ("status", "department", "consultation_type", "is_deleted")
+    list_display = ("visit_number", "patient", "branch", "department", "doctor", "status", "consultation_fee_display", "visit_date")
+    list_filter = ("branch", "status", "department", "consultation_type", "is_deleted")
     search_fields = ("visit_number", "patient__full_name", "patient__hospital_number")
     readonly_fields = ("visit_number", "visit_date")
-    autocomplete_fields = ("patient",)
+    autocomplete_fields = ("patient", "branch")
     date_hierarchy = "visit_date"
 
     @admin.display(description="Fee")
@@ -190,11 +195,11 @@ class PaymentInline(admin.TabularInline):
 
 @admin.register(Invoice)
 class InvoiceAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
-    list_display = ("invoice_number", "patient", "source_type", "amount_display", "amount_paid_display", "balance_display", "status")
-    list_filter = ("source_type", "status", "is_deleted")
+    list_display = ("invoice_number", "patient", "branch", "source_type", "amount_display", "amount_paid_display", "balance_display", "status")
+    list_filter = ("branch", "source_type", "status", "is_deleted")
     search_fields = ("invoice_number", "patient__full_name", "patient__hospital_number")
     readonly_fields = ("invoice_number",)
-    autocomplete_fields = ("patient", "visit")
+    autocomplete_fields = ("patient", "visit", "branch")
     inlines = [PaymentInline]
 
     @admin.display(description="Amount")
@@ -213,10 +218,11 @@ class InvoiceAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ("receipt_number", "invoice", "amount_display", "method", "reference_number", "cashier", "paid_at")
-    list_filter = ("method", "paid_at")
+    list_display = ("receipt_number", "invoice", "branch", "amount_display", "method", "reference_number", "cashier", "paid_at")
+    list_filter = ("branch", "method", "paid_at")
     search_fields = ("receipt_number", "reference_number", "invoice__invoice_number", "invoice__patient__full_name")
     readonly_fields = ("receipt_number", "paid_at")
+    autocomplete_fields = ("branch",)
     date_hierarchy = "paid_at"
 
     @admin.display(description="Amount")

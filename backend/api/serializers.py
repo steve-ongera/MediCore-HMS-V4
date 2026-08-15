@@ -97,6 +97,7 @@ class PatientSerializer(serializers.ModelSerializer):
     age = serializers.IntegerField(read_only=True)
     allergies = AllergySerializer(many=True, read_only=True)
     medical_history = MedicalHistoryNoteSerializer(many=True, read_only=True)
+    home_branch_name = serializers.CharField(source="home_branch.name", read_only=True, default=None)
 
     class Meta:
         model = Patient
@@ -105,38 +106,20 @@ class PatientSerializer(serializers.ModelSerializer):
             "national_id", "guardian_name", "guardian_phone", "guardian_relationship",
             "next_of_kin_name", "next_of_kin_phone", "next_of_kin_relationship",
             "allergies", "medical_history", "created_by", "created_at",
+            "home_branch", "home_branch_name",
         ]
-        read_only_fields = ["id", "hospital_number", "created_by", "created_at"]
-
-    def validate_national_id(self, value):
-        # Treat blank/whitespace-only submissions as "no ID provided" (NULL),
-        # not as an empty-string value — empty strings collide with each
-        # other under the unique constraint, NULLs never do.
-        if not value or not value.strip():
-            return None
-        return value.strip()
-
-    def validate(self, attrs):
-        dob = attrs.get("dob")
-        national_id = attrs.get("national_id")
-        guardian_name = attrs.get("guardian_name")
-        is_minor = dob is not None and (dob.year > 2008)  # rough check, refined via age property elsewhere
-        if not is_minor and not national_id and not self.instance:
-            # Adults should generally have a National ID; keep as a soft warning, not a hard block,
-            # since some adults legitimately lack one (e.g. undocumented, foreign patients).
-            pass
-        return attrs
+        # home_branch is set server-side from the registering user's branch —
+        # never trust the payload for this (same reasoning as UserViewSet.perform_create)
+        read_only_fields = ["id", "hospital_number", "created_by", "created_at", "home_branch"]
 
 
 class PatientSearchResultSerializer(serializers.ModelSerializer):
-    """Lightweight serializer used by the duplicate-check search endpoint."""
-
     age = serializers.IntegerField(read_only=True)
+    home_branch_name = serializers.CharField(source="home_branch.name", read_only=True, default=None)
 
     class Meta:
         model = Patient
-        fields = ["id", "hospital_number", "full_name", "gender", "age", "phone", "national_id"]
-
+        fields = ["id", "hospital_number", "full_name", "gender", "age", "phone", "national_id", "home_branch_name"]
 
 # ---------------------------------------------------------------------------
 # Visits
