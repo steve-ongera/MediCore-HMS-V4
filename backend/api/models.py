@@ -694,6 +694,10 @@ class Medicine(BaseModel):
 class MedicineBatch(BaseModel):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, related_name="batches")
     supplier = models.ForeignKey(Supplier, null=True, on_delete=models.SET_NULL, related_name="batches")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="medicine_batches",
+        help_text="Physical stock location. Each branch's pharmacy stock is separate — a batch received at one branch is never dispensed from another.",
+    )
     batch_number = models.CharField(max_length=60)
     quantity_received = models.PositiveIntegerField()
     quantity_remaining = models.PositiveIntegerField()
@@ -765,8 +769,6 @@ class PharmacyDispense(BaseModel):
 class OTCSale(BaseModel):
     sale_number = models.CharField(max_length=30, unique=True, editable=False)
 
-    # Optional — a walk-in customer is not required to give any identifying
-    # information. Kept as free text rather than a Patient FK on purpose.
     customer_name = models.CharField(max_length=150, blank=True)
     customer_phone = models.CharField(max_length=20, blank=True)
 
@@ -776,8 +778,12 @@ class OTCSale(BaseModel):
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.CASH)
-    reference_number = models.CharField(max_length=100, blank=True)  # M-Pesa code, card auth...
+    reference_number = models.CharField(max_length=100, blank=True)
 
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="otc_sales",
+        help_text="Set automatically from the serving cashier's branch — walk-in stock is drawn from this branch's batches.",
+    )
     served_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="otc_sales")
     qr_code = models.ImageField(upload_to="otc_receipts/qr/", null=True, blank=True)
     sold_at = models.DateTimeField(auto_now_add=True)
@@ -794,6 +800,13 @@ class OTCSale(BaseModel):
         self.subtotal = sum(item.subtotal for item in self.items.all())
         self.total_amount = self.subtotal - self.discount
         self.save(update_fields=["subtotal", "total_amount"])
+
+    @property
+    def balance(self):
+        return self.total_amount - self.amount_paid
+
+    def __str__(self):
+        return f"{self.sale_number} - KES {self.total_amount}"
 
     @property
     def balance(self):
