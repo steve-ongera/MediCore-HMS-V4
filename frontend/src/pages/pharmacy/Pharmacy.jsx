@@ -195,6 +195,7 @@ export default function Pharmacy() {
                     <thead>
                       <tr>
                         <th>Patient</th>
+                        <th>Branch</th>
                         <th>Medicine</th>
                         <th>Dosage</th>
                         <th className="cell-numeric">Prescribed Qty</th>
@@ -205,6 +206,7 @@ export default function Pharmacy() {
                       {prescriptions.map((p) => (
                         <tr key={p.id}>
                           <td className="cell-primary">{p.patient_name}</td>
+                          <td>{p.branch_name || "—"}</td>
                           <td>{p.medicine_name}</td>
                           <td>{p.dosage}</td>
                           <td className="cell-numeric">{p.quantity}</td>
@@ -277,6 +279,7 @@ export default function Pharmacy() {
                     <thead>
                       <tr>
                         <th>Patient</th>
+                        <th>Branch</th>
                         <th>Medicine</th>
                         <th className="cell-numeric">Qty</th>
                         <th>Method</th>
@@ -288,6 +291,7 @@ export default function Pharmacy() {
                       {awaitingPayment.map((d) => (
                         <tr key={d.id}>
                           <td className="cell-primary">{d.patient_name}</td>
+                          <td>{d.branch_name || "—"}</td>
                           <td>{d.medicine_name}</td>
                           <td className="cell-numeric">{d.quantity_dispensed}</td>
                           <td>{d.payment_method}</td>
@@ -331,6 +335,7 @@ export default function Pharmacy() {
                     <thead>
                       <tr>
                         <th>Patient</th>
+                        <th>Branch</th>
                         <th>Medicine</th>
                         <th className="cell-numeric">Qty</th>
                         <th>Method</th>
@@ -341,6 +346,7 @@ export default function Pharmacy() {
                       {readyToComplete.map((d) => (
                         <tr key={d.id}>
                           <td className="cell-primary">{d.patient_name}</td>
+                          <td>{d.branch_name || "—"}</td>
                           <td>{d.medicine_name}</td>
                           <td className="cell-numeric">{d.quantity_dispensed}</td>
                           <td>{d.payment_method}</td>
@@ -389,6 +395,7 @@ export default function Pharmacy() {
                     <thead>
                       <tr>
                         <th>Patient</th>
+                        <th>Branch</th>
                         <th>Medicine</th>
                         <th className="cell-numeric">Qty</th>
                         <th>Method</th>
@@ -401,6 +408,7 @@ export default function Pharmacy() {
                       {history.map((d) => (
                         <tr key={d.id}>
                           <td className="cell-primary">{d.patient_name}</td>
+                          <td>{d.branch_name || "—"}</td>
                           <td>{d.medicine_name}</td>
                           <td className="cell-numeric">{d.quantity_dispensed}</td>
                           <td>{d.payment_method}</td>

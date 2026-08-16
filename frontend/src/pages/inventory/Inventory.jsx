@@ -31,8 +31,6 @@ export default function Inventory() {
   const [batchPage, setBatchPage] = useState(1);
   const [batchTotal, setBatchTotal] = useState(0);
 
-  // Search terms — independent per tab so switching tabs doesn't carry one
-  // tab's filter into another's results.
   const [medSearch, setMedSearch] = useState("");
   const [batchSearch, setBatchSearch] = useState("");
 
@@ -40,10 +38,6 @@ export default function Inventory() {
   const [supPage, setSupPage] = useState(1);
   const [supTotal, setSupTotal] = useState(0);
 
-  // Lightweight totals for the stat cards, fetched independently of whichever
-  // tab/page is currently on screen. Active Batches is computed from a capped
-  // sample (first 200 batches) since there's no server-side filter for it —
-  // an approximation, but good enough for a dashboard tile.
   const [counts, setCounts] = useState({ medicines: 0, suppliers: 0, batches: 0, activeBatches: 0, lowStock: 0 });
 
   const [loading, setLoading] = useState(true);
@@ -81,8 +75,6 @@ export default function Inventory() {
     expiry_date: "",
   });
 
-  // Edit Medicine — separate from medicineForm so the "Add Medicine" modal's
-  // state isn't disturbed by opening an edit.
   const [editingMedicineId, setEditingMedicineId] = useState(null);
   const [editMedicineForm, setEditMedicineForm] = useState({
     name: "",
@@ -93,8 +85,6 @@ export default function Inventory() {
     reorder_level: 20,
   });
 
-  // Edit / Adjust Stock — quantity_remaining is the actual stock correction;
-  // batch_number and expiry_date are editable for fixing data-entry mistakes.
   const [editingBatchId, setEditingBatchId] = useState(null);
   const [editBatchForm, setEditBatchForm] = useState({
     medicine_name: "",
@@ -116,9 +106,6 @@ export default function Inventory() {
     })();
   }, []);
 
-  // Page-change effects only drive re-fetches for user pagination clicks —
-  // the initial load above is handled explicitly, so these are gated on
-  // `loading` to avoid a duplicate first fetch.
   useEffect(() => { if (!loading) loadMedicines(medPage); }, [medPage]);
   useEffect(() => { if (!loading) loadBatches(batchPage); }, [batchPage]);
   useEffect(() => { if (!loading) loadSuppliers(supPage); }, [supPage]);
@@ -404,16 +391,16 @@ export default function Inventory() {
     },
   ];
 
-  // NOTE: MedicineBatchSerializer returns `medicine` and `supplier` as plain
-  // foreign-key IDs, not nested objects. Read the flat `medicine_name` /
-  // `supplier_name` fields the serializer provides instead of drilling into
-  // row.medicine.name / row.supplier.name (which are always undefined since
-  // row.medicine / row.supplier are just UUID strings).
   const batchColumns = [
     {
       key: "medicine_name",
       label: "Medicine",
       render: (row) => row.medicine_name || "—",
+    },
+    {
+      key: "branch_name",
+      label: "Branch",
+      render: (row) => row.branch_name || "—",
     },
     {
       key: "batch_number",
