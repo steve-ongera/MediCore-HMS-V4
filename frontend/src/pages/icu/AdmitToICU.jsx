@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getPatients, getAvailableICUBeds, getUsers, admitToICU } from "../../services/api";
+import { searchPatient, getAvailableICUBeds, getUsers, admitToICU } from "../../services/api";
 
 export default function AdmitToICU() {
   const navigate = useNavigate();
@@ -27,6 +27,9 @@ export default function AdmitToICU() {
 
   const loadBeds = async () => {
     try {
+      // Backend now scopes this to the current user's accessible branch(es)
+      // automatically — a receptionist only ever sees ICU beds physically
+      // at their own hospital.
       const data = await getAvailableICUBeds();
       setBeds(data);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
@@ -43,8 +46,14 @@ export default function AdmitToICU() {
     e.preventDefault();
     if (!patientQuery.trim()) return;
     try {
-      const data = await getPatients({ search: patientQuery });
-      setPatientResults(data.results ?? data);
+      // Deliberately group-wide — NOT getPatients() (that's the
+      // branch-scoped list action). A patient is a centralized record
+      // across every branch; ICU admission can happen for anyone
+      // regardless of where they first registered, so this must use the
+      // dedicated /patients/search/ endpoint instead, to avoid creating a
+      // duplicate patient record and fragmenting their medical history.
+      const data = await searchPatient(patientQuery);
+      setPatientResults(data.patients || []);
     } catch (err) { setError(err.message); }
   };
 
@@ -150,6 +159,7 @@ export default function AdmitToICU() {
                       <th>Name</th>
                       <th>Hospital #</th>
                       <th>Phone</th>
+                      <th>Branch</th>
                       <th className="cell-actions"></th>
                     </tr>
                   </thead>
@@ -159,6 +169,7 @@ export default function AdmitToICU() {
                         <td className="cell-primary">{p.full_name}</td>
                         <td className="cell-mono">{p.hospital_number}</td>
                         <td>{p.phone}</td>
+                        <td>{p.home_branch_name || "—"}</td>
                         <td className="cell-actions">
                           <button
                             type="button"
@@ -190,6 +201,7 @@ export default function AdmitToICU() {
                     <div className="font-bold">{selectedPatient.full_name}</div>
                     <div className="text-sm text-muted">
                       {selectedPatient.hospital_number} • {selectedPatient.phone}
+                      {selectedPatient.home_branch_name && ` • Registered at ${selectedPatient.home_branch_name}`}
                     </div>
                   </div>
                   <button

@@ -110,6 +110,7 @@ export default function ICUBoard() {
                 <thead>
                   <tr>
                     <th>Bed</th>
+                    <th>Branch</th>
                     <th>Unit Type</th>
                     <th className="cell-numeric">Daily Rate</th>
                     <th>Ventilator</th>
@@ -121,6 +122,7 @@ export default function ICUBoard() {
                   {beds.map((b) => (
                     <tr key={b.id}>
                       <td className="cell-primary">{b.bed_number}</td>
+                      <td>{b.branch_name || "—"}</td>
                       <td>
                         <span className={`badge ${getUnitTypeBadge(b.unit_type)}`}>
                           <span className="badge-dot"></span>
@@ -208,6 +210,7 @@ export default function ICUBoard() {
                   <tr>
                     <th>Admission #</th>
                     <th>Patient</th>
+                    <th>Branch</th>
                     <th>Bed</th>
                     <th>Reason</th>
                     <th>Severity Score</th>
@@ -220,6 +223,7 @@ export default function ICUBoard() {
                     <tr key={a.id}>
                       <td className="cell-mono">{a.icu_admission_number}</td>
                       <td className="cell-primary">{a.patient_name}</td>
+                      <td>{a.branch_name || "—"}</td>
                       <td>
                         {a.bed_number}
                         <div className="text-2xs text-tertiary">{a.unit_type}</div>

@@ -103,6 +103,10 @@ class InsuranceClaim(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="insurance_claims")
     policy = models.ForeignKey(PatientInsurancePolicy, on_delete=models.PROTECT, related_name="claims")
     visit = models.ForeignKey("api.Visit", null=True, blank=True, on_delete=models.SET_NULL, related_name="insurance_claims")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="insurance_claims",
+        help_text="Denormalized from the invoices being claimed — set automatically when the claim is filed.",
+    )
 
     status = models.CharField(max_length=20, choices=ClaimStatus.choices, default=ClaimStatus.DRAFT)
     total_claimed = models.DecimalField(max_digits=10, decimal_places=2, default=0)

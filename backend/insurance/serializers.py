@@ -75,6 +75,7 @@ class InsuranceClaimSerializer(serializers.ModelSerializer):
     insurer_name = serializers.CharField(source="policy.insurer.name", read_only=True)
     member_number = serializers.CharField(source="policy.member_number", read_only=True)
     created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     items = ClaimItemSerializer(many=True, read_only=True)
 
     class Meta:
@@ -84,24 +85,26 @@ class InsuranceClaimSerializer(serializers.ModelSerializer):
             "insurer_name", "member_number", "visit", "status", "total_claimed", "total_approved",
             "gateway_reference", "submitted_at", "responded_at", "settled_at",
             "rejection_reason", "notes", "created_by", "created_by_name", "items", "created_at",
+            "branch", "branch_name",
         ]
         read_only_fields = [
             "id", "claim_number", "created_by", "status", "total_claimed", "total_approved",
-            "gateway_reference", "submitted_at", "responded_at", "settled_at",
+            "gateway_reference", "submitted_at", "responded_at", "settled_at", "branch",
         ]
 
 
 class InsuranceClaimListSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="patient.full_name", read_only=True)
     insurer_name = serializers.CharField(source="policy.insurer.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = InsuranceClaim
         fields = [
             "id", "claim_number", "patient_name", "insurer_name", "status",
-            "total_claimed", "total_approved", "submitted_at", "created_at",
+            "total_claimed", "total_approved", "submitted_at", "created_at", "branch_name",
         ]
-
+        
 
 class CreateClaimSerializer(serializers.Serializer):
     patient = serializers.UUIDField()

@@ -35,6 +35,11 @@ class InsurerViewSet(BaseModelViewSet):
 
 
 class PatientInsurancePolicyViewSet(BaseModelViewSet):
+    # Deliberately NOT branch-scoped. An insurance policy is a patient
+    # attribute, exactly like the patient record itself — group-wide by
+    # design so a policy registered at any branch is visible/reusable when
+    # filing a claim from any other branch, avoiding duplicate policy
+    # records for the same patient.
     queryset = PatientInsurancePolicy.objects.select_related("patient", "insurer").all()
     serializer_class = PatientInsurancePolicySerializer
     search_fields = ["member_number", "patient__full_name", "patient__hospital_number"]
@@ -62,9 +67,8 @@ class InsuranceClaimViewSet(BaseModelViewSet):
     No django_filters FilterSet, no separate exports module — everything
     the claims endpoints need lives here.
     """
-    queryset = InsuranceClaim.objects.select_related("patient", "policy__insurer").prefetch_related("items__invoice").all()
+    queryset = InsuranceClaim.objects.select_related("patient", "policy__insurer", "branch").prefetch_related("items__invoice").all()
     search_fields = ["claim_number", "patient__full_name", "patient__hospital_number"]
-    
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -97,6 +101,17 @@ class InsuranceClaimViewSet(BaseModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        # InsuranceClaim.branch is denormalized from the invoices being
+        # claimed, same pattern as Invoice.branch/Payment.branch. Applied
+        # here (not just list) so retrieve/submit/apply-response/settle/
+        # cancel via get_object() are also branch-restricted — a cashier
+        # can't act on another branch's claim even by guessing the ID.
+        # Also covers export(), since that calls self._apply_filters
+        # directly on a fresh queryset — see export() below for that half.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
         return self._apply_filters(qs, self.request.query_params)
 
     def create(self, request, *args, **kwargs):
@@ -112,12 +127,32 @@ class InsuranceClaimViewSet(BaseModelViewSet):
         if not policy:
             raise ValidationError({"policy": "Policy not found for this patient."})
 
+        # A claim is filed against real invoices, which are already
+        # branch-owned. Reject up front if any selected invoice belongs to
+        # a branch the filing user can't access — never let a cashier at
+        # Branch A file a claim against Branch B's billing.
+        from branches.permissions import get_accessible_branch_ids
+        from api.models import Invoice
+
+        accessible = get_accessible_branch_ids(request.user)
+        invoices = Invoice.objects.filter(id__in=data["invoice_ids"])
+        invoice_branch_ids = set(invoices.values_list("branch_id", flat=True))
+        if accessible is not None and not invoice_branch_ids.issubset(set(accessible) | {None}):
+            raise ValidationError({"invoice_ids": "One or more selected invoices belong to a different branch."})
+
         try:
             with transaction.atomic():
                 claim = create_claim(
                     patient=patient, policy=policy, invoice_ids=data["invoice_ids"],
                     user=request.user, notes=data.get("notes", ""),
                 )
+                # Stamp the claim's branch from its invoices — falls back to
+                # the filing user's own branch only if the invoices
+                # themselves somehow have no branch set.
+                claim_branch_id = next((b for b in invoice_branch_ids if b), None) or request.user.branch_id
+                if claim_branch_id and claim.branch_id != claim_branch_id:
+                    claim.branch_id = claim_branch_id
+                    claim.save(update_fields=["branch"])
         except ValueError as e:
             raise ValidationError({"detail": str(e)})
 
@@ -188,10 +223,18 @@ class InsuranceClaimViewSet(BaseModelViewSet):
     @action(detail=False, methods=["get"], url_path="export")
     def export(self, request):
         fmt = request.query_params.get("format", "xlsx")
-        qs = self._apply_filters(
-            InsuranceClaim.objects.select_related("patient", "policy__insurer"),
-            request.query_params,
-        )
+        qs = InsuranceClaim.objects.select_related("patient", "policy__insurer", "branch")
+
+        # export() builds its own fresh queryset rather than calling
+        # self.get_queryset(), so the branch filter has to be repeated here
+        # explicitly — otherwise export would silently leak every branch's
+        # claims regardless of who's logged in.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+
+        qs = self._apply_filters(qs, request.query_params)
         return self._export_pdf(qs) if fmt == "pdf" else self._export_xlsx(qs)
 
     @staticmethod

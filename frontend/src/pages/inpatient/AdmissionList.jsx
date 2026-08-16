@@ -158,6 +158,7 @@ export default function AdmissionList() {
                   <th>Admission #</th>
                   <th>Patient</th>
                   <th>Hospital #</th>
+                  <th>Branch</th>
                   <th>Ward / Bed</th>
                   <th>Doctor</th>
                   <th>Type</th>
@@ -173,6 +174,7 @@ export default function AdmissionList() {
                     <td className="cell-primary">{a.admission_number}</td>
                     <td>{a.patient_name}</td>
                     <td className="cell-mono">{a.hospital_number}</td>
+                    <td>{a.branch_name || "—"}</td>
                     <td>{a.ward_name} / {a.bed_number}</td>
                     <td>{a.attending_doctor_name || "—"}</td>
                     <td>

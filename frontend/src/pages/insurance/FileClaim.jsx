@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
-  getPatient, getPatients, getInsurancePolicies, getInvoices, createInsuranceClaim,
+  getPatient, searchPatient, getInsurancePolicies, getInvoices, createInsuranceClaim,
   verifyPolicyEligibility,
 } from "../../services/api";
 import SearchableSelect from "../../components/SearchableSelect.jsx";
@@ -77,8 +77,12 @@ export default function FileClaim() {
     if (!patientQuery.trim()) return;
     setLoading(true);
     try {
-      const data = await getPatients({ search: patientQuery });
-      setPatientResults(data.results ?? data);
+      // Deliberately group-wide — NOT getPatients() (that's the
+      // branch-scoped list action). A claim can be filed for any patient
+      // regardless of which branch they first registered at, so this must
+      // use the dedicated /patients/search/ endpoint instead.
+      const data = await searchPatient(patientQuery);
+      setPatientResults(data.patients || []);
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
@@ -93,6 +97,11 @@ export default function FileClaim() {
   // stopping at page 1 — a patient with >100 invoices (paid + unpaid mixed
   // in) could otherwise have unpaid ones sitting on page 2+ that never even
   // get fetched, so the balance>0 filter below never gets a chance to see them.
+  //
+  // Note: getInvoices() is branch-scoped server-side, so this only ever
+  // returns invoices from the filing user's own accessible branch(es) —
+  // which is correct, since a claim can only be filed against invoices
+  // belonging to the branch the claim itself will be scoped to.
   const loadInvoices = async (patientId) => {
     setInvoicesLoading(true);
     try {
@@ -241,6 +250,7 @@ export default function FileClaim() {
                         <th>Name</th>
                         <th>Hospital #</th>
                         <th>Phone</th>
+                        <th>Branch</th>
                         <th className="cell-actions"></th>
                       </tr>
                     </thead>
@@ -250,6 +260,7 @@ export default function FileClaim() {
                           <td className="cell-primary">{p.full_name}</td>
                           <td className="cell-mono">{p.hospital_number}</td>
                           <td>{p.phone}</td>
+                          <td>{p.home_branch_name || "—"}</td>
                           <td className="cell-actions">
                             <button
                               type="button"

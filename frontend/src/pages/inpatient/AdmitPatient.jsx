@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  getPatients,
+  searchPatient,
   getAvailableBeds,
   getWards,
   getUsers,
@@ -45,6 +45,9 @@ export default function AdmitPatient() {
 
   const loadWards = async () => {
     try {
+      // Backend now scopes this to the current user's accessible branch(es)
+      // automatically — a receptionist only ever sees wards physically at
+      // their own hospital.
       const data = await getWards();
       setWards(data.results ?? data);
     } catch (err) {
@@ -63,6 +66,8 @@ export default function AdmitPatient() {
 
   const loadBeds = async (wardId) => {
     try {
+      // Also branch-scoped server-side, and further constrained to the
+      // selected ward — which itself is already limited to this branch.
       const data = await getAvailableBeds(wardId);
       setBeds(data);
     } catch (err) {
@@ -76,8 +81,14 @@ export default function AdmitPatient() {
     setSearching(true);
     setError("");
     try {
-      const data = await getPatients({ search: patientQuery });
-      setPatientResults(data.results ?? data);
+      // Deliberately group-wide — NOT getPatients() (that's the
+      // branch-scoped list action). A patient is a centralized record
+      // across every branch; admission can happen for anyone regardless
+      // of where they first registered, so this must use the dedicated
+      // /patients/search/ endpoint instead, to avoid creating a duplicate
+      // patient record and fragmenting their medical history.
+      const data = await searchPatient(patientQuery);
+      setPatientResults(data.patients || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -194,6 +205,7 @@ export default function AdmitPatient() {
                       <th>Name</th>
                       <th>Hospital #</th>
                       <th>Phone</th>
+                      <th>Branch</th>
                       <th className="cell-actions"></th>
                     </tr>
                   </thead>
@@ -203,6 +215,7 @@ export default function AdmitPatient() {
                         <td className="cell-primary">{p.full_name}</td>
                         <td className="cell-mono">{p.hospital_number}</td>
                         <td>{p.phone}</td>
+                        <td>{p.home_branch_name || "—"}</td>
                         <td className="cell-actions">
                           <button
                             type="button"
@@ -246,6 +259,7 @@ export default function AdmitPatient() {
                 <div className="font-bold">{selectedPatient.full_name}</div>
                 <div className="text-sm text-muted">
                   {selectedPatient.hospital_number} • {selectedPatient.phone}
+                  {selectedPatient.home_branch_name && ` • Registered at ${selectedPatient.home_branch_name}`}
                 </div>
               </div>
               <button

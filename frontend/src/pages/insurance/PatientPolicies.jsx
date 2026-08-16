@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getPatients, getInsurers, getInsurancePolicies, createInsurancePolicy, verifyEligibility } from "../../services/api";
+import { searchPatient, getInsurers, getInsurancePolicies, createInsurancePolicy, verifyEligibility } from "../../services/api";
 import Pagination from "../../components/Pagination";
 
 export default function PatientPolicies() {
@@ -47,8 +47,12 @@ export default function PatientPolicies() {
     e.preventDefault();
     if (!patientQuery.trim()) return;
     try {
-      const data = await getPatients({ search: patientQuery });
-      setPatientResults(data.results ?? data);
+      // Deliberately group-wide — NOT getPatients() (that's the
+      // branch-scoped list action). A patient's insurance policy is
+      // registered once and reused from any branch, so this must stay
+      // group-wide to avoid duplicate policy records for the same patient.
+      const data = await searchPatient(patientQuery);
+      setPatientResults(data.patients || []);
     } catch (err) { setError(err.message); }
   };
 
@@ -148,6 +152,7 @@ export default function PatientPolicies() {
                       <th>Name</th>
                       <th>Hospital #</th>
                       <th>Phone</th>
+                      <th>Branch</th>
                       <th className="cell-actions"></th>
                     </tr>
                   </thead>
@@ -157,6 +162,7 @@ export default function PatientPolicies() {
                         <td className="cell-primary">{p.full_name}</td>
                         <td className="cell-mono">{p.hospital_number}</td>
                         <td>{p.phone}</td>
+                        <td>{p.home_branch_name || "—"}</td>
                         <td className="cell-actions">
                           <button
                             type="button"
@@ -188,6 +194,7 @@ export default function PatientPolicies() {
                     <div className="font-bold">{selectedPatient.full_name}</div>
                     <div className="text-sm text-muted">
                       {selectedPatient.hospital_number} • {selectedPatient.phone}
+                      {selectedPatient.home_branch_name && ` • Registered at ${selectedPatient.home_branch_name}`}
                     </div>
                   </div>
                   <button
