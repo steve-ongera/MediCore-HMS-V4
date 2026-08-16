@@ -31,6 +31,14 @@ class ICUBedViewSet(BaseModelViewSet):
     serializer_class = ICUBedSerializer
     filterset_fields = ["unit_type", "status"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
+
     @action(detail=False, methods=["get"], url_path="available")
     def available(self, request):
         qs = self.get_queryset().filter(status=ICUBedStatus.AVAILABLE)
@@ -45,9 +53,24 @@ class ICUProcedureCatalogViewSet(BaseModelViewSet):
 
 
 class ICUAdmissionViewSet(BaseModelViewSet):
-    queryset = ICUAdmission.objects.select_related("patient", "bed", "attending_physician").all()
+    queryset = ICUAdmission.objects.select_related("patient", "bed", "bed__branch", "attending_physician").all()
     filterset_fields = ["status", "admission_reason", "bed"]
     search_fields = ["icu_admission_number", "patient__full_name", "patient__hospital_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # ICUAdmission's branch is derived through bed.branch, NOT visit —
+        # unlike Emergency/Admission, an ICU admission's `visit` field is
+        # never actually set anywhere in this flow today, so anchoring on
+        # the bed (which is always required and always physically at one
+        # branch) is the reliable signal here. Applied here so it covers
+        # active/retrieve/billing/discharge/record-vitals/order-procedure
+        # via get_object() too.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(bed__branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -63,11 +86,20 @@ class ICUAdmissionViewSet(BaseModelViewSet):
         if not patient:
             raise ValidationError({"patient": "Patient not found."})
 
-        bed = ICUBed.objects.filter(pk=data["bed"], is_active=True).first()
+        bed = ICUBed.objects.select_related("branch").filter(pk=data["bed"], is_active=True).first()
         if not bed:
             raise ValidationError({"bed": "Bed not found."})
         if bed.status != ICUBedStatus.AVAILABLE:
             raise ValidationError({"bed": "This bed is not available."})
+
+        # Defense in depth: even though the bed dropdown is already
+        # branch-scoped via ICUBedViewSet, a raw API call could still pass
+        # a bed ID from another branch — reject it explicitly rather than
+        # silently admitting into another hospital's physical bed.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+        if accessible is not None and bed.branch_id and bed.branch_id not in accessible:
+            raise ValidationError({"bed": "This bed does not belong to your branch."})
 
         if data.get("ward_admission"):
             ward_admission = Admission.objects.filter(pk=data["ward_admission"]).first()

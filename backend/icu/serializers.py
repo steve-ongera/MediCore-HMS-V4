@@ -9,10 +9,11 @@ from .models import (
 class ICUBedSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(default=True)
     current_patient = serializers.SerializerMethodField()
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = ICUBed
-        fields = ["id", "bed_number", "unit_type", "daily_rate", "has_ventilator", "status", "is_active", "current_patient"]
+        fields = ["id", "bed_number", "unit_type", "daily_rate", "has_ventilator", "status", "is_active", "current_patient", "branch", "branch_name"]
 
     def get_current_patient(self, obj):
         a = obj.admissions.filter(status="ADMITTED").first()
@@ -81,6 +82,7 @@ class ICUAdmissionSerializer(serializers.ModelSerializer):
     unit_type = serializers.CharField(source="bed.unit_type", read_only=True)
     attending_physician_name = serializers.CharField(source="attending_physician.get_full_name", read_only=True)
     length_of_stay_days = serializers.IntegerField(read_only=True)
+    branch_name = serializers.CharField(source="bed.branch.name", read_only=True, default=None)
 
     vitals = ICUVitalsMonitoringSerializer(many=True, read_only=True)
     ventilator_settings = VentilatorSettingsSerializer(many=True, read_only=True)
@@ -94,7 +96,7 @@ class ICUAdmissionSerializer(serializers.ModelSerializer):
             "ward_admission", "bed", "bed_number", "unit_type", "admission_reason",
             "admission_diagnosis", "severity_score", "attending_physician", "attending_physician_name",
             "status", "admitted_at", "discharged_at", "discharge_summary", "length_of_stay_days",
-            "vitals", "ventilator_settings", "procedures", "bed_charges",
+            "vitals", "ventilator_settings", "procedures", "bed_charges", "branch_name",
         ]
         read_only_fields = ["id", "icu_admission_number", "status", "admitted_at", "discharged_at"]
 
@@ -104,10 +106,11 @@ class ICUAdmissionListSerializer(serializers.ModelSerializer):
     bed_number = serializers.CharField(source="bed.bed_number", read_only=True)
     unit_type = serializers.CharField(source="bed.unit_type", read_only=True)
     length_of_stay_days = serializers.IntegerField(read_only=True)
+    branch_name = serializers.CharField(source="bed.branch.name", read_only=True, default=None)
 
     class Meta:
         model = ICUAdmission
-        fields = ["id", "icu_admission_number", "patient_name", "bed_number", "unit_type", "admission_reason", "severity_score", "status", "admitted_at", "length_of_stay_days"]
+        fields = ["id", "icu_admission_number", "patient_name", "bed_number", "unit_type", "admission_reason", "severity_score", "status", "admitted_at", "length_of_stay_days", "branch_name"]
 
 
 class AdmitToICUSerializer(serializers.Serializer):
@@ -120,6 +123,7 @@ class AdmitToICUSerializer(serializers.Serializer):
     admission_diagnosis = serializers.CharField(required=False, allow_blank=True, default="")
     severity_score = serializers.IntegerField(required=False, allow_null=True)
     attending_physician = serializers.UUIDField(required=False, allow_null=True)
+
 
 
 class DischargeICUSerializer(serializers.Serializer):

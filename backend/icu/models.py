@@ -26,6 +26,10 @@ class ICUBed(BaseModel):
     has_ventilator = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=ICUBedStatus.choices, default=ICUBedStatus.AVAILABLE)
     is_active = models.BooleanField(default=True)
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="icu_beds",
+        help_text="Which branch this ICU/HDU bed physically belongs to.",
+    )
 
     class Meta:
         db_table = "icu_beds"

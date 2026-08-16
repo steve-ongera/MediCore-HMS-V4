@@ -18,7 +18,7 @@ class VentilatorInline(admin.TabularInline):
 
 @admin.register(ICUBed)
 class ICUBedAdmin(admin.ModelAdmin):
-    list_display = ["bed_number", "unit_type", "daily_rate", "has_ventilator", "status"]
+    list_display = ["bed_number", "unit_type", "daily_rate", "has_ventilator", "status","branch"]
 
 
 @admin.register(ICUAdmission)
