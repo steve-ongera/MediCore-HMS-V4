@@ -804,10 +804,18 @@ class ConsultationViewSet(BaseModelViewSet):
         return Response(ConsultationProcedureSerializer(procedure).data, status=status.HTTP_201_CREATED)
 
 class PrescriptionViewSet(BaseModelViewSet):
-    queryset = Prescription.objects.select_related("medicine", "consultation").all()
+    queryset = Prescription.objects.select_related("medicine", "consultation", "consultation__visit", "consultation__visit__branch").all()
     serializer_class = PrescriptionSerializer
     filterset_fields = ["consultation", "is_dispensed"]
     search_fields = ["medicine__name"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(consultation__visit__branch_id__in=accessible)
+        return qs
 
 
 # ---------------------------------------------------------------------------
@@ -977,13 +985,33 @@ class MedicineViewSet(BaseModelViewSet):
 
 
 class MedicineBatchViewSet(BaseModelViewSet):
-    queryset = MedicineBatch.objects.select_related("medicine", "supplier").all()
+    queryset = MedicineBatch.objects.select_related("medicine", "supplier", "branch").all()
     serializer_class = MedicineBatchSerializer
     filterset_class = MedicineBatchFilter
     search_fields = ["medicine__name", "batch_number"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Stock is branch-owned — each hospital's pharmacy is a separate
+        # physical pool, so a batch received at one branch never appears
+        # (or is dispensable) at another.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
+
     def perform_create(self, serializer):
-        batch = serializer.save(quantity_remaining=serializer.validated_data["quantity_received"])
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        branch_id = (
+            (self.request.data.get("branch") or self.request.user.branch_id)
+            if accessible is None else self.request.user.branch_id
+        )
+        batch = serializer.save(
+            quantity_remaining=serializer.validated_data["quantity_received"],
+            branch_id=branch_id,
+        )
         StockTransaction.objects.create(
             medicine=batch.medicine, batch=batch, transaction_type=StockTransactionType.STOCK_IN,
             quantity=batch.quantity_received, reason="New batch received",
@@ -991,10 +1019,6 @@ class MedicineBatchViewSet(BaseModelViewSet):
         )
 
     def perform_update(self, serializer):
-        # A manual edit (correcting a data-entry error, writing off damaged
-        # stock, etc.) can change quantity_remaining directly — without this,
-        # that change would never show up in the StockTransaction audit
-        # trail the rest of the app relies on for "why did stock move".
         old_quantity = serializer.instance.quantity_remaining
         batch = serializer.save()
         delta = batch.quantity_remaining - old_quantity
@@ -1019,10 +1043,18 @@ class MedicineBatchViewSet(BaseModelViewSet):
     
     
 class StockTransactionViewSet(BaseModelViewSet):
-    queryset = StockTransaction.objects.select_related("medicine", "batch").all()
+    queryset = StockTransaction.objects.select_related("medicine", "batch", "batch__branch").all()
     serializer_class = StockTransactionSerializer
     filterset_fields = ["medicine", "transaction_type"]
     http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(batch__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(performed_by=self.request.user)
@@ -1036,23 +1068,30 @@ from rest_framework import status
 
 
 class PharmacyDispenseViewSet(BaseModelViewSet):
-    queryset = PharmacyDispense.objects.select_related("prescription__medicine", "invoice", "batch").all()
+    queryset = PharmacyDispense.objects.select_related(
+        "prescription__medicine", "prescription__consultation__visit__branch", "invoice", "batch"
+    ).all()
     serializer_class = PharmacyDispenseSerializer
     filterset_fields = ["status", "payment_method"]
     http_method_names = ["get", "post", "head", "options"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Dispenses are branch-owned via the prescribing consultation's
+        # visit. Also determines which branch's stock the FEFO batch
+        # selection in complete() draws from — see below.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(prescription__consultation__visit__branch_id__in=accessible)
+        return qs
+
     def create(self, request, *args, **kwargs):
-        """
-        Stage 1 — Prepare. Records intent to dispense and raises the invoice
-        at the price matching the chosen payment method. Does NOT touch
-        stock — that only happens once the invoice is confirmed fully paid,
-        via the `complete` action below.
-        """
         serializer = PrepareDispenseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        prescription = Prescription.objects.select_related("medicine", "consultation__visit__patient").filter(
+        prescription = Prescription.objects.select_related("medicine", "consultation__visit__patient", "consultation__visit__branch").filter(
             pk=data["prescription"]
         ).first()
         if not prescription:
@@ -1082,13 +1121,6 @@ class PharmacyDispenseViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="complete")
     def complete(self, request, pk=None):
-        """
-        Stage 2 — Complete. Only allowed once the linked invoice shows
-        status=PAID (checked here server-side — never trust the frontend
-        on this). This is the moment stock actually moves: FEFO batch
-        selection, quantity_remaining deduction, StockTransaction log —
-        exactly the same mechanism your other modules already use.
-        """
         dispense = self.get_object()
         if dispense.status != "PENDING_PAYMENT":
             raise ValidationError({"detail": "This dispense is not awaiting completion."})
@@ -1097,13 +1129,17 @@ class PharmacyDispenseViewSet(BaseModelViewSet):
 
         medicine = dispense.prescription.medicine
         quantity = dispense.quantity_dispensed
+        dispense_branch_id = dispense.prescription.consultation.visit.branch_id
 
+        # FEFO batch selection scoped to the branch this dispense belongs
+        # to — a prescription filled at Branch A can only draw from Branch
+        # A's own stock, never from another branch's batches.
         batch = (
-            MedicineBatch.objects.filter(medicine=medicine, quantity_remaining__gte=quantity)
+            MedicineBatch.objects.filter(medicine=medicine, branch_id=dispense_branch_id, quantity_remaining__gte=quantity)
             .order_by("expiry_date").first()
         )
         if not batch:
-            raise OutOfStockError(f"{medicine.name} is out of stock.")
+            raise OutOfStockError(f"{medicine.name} is out of stock at this branch.")
 
         with transaction.atomic():
             batch.quantity_remaining -= quantity
@@ -1128,10 +1164,9 @@ class PharmacyDispenseViewSet(BaseModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="pending-completion")
     def pending_completion(self, request):
-        """Dispenses whose invoice is now PAID and are ready for stock deduction — the pharmacist's worklist."""
         qs = self.get_queryset().filter(status="PENDING_PAYMENT", invoice__status="PAID")
         return Response(PharmacyDispenseSerializer(qs, many=True).data)
-
+    
 
 class OutOfStockError(APIException):
     status_code = status.HTTP_409_CONFLICT
@@ -1143,16 +1178,19 @@ class OutOfStockError(APIException):
 # Walk-in / OTC Pharmacy Sales (POS)
 # ---------------------------------------------------------------------------
 class OTCSaleViewSet(BaseModelViewSet):
-    """
-    Direct, patient-free medicine sales — a retail POS transaction rather
-    than a clinical workflow. Sales are immutable once made (no PATCH/PUT),
-    matching the PaymentViewSet/InvoiceViewSet convention elsewhere.
-    """
     permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
-    queryset = OTCSale.objects.prefetch_related("items__medicine").select_related("served_by").all()
+    queryset = OTCSale.objects.prefetch_related("items__medicine").select_related("served_by", "branch").all()
     serializer_class = OTCSaleSerializer
     search_fields = ["sale_number", "customer_name", "customer_phone"]
     http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -1164,6 +1202,13 @@ class OTCSaleViewSet(BaseModelViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+        sale_branch_id = (
+            (request.data.get("branch") or request.user.branch_id)
+            if accessible is None else request.user.branch_id
+        )
+
         with transaction.atomic():
             sale = OTCSale.objects.create(
                 customer_name=data.get("customer_name", ""),
@@ -1173,6 +1218,7 @@ class OTCSaleViewSet(BaseModelViewSet):
                 reference_number=data.get("reference_number", ""),
                 amount_paid=data["amount_paid"],
                 served_by=request.user,
+                branch_id=sale_branch_id,
             )
 
             subtotal = 0
@@ -1180,13 +1226,14 @@ class OTCSaleViewSet(BaseModelViewSet):
                 medicine = item["medicine"]
                 quantity = item["quantity"]
 
-                # FEFO: earliest-expiring batch with enough stock, same as PharmacyDispenseViewSet.
+                # FEFO scoped to this sale's branch — walk-in stock is
+                # drawn from the selling branch's own batches only.
                 batch = (
-                    MedicineBatch.objects.filter(medicine=medicine, quantity_remaining__gte=quantity)
+                    MedicineBatch.objects.filter(medicine=medicine, branch_id=sale_branch_id, quantity_remaining__gte=quantity)
                     .order_by("expiry_date").first()
                 )
                 if not batch:
-                    raise OutOfStockError(f"{medicine.name} is out of stock.")
+                    raise OutOfStockError(f"{medicine.name} is out of stock at this branch.")
 
                 sale_item = OTCSaleItem.objects.create(
                     sale=sale, medicine=medicine, batch=batch,
@@ -1215,7 +1262,7 @@ class OTCSaleViewSet(BaseModelViewSet):
         try:
             fiscalize_otc_sale(sale, user=request.user)
         except Exception:
-            pass  # never block the sale on a fiscalization failure; retry via UI
+            pass
 
         return Response(
             OTCSaleSerializer(sale, context={"request": request}).data,
@@ -1224,12 +1271,11 @@ class OTCSaleViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="receipt")
     def receipt(self, request, pk=None):
-        """Structured receipt payload for the frontend to render/print — mirrors PaymentViewSet.receipt."""
         sale = self.get_object()
         qr_code_url = request.build_absolute_uri(sale.qr_code.url) if sale.qr_code else None
 
         return Response({
-            "hospital_name": "City General Hospital",
+            "hospital_name": sale.branch.name if sale.branch else "Medicore Hospital",
             "sale_number": sale.sale_number,
             "customer_name": sale.customer_name or "Walk-in Customer",
             "customer_phone": sale.customer_phone,

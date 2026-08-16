@@ -279,14 +279,19 @@ class ConsultationDiagnosisSerializer(serializers.ModelSerializer):
 class PrescriptionSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     patient_name = serializers.CharField(source="consultation.visit.patient.full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Prescription
         fields = [
             "id", "consultation", "medicine", "medicine_name", "dosage", "frequency",
-            "duration", "quantity", "instructions", "is_dispensed", "patient_name",
+            "duration", "quantity", "instructions", "is_dispensed", "patient_name", "branch_name",
         ]
         read_only_fields = ["id", "is_dispensed"]
+
+    def get_branch_name(self, obj):
+        visit = obj.consultation.visit
+        return visit.branch.name if visit and visit.branch_id else None
 
 
 class LabOrderSerializer(serializers.ModelSerializer):
@@ -443,15 +448,16 @@ class SupplierSerializer(serializers.ModelSerializer):
 class MedicineBatchSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
     supplier_name = serializers.CharField(source="supplier.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = MedicineBatch
         fields = [
             "id", "medicine", "medicine_name", "supplier", "supplier_name",
             "batch_number", "quantity_received", "quantity_remaining",
-            "expiry_date", "received_date",
+            "expiry_date", "received_date", "branch", "branch_name",
         ]
-        read_only_fields = ["id", "received_date"]
+        read_only_fields = ["id", "received_date", "branch"]
 
 
 class MedicineSerializer(serializers.ModelSerializer):
@@ -470,32 +476,40 @@ class MedicineSerializer(serializers.ModelSerializer):
 
 class StockTransactionSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="medicine.name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = StockTransaction
         fields = [
             "id", "medicine", "medicine_name", "batch", "transaction_type",
-            "quantity", "reason", "performed_by", "created_at",
+            "quantity", "reason", "performed_by", "created_at", "branch_name",
         ]
         read_only_fields = ["id", "performed_by", "created_at"]
 
+    def get_branch_name(self, obj):
+        return obj.batch.branch.name if obj.batch_id and obj.batch.branch_id else None
 
 class PharmacyDispenseSerializer(serializers.ModelSerializer):
     medicine_name = serializers.CharField(source="prescription.medicine.name", read_only=True)
     patient_name = serializers.CharField(source="prescription.consultation.visit.patient.full_name", read_only=True)
     invoice_status = serializers.CharField(source="invoice.status", read_only=True)
     invoice_balance = serializers.DecimalField(source="invoice.balance", max_digits=10, decimal_places=2, read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = PharmacyDispense
         fields = [
             "id", "prescription", "medicine_name", "patient_name", "quantity_dispensed",
             "payment_method", "status", "invoice", "invoice_status", "invoice_balance",
-            "batch", "dispensed_by", "dispensed_at", "completed_by", "completed_at",
+            "batch", "dispensed_by", "dispensed_at", "completed_by", "completed_at", "branch_name",
         ]
         read_only_fields = ["id", "status", "invoice", "batch", "dispensed_by", "dispensed_at", "completed_by", "completed_at"]
 
-
+    def get_branch_name(self, obj):
+        visit = obj.prescription.consultation.visit
+        return visit.branch.name if visit and visit.branch_id else None
+    
+    
 class PrepareDispenseSerializer(serializers.Serializer):
     prescription = serializers.UUIDField()
     quantity_dispensed = serializers.IntegerField(min_value=1)
@@ -525,6 +539,7 @@ class OTCSaleSerializer(serializers.ModelSerializer):
     items = OTCSaleItemSerializer(many=True, read_only=True)
     served_by_name = serializers.CharField(source="served_by.get_full_name", read_only=True)
     balance = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = OTCSale
@@ -532,11 +547,11 @@ class OTCSaleSerializer(serializers.ModelSerializer):
             "id", "sale_number", "customer_name", "customer_phone", "items",
             "subtotal", "discount", "total_amount", "amount_paid", "balance",
             "payment_method", "reference_number", "served_by", "served_by_name",
-            "qr_code", "sold_at",
+            "qr_code", "sold_at", "branch", "branch_name",
         ]
         read_only_fields = [
             "id", "sale_number", "items", "subtotal", "total_amount", "served_by",
-            "qr_code", "sold_at",
+            "qr_code", "sold_at", "branch",
         ]
 
 

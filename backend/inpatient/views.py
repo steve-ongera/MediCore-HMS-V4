@@ -403,9 +403,17 @@ class InpatientVitalsViewSet(BaseModelViewSet):
 # Inpatient medication (separate from OPD Prescription/PharmacyDispense)
 # ---------------------------------------------------------------------------
 class MedicationOrderViewSet(BaseModelViewSet):
-    queryset = MedicationOrder.objects.select_related("medicine").all()
+    queryset = MedicationOrder.objects.select_related("medicine", "admission", "admission__visit", "admission__visit__branch").all()
     serializer_class = MedicationOrderSerializer
     filterset_fields = ["admission", "is_active"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(admission__visit__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(ordered_by=self.request.user)
@@ -419,12 +427,21 @@ class MedicationOrderViewSet(BaseModelViewSet):
         return Response(MedicationOrderSerializer(order).data)
 
 
+
 class MedicationAdministrationViewSet(BaseModelViewSet):
     queryset = MedicationAdministration.objects.select_related(
-        "medication_order__medicine", "batch", "invoice"
+        "medication_order__medicine", "medication_order__admission__visit__branch", "batch", "invoice"
     ).all()
     serializer_class = MedicationAdministrationSerializer
     filterset_fields = ["medication_order", "status"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(medication_order__admission__visit__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         order = serializer.validated_data["medication_order"]
@@ -441,12 +458,16 @@ class MedicationAdministrationViewSet(BaseModelViewSet):
 
         medicine = order.medicine
         quantity = order.quantity
+        admission_branch_id = order.admission.visit.branch_id if order.admission.visit_id else None
+
+        # FEFO scoped to the admitting branch — ward medication is drawn
+        # from that branch's own stock only.
         batch = (
-            MedicineBatch.objects.filter(medicine=medicine, quantity_remaining__gte=quantity)
+            MedicineBatch.objects.filter(medicine=medicine, branch_id=admission_branch_id, quantity_remaining__gte=quantity)
             .order_by("expiry_date").first()
         )
         if not batch:
-            raise OutOfStockError(f"{medicine.name} is out of stock.")
+            raise OutOfStockError(f"{medicine.name} is out of stock at this branch.")
 
         with transaction.atomic():
             admin_record = serializer.save(administered_by=self.request.user, batch=batch)
@@ -460,7 +481,6 @@ class MedicationAdministrationViewSet(BaseModelViewSet):
                 performed_by=self.request.user,
             )
 
-            invoice = raise_theatre_invoice if False else None  # (leave existing invoice logic here unchanged)
             invoice = Invoice.objects.create(
                 patient=order.admission.patient,
                 visit=order.admission.visit,
