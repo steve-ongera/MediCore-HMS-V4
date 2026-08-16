@@ -25,6 +25,11 @@ export default function BulkPayment() {
     e.preventDefault();
     if (!patientQuery.trim()) return;
     try {
+      // Deliberately branch-scoped — getPatients() hits the branch-scoped
+      // list action, and that's intentional here: a bulk payment can only
+      // ever settle invoices already raised at THIS branch, so there's no
+      // reason to search across branches the way patient registration or
+      // visit/admission search does.
       const data = await getPatients({ search: patientQuery });
       setPatientResults(data.results ?? data);
     } catch (err) { setError(err.message); }
@@ -236,7 +241,7 @@ export default function BulkPayment() {
                     <i className="bi bi-receipt"></i>
                   </div>
                   <h3 className="empty-state__title">No outstanding invoices</h3>
-                  <p className="empty-state__desc">This patient has no outstanding balance.</p>
+                  <p className="empty-state__desc">This patient has no outstanding balance at your branch.</p>
                 </div>
               ) : (
                 <>

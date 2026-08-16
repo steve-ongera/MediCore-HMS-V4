@@ -850,6 +850,10 @@ class BulkPayment(BaseModel):
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     reference_number = models.CharField(max_length=100, blank=True)
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="bulk_payments",
+        help_text="Denormalized from the invoices being paid — every invoice in a single bulk payment belongs to the same branch.",
+    )
     cashier = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="bulk_payments_processed")
     paid_at = models.DateTimeField(auto_now_add=True)
 
@@ -866,7 +870,6 @@ class BulkPayment(BaseModel):
 
     def __str__(self):
         return f"{self.receipt_number} - {self.patient.full_name} (KES {self.total_amount})"
-
 
 class BulkPaymentLine(BaseModel):
     """One row per underlying Payment created as part of a BulkPayment — links the wrapper to the real Payment rows."""

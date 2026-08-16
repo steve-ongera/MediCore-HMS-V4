@@ -2261,9 +2261,21 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
     single-invoice Payments.jsx screen.
     """
     permission_classes = [IsCashierOrAccountant, RequiresOpenTill]
-    queryset = BulkPayment.objects.select_related("patient", "cashier").prefetch_related("lines__invoice", "lines__payment")
+    queryset = BulkPayment.objects.select_related("patient", "cashier", "branch").prefetch_related("lines__invoice", "lines__payment")
     filterset_fields = ["method"]
     search_fields = ["receipt_number", "patient__full_name", "patient__hospital_number", "reference_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # BulkPayment.branch is denormalized from the invoices it settles.
+        # Applied here so list AND receipt (via get_object) are both
+        # branch-restricted — a cashier can't view another branch's combined
+        # receipt even by guessing the ID.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
 
     @action(detail=False, methods=["get"], url_path="outstanding-invoices")
     def outstanding_invoices(self, request):
@@ -2271,7 +2283,9 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
         GET /api/bulk-payments/outstanding-invoices/?patient=<uuid>
         Returns every unpaid/partial invoice for a patient plus the running
         total — this is what powers the "search patient, see everything
-        they owe" screen.
+        they owe" screen. Branch-scoped: only invoices raised at the
+        cashier's own accessible branch(es) are shown, since a bulk payment
+        can only ever settle invoices belonging to this branch.
         """
         patient_id = request.query_params.get("patient")
         if not patient_id:
@@ -2281,7 +2295,13 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
         if not patient:
             return Response({"detail": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+
         invoices = Invoice.objects.filter(patient=patient).exclude(status__in=["PAID", "CANCELLED"]).order_by("created_at")
+        if accessible is not None:
+            invoices = invoices.filter(branch_id__in=accessible)
+
         outstanding = [inv for inv in invoices if inv.balance > 0]
         total_outstanding = sum((inv.balance for inv in outstanding), start=0)
 
@@ -2310,13 +2330,25 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
         if not patient:
             raise ValidationError({"patient": "Patient not found."})
 
-        invoices = list(
-            Invoice.objects.filter(id__in=data["invoice_ids"], patient=patient)
-            .exclude(status__in=["PAID", "CANCELLED"])
-            .order_by("created_at")
-        )
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+
+        invoices_qs = Invoice.objects.filter(id__in=data["invoice_ids"], patient=patient).exclude(status__in=["PAID", "CANCELLED"])
+        if accessible is not None:
+            invoices_qs = invoices_qs.filter(branch_id__in=accessible)
+        invoices = list(invoices_qs.order_by("created_at"))
+
         if not invoices:
-            raise ValidationError({"invoice_ids": "No matching outstanding invoices found for this patient."})
+            raise ValidationError({"invoice_ids": "No matching outstanding invoices found for this patient at your branch."})
+
+        # If some requested invoice_ids didn't survive the branch filter
+        # (belong to a different branch), fail loudly rather than silently
+        # paying a subset — the cashier's selection should never be
+        # partially honored without them knowing why.
+        found_ids = {str(inv.id) for inv in invoices}
+        requested_ids = {str(i) for i in data["invoice_ids"]}
+        if found_ids != requested_ids:
+            raise ValidationError({"invoice_ids": "One or more selected invoices are not outstanding invoices at your branch."})
 
         remaining = data["amount"]
         max_payable = sum((inv.balance for inv in invoices), start=0)
@@ -2329,6 +2361,7 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
             bulk_payment = BulkPayment.objects.create(
                 patient=patient, total_amount=data["amount"], method=data["method"],
                 reference_number=data.get("reference_number", ""), cashier=request.user,
+                branch_id=invoices[0].branch_id,
             )
 
             for invoice in invoices:
@@ -2357,7 +2390,7 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
         """Combined receipt — every invoice covered by this bulk transaction, with per-service breakdown."""
         bulk_payment = self.get_object()
         return Response(BulkPaymentSerializer(bulk_payment).data)
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)

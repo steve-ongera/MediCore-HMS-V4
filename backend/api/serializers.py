@@ -623,6 +623,7 @@ class BulkPaymentSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="patient.full_name", read_only=True)
     hospital_number = serializers.CharField(source="patient.hospital_number", read_only=True)
     cashier_name = serializers.CharField(source="cashier.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     lines = BulkPaymentLineSerializer(many=True, read_only=True)
 
     class Meta:
@@ -630,10 +631,10 @@ class BulkPaymentSerializer(serializers.ModelSerializer):
         fields = [
             "id", "receipt_number", "patient", "patient_name", "hospital_number",
             "total_amount", "method", "reference_number", "cashier", "cashier_name",
-            "paid_at", "lines",
+            "paid_at", "lines", "branch", "branch_name",
         ]
-        read_only_fields = ["id", "receipt_number", "cashier", "paid_at"]
-
+        read_only_fields = ["id", "receipt_number", "cashier", "paid_at", "branch"]
+        
 
 class CreateBulkPaymentSerializer(serializers.Serializer):
     """

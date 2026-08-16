@@ -39,7 +39,7 @@ export default function BulkPaymentList() {
         <div>
           <div className="page-eyebrow">Billing</div>
           <h1 className="page-title">Bulk Payments</h1>
-          <p className="page-subtitle">Every multi-invoice payment processed across the hospital.</p>
+          <p className="page-subtitle">Every multi-invoice payment processed at your branch.</p>
         </div>
         <div className="page-header__actions">
           <Link to="/billing/bulk-payment" className="btn btn-primary">
@@ -135,6 +135,7 @@ export default function BulkPaymentList() {
                     <tr>
                       <th>Receipt #</th>
                       <th>Patient</th>
+                      <th>Branch</th>
                       <th style={{ textAlign: "right" }}>Total Amount</th>
                       <th>Method</th>
                       <th style={{ textAlign: "center" }}>Invoices</th>
@@ -158,6 +159,7 @@ export default function BulkPaymentList() {
                             </div>
                           </div>
                         </td>
+                        <td>{p.branch_name || "—"}</td>
                         <td style={{ textAlign: "right" }}>
                           <span className="font-mono font-semibold">
                             KES {Number(p.total_amount).toLocaleString()}
