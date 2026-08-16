@@ -703,10 +703,24 @@ class ICD10CodeViewSet(BaseModelViewSet):
 # Consultation
 # ---------------------------------------------------------------------------
 class ConsultationViewSet(BaseModelViewSet):
-    queryset = Consultation.objects.select_related("visit__patient", "doctor").order_by("-started_at")
+    queryset = Consultation.objects.select_related("visit__patient", "visit__branch", "doctor").order_by("-started_at")
     serializer_class = ConsultationSerializer
     filterset_fields = ["status", "doctor", "visit"]
     search_fields = ["visit__patient__full_name", "visit__visit_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Consultation has no branch field of its own — derived through
+        # visit.branch, same pattern as QueueEntry/EmergencyVisit/Admission.
+        # Applied here (not just list) so retrieve/add-diagnosis/pause/
+        # resume/complete/add-procedure via get_object() are also
+        # branch-restricted — a doctor can't view or act on another
+        # branch's consultation even by guessing the ID.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:  # None = GROUP_ADMIN/superuser, sees every branch
+            qs = qs.filter(visit__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         visit = serializer.validated_data["visit"]
@@ -788,7 +802,6 @@ class ConsultationViewSet(BaseModelViewSet):
             )
 
         return Response(ConsultationProcedureSerializer(procedure).data, status=status.HTTP_201_CREATED)
-
 
 class PrescriptionViewSet(BaseModelViewSet):
     queryset = Prescription.objects.select_related("medicine", "consultation").all()

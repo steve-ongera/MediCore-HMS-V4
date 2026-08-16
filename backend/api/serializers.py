@@ -360,6 +360,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
     radiology_orders = RadiologyOrderSerializer(many=True, read_only=True)
     procedures = ConsultationProcedureSerializer(many=True, read_only=True)
     vitals = serializers.SerializerMethodField()
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Consultation
@@ -369,6 +370,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
             "clinical_notes", "diagnoses", "prescriptions", "lab_orders", "radiology_orders",
             "procedures",
             "vitals", "status", "pause_reason", "pause_notes", "started_at", "completed_at",
+            "branch_name",
         ]
         read_only_fields = ["id", "doctor", "started_at", "completed_at"]
 
@@ -380,6 +382,10 @@ class ConsultationSerializer(serializers.ModelSerializer):
             return VitalSignsSerializer(obj.visit.vitals).data
         except Exception:
             return None
+
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
+    
 
 class ConsultationPauseSerializer(serializers.Serializer):
     pause_reason = serializers.ChoiceField(choices=["WAITING_LAB", "WAITING_RADIOLOGY", "PATIENT_NOT_READY", "OTHER"])
