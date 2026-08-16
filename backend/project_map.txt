@@ -1,0 +1,1997 @@
+Folder PATH listing for volume w
+Volume serial number is 0000002B 8AFE:C5CA
+D:.
+|   .env
+|   .gitignore
+|   db.sqlite3
+|   manage.py
+|   project_map.txt
+|   redistribute.py
+|   requirements.txt
+|   
++---ambulance
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_ambulance.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_ambulance.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---api
+|   |   admin.py
+|   |   apps.py
+|   |   dashboards.py
+|   |   exceptions.py
+|   |   filters.py
+|   |   managers.py
+|   |   middleware.py
+|   |   models.py
+|   |   pagination.py
+|   |   permissions.py
+|   |   serializers.py
+|   |   signals.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_data.py
+|   |       |   seed_icd10_codes.py
+|   |       |   __init__.py
+|   |       |   
+|   |       +---data
+|   |       |       icd10_codes.xlsx
+|   |       |       
+|   |       \---__pycache__
+|   |               seed_data.cpython-314.pyc
+|   |               seed_icd10_codes.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_otcsale_otcsaleitem.py
+|   |   |   0003_alter_invoice_source_type.py
+|   |   |   0004_alter_invoice_source_type.py
+|   |   |   0005_alter_invoice_source_type.py
+|   |   |   0006_alter_invoice_source_type.py
+|   |   |   0007_alter_user_role.py
+|   |   |   0008_bulkpayment_bulkpaymentline.py
+|   |   |   0009_alter_patient_national_id.py
+|   |   |   0010_medicine_insurance_price_and_more.py
+|   |   |   0011_consultationprocedure.py
+|   |   |   0012_user_password_changed_at.py
+|   |   |   0013_alter_user_role.py
+|   |   |   0014_consultationdiagnosis_coding_correction_notes_and_more.py
+|   |   |   0015_alter_user_role.py
+|   |   |   0016_alter_user_role.py
+|   |   |   0017_department_head_of_department.py
+|   |   |   0018_user_branch_alter_user_role.py
+|   |   |   0019_invoice_branch_patient_home_branch_payment_branch_and_more.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_otcsale_otcsaleitem.cpython-312.pyc
+|   |           0002_otcsale_otcsaleitem.cpython-314.pyc
+|   |           0003_alter_invoice_source_type.cpython-312.pyc
+|   |           0003_alter_invoice_source_type.cpython-314.pyc
+|   |           0004_alter_invoice_source_type.cpython-312.pyc
+|   |           0004_alter_invoice_source_type.cpython-314.pyc
+|   |           0005_alter_invoice_source_type.cpython-312.pyc
+|   |           0005_alter_invoice_source_type.cpython-314.pyc
+|   |           0006_alter_invoice_source_type.cpython-312.pyc
+|   |           0006_alter_invoice_source_type.cpython-314.pyc
+|   |           0007_alter_user_role.cpython-312.pyc
+|   |           0007_alter_user_role.cpython-314.pyc
+|   |           0008_bulkpayment_bulkpaymentline.cpython-312.pyc
+|   |           0008_bulkpayment_bulkpaymentline.cpython-314.pyc
+|   |           0009_alter_patient_national_id.cpython-312.pyc
+|   |           0009_alter_patient_national_id.cpython-314.pyc
+|   |           0010_medicine_insurance_price_and_more.cpython-312.pyc
+|   |           0010_medicine_insurance_price_and_more.cpython-314.pyc
+|   |           0011_consultationprocedure.cpython-312.pyc
+|   |           0011_consultationprocedure.cpython-314.pyc
+|   |           0012_user_password_changed_at.cpython-312.pyc
+|   |           0012_user_password_changed_at.cpython-314.pyc
+|   |           0013_alter_user_role.cpython-312.pyc
+|   |           0013_alter_user_role.cpython-314.pyc
+|   |           0014_consultationdiagnosis_coding_correction_notes_and_more.cpython-312.pyc
+|   |           0014_consultationdiagnosis_coding_correction_notes_and_more.cpython-314.pyc
+|   |           0015_alter_user_role.cpython-312.pyc
+|   |           0015_alter_user_role.cpython-314.pyc
+|   |           0016_alter_user_role.cpython-312.pyc
+|   |           0016_alter_user_role.cpython-314.pyc
+|   |           0017_department_head_of_department.cpython-312.pyc
+|   |           0017_department_head_of_department.cpython-314.pyc
+|   |           0018_user_branch_alter_user_role.cpython-312.pyc
+|   |           0019_invoice_branch_patient_home_branch_payment_branch_and_more.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           dashboards.cpython-312.pyc
+|           dashboards.cpython-314.pyc
+|           exceptions.cpython-312.pyc
+|           exceptions.cpython-314.pyc
+|           filters.cpython-312.pyc
+|           filters.cpython-314.pyc
+|           managers.cpython-312.pyc
+|           managers.cpython-314.pyc
+|           middleware.cpython-312.pyc
+|           middleware.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           pagination.cpython-312.pyc
+|           pagination.cpython-314.pyc
+|           permissions.cpython-312.pyc
+|           permissions.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           signals.cpython-312.pyc
+|           signals.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-312.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---assets
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_assets.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_assets.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---backend
+|   |   asgi.py
+|   |   settings.py
+|   |   urls.py
+|   |   wsgi.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           settings.cpython-312.pyc
+|           settings.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           wsgi.cpython-312.pyc
+|           wsgi.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---biomed
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_biomed.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_biomed.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---bloodbank
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_bloodbank.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_bloodbank.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---branches
+|   |   admin.py
+|   |   apps.py
+|   |   middleware.py
+|   |   mixins.py
+|   |   models.py
+|   |   permissions.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           apps.cpython-312.pyc
+|           middleware.cpython-312.pyc
+|           mixins.cpython-312.pyc
+|           models.cpython-312.pyc
+|           permissions.cpython-312.pyc
+|           serializers.cpython-312.pyc
+|           urls.cpython-312.pyc
+|           views.cpython-312.pyc
+|           __init__.cpython-312.pyc
+|           
++---carecoordination
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---communication
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---dental
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_dental.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_dental.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---dialysis
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_dialysis.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_dialysis.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---doctormgmt
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_doctors.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_doctors.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---emergency
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_emergency.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_emergency.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-312.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---etims
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   signals.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---gateways
+|   |   |   base.py
+|   |   |   kra.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           base.cpython-312.pyc
+|   |           base.cpython-314.pyc
+|   |           kra.cpython-312.pyc
+|   |           kra.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---management
+|   |   \---commands
+|   |       |   seed_fiscalization.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_fiscalization.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           signals.cpython-312.pyc
+|           signals.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---executive
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---eyeclinic
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_eyeclinic.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_eyeclinic.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---finance
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   permissions.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_finance.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_finance.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_cashiershift_cashdrop.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_cashiershift_cashdrop.cpython-312.pyc
+|   |           0002_cashiershift_cashdrop.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           permissions.cpython-312.pyc
+|           permissions.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---hr
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_hr.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_hr.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---icu
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_icu.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_icu.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_icuadmission_visit.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_icuadmission_visit.cpython-312.pyc
+|   |           0002_icuadmission_visit.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---inpatient
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   scheduler.py
+|   |   serializers.py
+|   |   services.py
+|   |   signals.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   |   __init__.py
+|   |   |   
+|   |   +---commands
+|   |   |   |   backfill_admission_visits.py
+|   |   |   |   generate_bed_charges.py
+|   |   |   |   seed_inpatient.py
+|   |   |   |   seed_procedure_catalog.py
+|   |   |   |   __init__.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           seed_inpatient.cpython-314.pyc
+|   |   |           seed_procedure_catalog.cpython-314.pyc
+|   |   |           __init__.cpython-314.pyc
+|   |   |           
+|   |   \---__pycache__
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_medicationorder_quantity.py
+|   |   |   0003_medicationadministration_batch_and_more.py
+|   |   |   0004_procedurecatalog_inpatientprocedure.py
+|   |   |   0005_ward_branch.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_medicationorder_quantity.cpython-312.pyc
+|   |           0002_medicationorder_quantity.cpython-314.pyc
+|   |           0003_medicationadministration_batch_and_more.cpython-312.pyc
+|   |           0003_medicationadministration_batch_and_more.cpython-314.pyc
+|   |           0004_procedurecatalog_inpatientprocedure.cpython-312.pyc
+|   |           0004_procedurecatalog_inpatientprocedure.cpython-314.pyc
+|   |           0005_ward_branch.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           scheduler.cpython-312.pyc
+|           scheduler.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           signals.cpython-312.pyc
+|           signals.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---insights
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---insurance
+|   |   admin.py
+|   |   apps.py
+|   |   exports.py
+|   |   filters.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---gateways
+|   |   |   base.py
+|   |   |   factory.py
+|   |   |   generic.py
+|   |   |   sha.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           base.cpython-312.pyc
+|   |           base.cpython-314.pyc
+|   |           factory.cpython-312.pyc
+|   |           factory.cpython-314.pyc
+|   |           generic.cpython-312.pyc
+|   |           generic.cpython-314.pyc
+|   |           sha.cpython-312.pyc
+|   |           sha.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---management
+|   |   \---commands
+|   |       |   seed_insurance.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_insurance.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           exports.cpython-314.pyc
+|           filters.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-312.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---leakage
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---licensing
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   permissions.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_licenses.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_licenses.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_alter_facilitylicense_is_active_and_more.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_alter_facilitylicense_is_active_and_more.cpython-312.pyc
+|   |           0002_alter_facilitylicense_is_active_and_more.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---templates
+|   |   \---admin
+|   |       \---licensing
+|   |           \---facilitylicense
+|   |                   change_form.html
+|   |                   
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           permissions.cpython-312.pyc
+|           permissions.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---mch
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_mch_records.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_mch_records.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_deliverycharge.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_deliverycharge.cpython-312.pyc
+|   |           0002_deliverycharge.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---media
+|   +---announcements
+|   |   \---2026
+|   |       \---08
+|   |               523324af-2e37-4b3b-8ed5-272e131c9f74.png
+|   |               
+|   +---lab_results
+|   |       HbA1c_Lab_Report_Mary_Wanjiku_Njoroge.pdf
+|   |       HMIS_Radiology_Report_David_Mutiso_Kioko.pdf
+|   |       Medicore_CBC_Result_Ken_Muchiri.pdf
+|   |       Medicore_Malaria_MRDT_Result_Ken_Muchiri.pdf
+|   |       MUCLecture_2023_11165755.pdf
+|   |       Stool_Analysis_David_Mutiso_Kioko.pdf
+|   |       Urinalysis-sample-report-with-notes_1.pdf
+|   |       urinalysis_result_ken_muchiri.pdf
+|   |       
+|   +---otc_receipts
+|   |   \---qr
+|   |           otc_receipt_OTC-20260712-0001.png
+|   |           otc_receipt_OTC-20260713-0001.png
+|   |           otc_receipt_OTC-20260713-0002.png
+|   |           otc_receipt_OTC-20260724-0001.png
+|   |           otc_receipt_OTC-20260727-0001.png
+|   |           otc_receipt_OTC-20260731-0001.png
+|   |           otc_receipt_OTC-20260809-0001.png
+|   |           otc_receipt_OTC-20260809-0002.png
+|   |           otc_receipt_OTC-20260809-0003.png
+|   |           otc_receipt_OTC-20260810-0001.png
+|   |           otc_receipt_OTC-20260813-0001.png
+|   |           
+|   +---radiology_images
+|   |       Gemini_Generated_Image_9usgv89usgv89usg.png
+|   |       images_5.jpg
+|   |       
+|   +---radiology_reports
+|   |       HMIS_Radiology_Report_David_Mutiso_Kioko.pdf
+|   |       MRI-and-CT-sample-report-3.pdf
+|   |       
+|   \---receipts
+|       \---qr
+|               receipt_RCT-20260710-0011.png
+|               receipt_RCT-20260711-0001.png
+|               receipt_RCT-20260711-0002.png
+|               receipt_RCT-20260711-0003.png
+|               receipt_RCT-20260711-0004.png
+|               receipt_RCT-20260713-0001.png
+|               receipt_RCT-20260713-0002.png
+|               receipt_RCT-20260713-0003.png
+|               receipt_RCT-20260713-0004.png
+|               receipt_RCT-20260713-0005.png
+|               receipt_RCT-20260713-0006.png
+|               receipt_RCT-20260714-0001.png
+|               receipt_RCT-20260714-0002.png
+|               receipt_RCT-20260715-0001.png
+|               receipt_RCT-20260716-0001.png
+|               receipt_RCT-20260716-0002.png
+|               receipt_RCT-20260716-0003.png
+|               receipt_RCT-20260716-0004.png
+|               receipt_RCT-20260716-0005.png
+|               receipt_RCT-20260717-0001.png
+|               receipt_RCT-20260717-0007.png
+|               receipt_RCT-20260717-0008.png
+|               receipt_RCT-20260719-0001.png
+|               receipt_RCT-20260719-0002.png
+|               receipt_RCT-20260719-0003.png
+|               receipt_RCT-20260719-0004.png
+|               receipt_RCT-20260719-0005.png
+|               receipt_RCT-20260719-0006.png
+|               receipt_RCT-20260720-0001.png
+|               receipt_RCT-20260720-0002.png
+|               receipt_RCT-20260720-0003.png
+|               receipt_RCT-20260721-0001.png
+|               receipt_RCT-20260721-0002.png
+|               receipt_RCT-20260721-0003.png
+|               receipt_RCT-20260721-0004.png
+|               receipt_RCT-20260721-0005.png
+|               receipt_RCT-20260723-0001.png
+|               receipt_RCT-20260723-0002.png
+|               receipt_RCT-20260723-0003.png
+|               receipt_RCT-20260723-0004.png
+|               receipt_RCT-20260723-0005.png
+|               receipt_RCT-20260723-0006.png
+|               receipt_RCT-20260723-0007.png
+|               receipt_RCT-20260724-0001.png
+|               receipt_RCT-20260724-0002.png
+|               receipt_RCT-20260724-0003.png
+|               receipt_RCT-20260724-0004.png
+|               receipt_RCT-20260724-0005.png
+|               receipt_RCT-20260724-0006.png
+|               receipt_RCT-20260724-0007.png
+|               receipt_RCT-20260724-0008.png
+|               receipt_RCT-20260724-0009.png
+|               receipt_RCT-20260724-0010.png
+|               receipt_RCT-20260724-0011.png
+|               receipt_RCT-20260724-0012.png
+|               receipt_RCT-20260724-0013.png
+|               receipt_RCT-20260724-0014.png
+|               receipt_RCT-20260724-0015.png
+|               receipt_RCT-20260724-0016.png
+|               receipt_RCT-20260724-0017.png
+|               receipt_RCT-20260725-0001.png
+|               receipt_RCT-20260725-0002.png
+|               receipt_RCT-20260725-0003.png
+|               receipt_RCT-20260725-0014.png
+|               receipt_RCT-20260726-0001.png
+|               receipt_RCT-20260726-0002.png
+|               receipt_RCT-20260727-0004.png
+|               receipt_RCT-20260727-0031.png
+|               receipt_RCT-20260728-0014.png
+|               receipt_RCT-20260729-0001.png
+|               receipt_RCT-20260731-0001.png
+|               receipt_RCT-20260731-0002.png
+|               receipt_RCT-20260731-0005.png
+|               receipt_RCT-20260802-0001.png
+|               receipt_RCT-20260802-0004.png
+|               receipt_RCT-20260802-0005.png
+|               receipt_RCT-20260802-0006.png
+|               receipt_RCT-20260802-0007.png
+|               receipt_RCT-20260802-0008.png
+|               receipt_RCT-20260802-0009.png
+|               receipt_RCT-20260802-0010.png
+|               receipt_RCT-20260802-0011.png
+|               receipt_RCT-20260803-0001.png
+|               receipt_RCT-20260803-0002.png
+|               receipt_RCT-20260803-0003.png
+|               receipt_RCT-20260803-0004.png
+|               receipt_RCT-20260803-0023.png
+|               receipt_RCT-20260803-0027.png
+|               receipt_RCT-20260804-0001.png
+|               receipt_RCT-20260804-0002.png
+|               receipt_RCT-20260804-0003.png
+|               receipt_RCT-20260804-0004.png
+|               receipt_RCT-20260809-0018.png
+|               receipt_RCT-20260809-0019.png
+|               receipt_RCT-20260810-0001.png
+|               receipt_RCT-20260810-0002.png
+|               receipt_RCT-20260810-0003.png
+|               receipt_RCT-20260810-0004.png
+|               receipt_RCT-20260811-0001.png
+|               receipt_RCT-20260813-0001.png
+|               receipt_RCT-20260813-0002.png
+|               receipt_RCT-20260813-0003.png
+|               receipt_RCT-20260813-0004.png
+|               receipt_RCT-20260815-0001.png
+|               receipt_RCT-20260815-0002.png
+|               
++---medrecords
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_medrecords.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_medrecords.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---messaging
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---moh
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   pagination.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           pagination.cpython-312.pyc
+|           pagination.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-312.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---mortuary
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_mortuary.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_mortuary.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---notifications
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---pacs
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---gateways
+|   |   |   base.py
+|   |   |   mock.py
+|   |   |   orthanc.py
+|   |   |   
+|   |   \---__pycache__
+|   |           base.cpython-314.pyc
+|   |           mock.cpython-314.pyc
+|   |           
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---procurement
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_procurement.py
+|   |       |   __init__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_procurement.cpython-314.pyc
+|   |               __init__.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_goodsreceipt_delivered_by_company_and_more.py
+|   |   |   0003_rename_approved_at_purchaserequisition_hod_approved_at_and_more.py
+|   |   |   0004_remove_requisitionitem_item_type_and_more.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_goodsreceipt_delivered_by_company_and_more.cpython-312.pyc
+|   |           0002_goodsreceipt_delivered_by_company_and_more.cpython-314.pyc
+|   |           0003_rename_approved_at_purchaserequisition_hod_approved_at_and_more.cpython-312.pyc
+|   |           0003_rename_approved_at_purchaserequisition_hod_approved_at_and_more.cpython-314.pyc
+|   |           0004_remove_requisitionitem_item_type_and_more.cpython-312.pyc
+|   |           0004_remove_requisitionitem_item_type_and_more.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---security
+|   |   admin.py
+|   |   apps.py
+|   |   middleware.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           middleware.cpython-312.pyc
+|           middleware.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-312.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---static
+|       logo.png
+|       
++---stockcontrol
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_stockadjustment.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_stockadjustment.cpython-312.pyc
+|   |           0002_stockadjustment.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---support
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
++---theatre
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   serializers.py
+|   |   services.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---management
+|   |   \---commands
+|   |       |   seed_theatre.py
+|   |       |   __inti__.py
+|   |       |   
+|   |       \---__pycache__
+|   |               seed_theatre.cpython-314.pyc
+|   |               
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_surgery_visit.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-312.pyc
+|   |           0001_initial.cpython-314.pyc
+|   |           0002_surgery_visit.cpython-312.pyc
+|   |           0002_surgery_visit.cpython-314.pyc
+|   |           __init__.cpython-312.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           admin.cpython-314.pyc
+|           apps.cpython-312.pyc
+|           apps.cpython-314.pyc
+|           models.cpython-312.pyc
+|           models.cpython-314.pyc
+|           serializers.cpython-312.pyc
+|           serializers.cpython-314.pyc
+|           services.cpython-312.pyc
+|           services.cpython-314.pyc
+|           urls.cpython-312.pyc
+|           urls.cpython-314.pyc
+|           utils.cpython-314.pyc
+|           views.cpython-312.pyc
+|           views.cpython-314.pyc
+|           __init__.cpython-312.pyc
+|           __init__.cpython-314.pyc
+|           
+\---tickets
+    |   admin.py
+    |   apps.py
+    |   models.py
+    |   serializers.py
+    |   tests.py
+    |   urls.py
+    |   views.py
+    |   __init__.py
+    |   
+    +---management
+    |   \---commands
+    |       |   seed_tickets.py
+    |       |   __init__.py
+    |       |   
+    |       \---__pycache__
+    |               seed_tickets.cpython-314.pyc
+    |               __init__.cpython-314.pyc
+    |               
+    +---migrations
+    |   |   0001_initial.py
+    |   |   __init__.py
+    |   |   
+    |   \---__pycache__
+    |           0001_initial.cpython-312.pyc
+    |           0001_initial.cpython-314.pyc
+    |           __init__.cpython-312.pyc
+    |           __init__.cpython-314.pyc
+    |           
+    \---__pycache__
+            admin.cpython-312.pyc
+            admin.cpython-314.pyc
+            apps.cpython-312.pyc
+            apps.cpython-314.pyc
+            models.cpython-312.pyc
+            models.cpython-314.pyc
+            serializers.cpython-312.pyc
+            serializers.cpython-314.pyc
+            urls.cpython-312.pyc
+            urls.cpython-314.pyc
+            views.cpython-312.pyc
+            views.cpython-314.pyc
+            __init__.cpython-312.pyc
+            __init__.cpython-314.pyc
+            

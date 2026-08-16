@@ -12,17 +12,20 @@ class WardSerializer(serializers.ModelSerializer):
     bed_capacity = serializers.IntegerField(read_only=True)
     occupied_beds = serializers.IntegerField(read_only=True)
     is_active = serializers.BooleanField(default=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = Ward
         fields = [
             "id", "name", "ward_type", "floor", "gender_restriction",
             "default_daily_rate", "bed_capacity", "occupied_beds", "is_active",
+            "branch", "branch_name",
         ]
 
 
 class BedSerializer(serializers.ModelSerializer):
     ward_name = serializers.CharField(source="ward.name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
     daily_rate = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     current_patient = serializers.SerializerMethodField()
 
@@ -30,15 +33,17 @@ class BedSerializer(serializers.ModelSerializer):
         model = Bed
         fields = [
             "id", "ward", "ward_name", "bed_number", "status",
-            "daily_rate_override", "daily_rate", "current_patient",
+            "daily_rate_override", "daily_rate", "current_patient", "branch_name",
         ]
+
+    def get_branch_name(self, obj):
+        return obj.ward.branch.name if obj.ward.branch_id else None
 
     def get_current_patient(self, obj):
         admission = obj.admissions.filter(status="ADMITTED").first()
         if not admission:
             return None
         return {"admission_id": str(admission.id), "patient_name": admission.patient.full_name}
-
 
 class BedTransferSerializer(serializers.ModelSerializer):
     from_bed_label = serializers.CharField(source="from_bed.bed_number", read_only=True)
@@ -206,14 +211,18 @@ class AdmissionListSerializer(serializers.ModelSerializer):
     bed_number = serializers.CharField(source="bed.bed_number", read_only=True)
     attending_doctor_name = serializers.CharField(source="attending_doctor.get_full_name", read_only=True)
     length_of_stay_days = serializers.IntegerField(read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Admission
         fields = [
             "id", "admission_number", "patient_name", "hospital_number", "ward_name",
             "bed_number", "attending_doctor_name", "admission_type", "status",
-            "admission_date", "length_of_stay_days",
+            "admission_date", "length_of_stay_days", "branch_name",
         ]
+
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
 
 
 class DischargeSerializer(serializers.Serializer):

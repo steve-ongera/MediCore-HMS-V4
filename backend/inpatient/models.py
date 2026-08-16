@@ -34,6 +34,10 @@ class Ward(BaseModel):
     gender_restriction = models.CharField(max_length=10, choices=GenderRestriction.choices, default=GenderRestriction.MIXED)
     default_daily_rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     is_active = models.BooleanField(default=True)
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="wards",
+        help_text="Which branch this ward physically belongs to. A bed can only ever be occupied by patients admitted at this branch.",
+    )
 
     class Meta:
         db_table = "wards"

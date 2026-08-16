@@ -15,7 +15,7 @@ from api.models import (
     LabTestCatalog, RadiologyTestCatalog,
 )
 from api.permissions import (
-    HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor, ReadOnlyOrSuperAdmin, IsITSupportOrSuperAdmin
+    HasRole, IsReceptionist, IsCashierOrAccountant, IsNurse, IsDoctor, ReadOnlyOrSuperAdmin, IsITSupportOrSuperAdmin,IsFrontOfficeStaff
 )
 from licensing.permissions import WithinBedLimit
 
@@ -45,8 +45,15 @@ from .serializers import (
 class WardViewSet(BaseModelViewSet):
     queryset = Ward.objects.filter(is_active=True)
     serializer_class = WardSerializer
-    
     search_fields = ["name"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
 
     @action(detail=False, methods=["get"], url_path="occupancy")
     def occupancy(self, request):
@@ -63,12 +70,19 @@ class WardViewSet(BaseModelViewSet):
         ]
         return Response(data)
 
-
 class BedViewSet(BaseModelViewSet):
-    permission_classes = [IsITSupportOrSuperAdmin, WithinBedLimit]
-    queryset = Bed.objects.select_related("ward").all()
+    permission_classes = [ WithinBedLimit]
+    queryset = Bed.objects.select_related("ward", "ward__branch").all()
     serializer_class = BedSerializer
     filterset_fields = ["ward", "status"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(ward__branch_id__in=accessible)
+        return qs
 
     @action(detail=False, methods=["get"], url_path="available")
     def available(self, request):
@@ -83,9 +97,23 @@ class BedViewSet(BaseModelViewSet):
 # Admissions
 # ---------------------------------------------------------------------------
 class AdmissionViewSet(BaseModelViewSet):
-    queryset = Admission.objects.select_related("patient", "bed__ward", "attending_doctor", "visit").all()
+    queryset = Admission.objects.select_related("patient", "bed__ward", "attending_doctor", "visit", "visit__branch").all()
     filterset_fields = ["status", "admission_type", "bed__ward"]
     search_fields = ["admission_number", "patient__full_name", "patient__hospital_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Admission has no branch field of its own — derived through
+        # visit.branch, same pattern as EmergencyVisit/QueueEntry. Applied
+        # here (not just list) so it covers active/retrieve/billing/
+        # discharge/transfer-bed/order-lab/order-radiology/order-procedure
+        # via get_object() too — a user can't view or act on another
+        # branch's admission even by guessing the ID.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:  # None = GROUP_ADMIN/superuser, sees every branch
+            qs = qs.filter(visit__branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -108,15 +136,15 @@ class AdmissionViewSet(BaseModelViewSet):
             raise ValidationError({"patient": "Patient not found."})
 
         with transaction.atomic():
-            visit = None
+            explicit_visit = None
             if data.get("visit"):
-                visit = Visit.objects.filter(pk=data["visit"]).first()
-                if not visit:
+                explicit_visit = Visit.objects.filter(pk=data["visit"]).first()
+                if not explicit_visit:
                     raise ValidationError({"visit": "Visit not found."})
 
             admission = Admission.objects.create(
                 patient=patient,
-                visit=visit,
+                visit=explicit_visit,
                 bed=bed,
                 admitting_doctor_id=data["admitting_doctor"],
                 attending_doctor_id=data.get("attending_doctor") or data["admitting_doctor"],
@@ -128,6 +156,24 @@ class AdmissionViewSet(BaseModelViewSet):
             # The post_save signal already calls ensure_admission_visit if no
             # visit was supplied — this is now a safe no-op confirming it.
             ensure_admission_visit(admission)
+
+            # Only stamp branch when WE created a fresh Visit (no explicit
+            # visit was passed in). ensure_admission_visit() always creates
+            # a brand-new Visit in that case — never reuses one — so this
+            # can never clobber a Visit's branch that was set correctly
+            # elsewhere. If an explicit visit WAS passed, it already has
+            # whatever branch it was created with (e.g. from ED) — respected
+            # as-is, not overwritten.
+            if not explicit_visit:
+                from branches.permissions import get_accessible_branch_ids
+                accessible = get_accessible_branch_ids(request.user)
+                if accessible is None:
+                    branch_id = request.data.get("branch") or request.user.branch_id
+                else:
+                    branch_id = request.user.branch_id
+                if branch_id and admission.visit and admission.visit.branch_id != branch_id:
+                    admission.visit.branch_id = branch_id
+                    admission.visit.save(update_fields=["branch"])
 
             bed.status = BedStatus.OCCUPIED
             bed.save(update_fields=["status"])
@@ -314,7 +360,8 @@ class AdmissionViewSet(BaseModelViewSet):
             proc.save(update_fields=["invoice"])
 
         return Response(InpatientProcedureSerializer(proc).data, status=status.HTTP_201_CREATED)
-
+    
+    
 class BedTransferViewSet(BaseModelViewSet):
     queryset = BedTransfer.objects.select_related("from_bed", "to_bed").all()
     serializer_class = BedTransferSerializer

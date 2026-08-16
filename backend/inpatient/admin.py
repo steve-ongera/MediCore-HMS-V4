@@ -5,10 +5,10 @@ from .models import (
     InpatientVitals, MedicationOrder, MedicationAdministration, BedCharge, ProcedureCatalog , InpatientProcedure
 )
 
-
+#"branch"
 @admin.register(Ward)
 class WardAdmin(admin.ModelAdmin):
-    list_display = ("name", "ward_type", "gender_restriction", "default_daily_rate", "bed_capacity", "occupied_beds", "is_active")
+    list_display = ("name", "ward_type", "gender_restriction", "default_daily_rate", "bed_capacity", "occupied_beds", "branch", "is_active")
     list_filter = ("ward_type", "gender_restriction", "is_active")
     search_fields = ("name",)
 
