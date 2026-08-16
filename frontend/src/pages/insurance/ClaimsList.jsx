@@ -214,6 +214,7 @@ export default function ClaimsList() {
     const tableColumns = [
       { header: "Claim #", dataKey: "claim_number" },
       { header: "Patient Name", dataKey: "patient_name" },
+      { header: "Branch", dataKey: "branch_name" },
       { header: "Insurer", dataKey: "insurer_name" },
       { header: "Status", dataKey: "status" },
       { header: "Claimed (KES)", dataKey: "total_claimed" },
@@ -232,6 +233,7 @@ export default function ClaimsList() {
       return {
         claim_number: c.claim_number || "-",
         patient_name: c.patient_name || "-",
+        branch_name: c.branch_name || "-",
         insurer_name: c.insurer_name || "-",
         status: (c.status || "-").replace(/_/g, " "),
         total_claimed: formatCurrency(claimed),
@@ -263,12 +265,13 @@ export default function ClaimsList() {
         fillColor: LIGHT_FILL,
       },
       columnStyles: {
-        0: { cellWidth: 38, minCellWidth: 38, fontStyle: "bold" },
-        1: { cellWidth: 42 },
-        2: { cellWidth: 36 },
-        3: { cellWidth: 26 },
-        4: { cellWidth: 22, halign: "right" },
-        5: { cellWidth: 22, halign: "right", fontStyle: "bold" },
+        0: { cellWidth: 32, minCellWidth: 32, fontStyle: "bold" },
+        1: { cellWidth: 36 },
+        2: { cellWidth: 26 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 24 },
+        5: { cellWidth: 20, halign: "right" },
+        6: { cellWidth: 20, halign: "right", fontStyle: "bold" },
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
@@ -399,6 +402,7 @@ export default function ClaimsList() {
       <tr>
         <td style="mso-number-format:'\\@';">${c.claim_number || ""}</td>
         <td>${c.patient_name || ""}</td>
+        <td>${c.branch_name || ""}</td>
         <td>${c.insurer_name || ""}</td>
         <td>${(c.status || "").replace(/_/g, " ")}</td>
         <td>${c.total_claimed || 0}</td>
@@ -431,6 +435,7 @@ export default function ClaimsList() {
               <tr style="background-color: #1e40af; color: #ffffff; font-weight: bold;">
                 <th>Claim #</th>
                 <th>Patient Name</th>
+                <th>Branch</th>
                 <th>Insurer</th>
                 <th>Status</th>
                 <th>Claimed Amount</th>
@@ -671,6 +676,7 @@ export default function ClaimsList() {
                     <tr>
                       <th>Claim #</th>
                       <th>Patient</th>
+                      <th>Branch</th>
                       <th>Insurer</th>
                       <th>Status</th>
                       <th className="cell-numeric">Claimed</th>
@@ -683,6 +689,7 @@ export default function ClaimsList() {
                       <tr key={c.id}>
                         <td className="cell-mono">{c.claim_number}</td>
                         <td className="cell-primary">{c.patient_name}</td>
+                        <td>{c.branch_name || "—"}</td>
                         <td>{c.insurer_name}</td>
                         <td>
                           <span className={`badge ${getStatusBadge(c.status)}`}>
