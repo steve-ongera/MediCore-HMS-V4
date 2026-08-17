@@ -21,6 +21,10 @@ class FacilityLicense(BaseModel):
 
     max_beds = models.PositiveIntegerField(default=20, help_text="Total across inpatient + ICU/HDU beds combined.")
     max_users = models.PositiveIntegerField(default=10, help_text="Total active staff accounts across all roles.")
+    max_patients = models.PositiveIntegerField(
+        default=5000,
+        help_text="Maximum total unique patient records this license permits across the whole group/facility.",
+    )
 
     licensed_to = models.CharField(max_length=200, blank=True)
     valid_from = models.DateField(null=True, blank=True)
@@ -43,6 +47,15 @@ class FacilityLicense(BaseModel):
     def is_expired(self):
         from datetime import date
         return bool(self.valid_until and date.today() > self.valid_until)
+    
+    @property
+    def current_patient_count(self):
+        from api.models import Patient
+        return Patient.objects.filter(is_deleted=False).count()
+
+    @property
+    def patients_remaining(self):
+        return max(self.max_patients - self.current_patient_count, 0)
 
     @property
     def current_user_count(self):
