@@ -18,7 +18,7 @@ class MortuaryChargeInline(admin.TabularInline):
 
 @admin.register(MortuaryUnit)
 class MortuaryUnitAdmin(admin.ModelAdmin):
-    list_display = ["compartment_number", "daily_storage_rate", "status", "is_active"]
+    list_display = ["compartment_number", "daily_storage_rate", "status", "is_active" ,"branch"]
 
 
 @admin.register(MortuaryAdmission)
