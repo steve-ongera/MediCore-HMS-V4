@@ -25,6 +25,13 @@ def ensure_icu_visit(icu_admission):
         consultation_type=ConsultationType.OTHER,
         status=VisitStatus.IN_CONSULTATION,
         registered_by=icu_admission.admitted_by,
+        # An ICU stay belongs to the hospital that physically has the bed —
+        # same anchor ICUAdmissionViewSet.get_queryset() already uses to
+        # scope admissions. Without this, every ICU visit (and every
+        # invoice raised against it — bed charges, procedures) silently
+        # ends up with branch=NULL and disappears from branch-scoped views
+        # like bulk payment.
+        branch_id=icu_admission.bed.branch_id,
     )
     icu_admission.visit = visit
     icu_admission.save(update_fields=["visit"])

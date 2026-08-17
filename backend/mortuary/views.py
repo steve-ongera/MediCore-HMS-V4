@@ -31,6 +31,14 @@ class MortuaryUnitViewSet(BaseModelViewSet):
     serializer_class = MortuaryUnitSerializer
     filterset_fields = ["status"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
+
     @action(detail=False, methods=["get"], url_path="available")
     def available(self, request):
         qs = self.get_queryset().filter(status=CompartmentStatus.AVAILABLE)
@@ -46,9 +54,22 @@ class MortuaryServiceCatalogViewSet(BaseModelViewSet):
 
 class MortuaryAdmissionViewSet(BaseModelViewSet):
     permission_classes = [IsMortuaryStaff]
-    queryset = MortuaryAdmission.objects.select_related("patient", "compartment").all()
+    queryset = MortuaryAdmission.objects.select_related("patient", "compartment", "compartment__branch").all()
     filterset_fields = ["status", "source"]
     search_fields = ["case_number", "patient__full_name", "deceased_name_freetext"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # MortuaryAdmission's branch is derived through compartment.branch —
+        # the physical location holding the body — same pattern as ICU
+        # (bed.branch). Applied here so list/in-storage/retrieve/billing/
+        # add-charge/order-service/release via get_object() are all
+        # branch-restricted.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(compartment__branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -73,6 +94,14 @@ class MortuaryAdmissionViewSet(BaseModelViewSet):
                 raise ValidationError({"compartment": "Compartment not found."})
             if compartment.status != CompartmentStatus.AVAILABLE:
                 raise ValidationError({"compartment": "This compartment is not available."})
+
+            # Defense in depth: even though the compartment dropdown is
+            # already branch-scoped via MortuaryUnitViewSet, a raw API call
+            # could still pass a compartment ID from another branch.
+            from branches.permissions import get_accessible_branch_ids
+            accessible = get_accessible_branch_ids(request.user)
+            if accessible is not None and compartment.branch_id and compartment.branch_id not in accessible:
+                raise ValidationError({"compartment": "This compartment does not belong to your branch."})
 
         with transaction.atomic():
             case = MortuaryAdmission.objects.create(

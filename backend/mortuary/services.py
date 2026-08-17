@@ -22,7 +22,7 @@ def generate_daily_mortuary_storage_charges():
             created.append(str(invoice.id))
     return created
 
-def ensure_mortuary_visit(patient, registered_by=None):
+def ensure_mortuary_visit(patient, registered_by=None, branch_id=None):
     mortuary_dept, _ = Department.objects.get_or_create(
         name="Mortuary Services",
         defaults={"consultation_fee": 0, "description": "Auto-created department for mortuary storage and service billing."},
@@ -31,6 +31,11 @@ def ensure_mortuary_visit(patient, registered_by=None):
         patient=patient, department=mortuary_dept,
         consultation_type=ConsultationType.OTHER,
         status=VisitStatus.IN_CONSULTATION, registered_by=registered_by,
+        # Mortuary belongs to the branch that physically holds the body —
+        # the compartment — same anchor used to scope MortuaryAdmission.
+        # Without this, every mortuary visit (and every invoice against it)
+        # silently ends up with branch=NULL, same bug ICU had.
+        branch_id=branch_id,
     )
 
 
@@ -67,6 +72,7 @@ def raise_mortuary_invoice(mortuary_case, description, amount, user=None):
     from .models import MortuaryCharge
 
     billing_patient = _billing_patient_for(mortuary_case)
+    case_branch_id = mortuary_case.compartment.branch_id if mortuary_case.compartment_id else None
 
     visit = None
     if mortuary_case.patient:
@@ -78,12 +84,16 @@ def raise_mortuary_invoice(mortuary_case, description, amount, user=None):
             status=VisitStatus.IN_CONSULTATION,
         ).order_by("-visit_date").first()
         if not visit:
-            visit = ensure_mortuary_visit(mortuary_case.patient, registered_by=user)
+            visit = ensure_mortuary_visit(mortuary_case.patient, registered_by=user, branch_id=case_branch_id)
 
     invoice = Invoice.objects.create(
         patient=billing_patient, visit=visit,
         source_type=InvoiceSourceType.PROCEDURE,  # closest existing category for a one-off billed service
         description=description, amount=amount,
+        # BID/unidentified cases have no visit at all, so Invoice.save()'s
+        # auto-stamp-from-visit has nothing to inherit from — set explicitly
+        # here so those invoices don't end up permanently branchless.
+        branch_id=case_branch_id,
     )
     MortuaryCharge.objects.create(mortuary_case=mortuary_case, invoice=invoice, description=description)
     return invoice
@@ -121,4 +131,4 @@ def _extract_days(description):
     """Pulls the '(N day(s) @ ...)' count back out of a storage charge description."""
     import re
     match = re.search(r"\((\d+) day", description)
-    return int(match.group(1)) if match else 1 
+    return int(match.group(1)) if match else 1

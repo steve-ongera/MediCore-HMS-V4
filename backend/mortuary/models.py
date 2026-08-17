@@ -16,6 +16,10 @@ class CompartmentStatus(models.TextChoices):
 class MortuaryUnit(BaseModel):
     compartment_number = models.CharField(max_length=20, unique=True)
     daily_storage_rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="mortuary_units",
+        help_text="Which branch this compartment physically belongs to.",
+    )
     status = models.CharField(max_length=20, choices=CompartmentStatus.choices, default=CompartmentStatus.AVAILABLE)
     is_active = models.BooleanField(default=True)
 

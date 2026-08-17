@@ -9,10 +9,11 @@ from .models import (
 class MortuaryUnitSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(default=True)
     current_case = serializers.SerializerMethodField()
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = MortuaryUnit
-        fields = ["id", "compartment_number", "daily_storage_rate", "status", "is_active", "current_case"]
+        fields = ["id", "compartment_number", "daily_storage_rate", "status", "is_active", "current_case", "branch", "branch_name"]
 
     def get_current_case(self, obj):
         case = obj.admissions.filter(status="ADMITTED").first()
@@ -73,6 +74,7 @@ class MortuaryAdmissionSerializer(serializers.ModelSerializer):
     compartment_number = serializers.CharField(source="compartment.compartment_number", read_only=True)
     admitted_by_name = serializers.CharField(source="admitted_by.get_full_name", read_only=True)
     days_in_storage = serializers.IntegerField(read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     services = MortuaryServiceRecordSerializer(many=True, read_only=True)
     charges = MortuaryChargeSerializer(many=True, read_only=True)
@@ -86,22 +88,29 @@ class MortuaryAdmissionSerializer(serializers.ModelSerializer):
             "cause_of_death", "source", "admission", "emergency_visit", "delivery_record",
             "compartment", "compartment_number", "brought_by", "police_ob_number",
             "status", "admitted_by", "admitted_by_name", "admitted_at", "days_in_storage",
-            "services", "charges", "release",
+            "services", "charges", "release", "branch_name",
         ]
         read_only_fields = ["id", "case_number", "status", "admitted_by", "admitted_at"]
+
+    def get_branch_name(self, obj):
+        return obj.compartment.branch.name if obj.compartment_id and obj.compartment.branch_id else None
 
 
 class MortuaryAdmissionListSerializer(serializers.ModelSerializer):
     deceased_display_name = serializers.CharField(read_only=True)
     compartment_number = serializers.CharField(source="compartment.compartment_number", read_only=True)
     days_in_storage = serializers.IntegerField(read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = MortuaryAdmission
         fields = [
             "id", "case_number", "deceased_display_name", "compartment_number",
-            "source", "status", "date_of_death", "admitted_at", "days_in_storage",
+            "source", "status", "date_of_death", "admitted_at", "days_in_storage", "branch_name",
         ]
+
+    def get_branch_name(self, obj):
+        return obj.compartment.branch.name if obj.compartment_id and obj.compartment.branch_id else None
 
 
 class RegisterMortuaryCaseSerializer(serializers.Serializer):
