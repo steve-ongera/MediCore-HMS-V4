@@ -37,6 +37,10 @@ class Employee(BaseModel):
     """
     employee_number = models.CharField(max_length=30, unique=True, editable=False)
     user = models.OneToOneField(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="employee_profile")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.SET_NULL, related_name="employees",
+        help_text="Which branch this employee works at. Set automatically from the registering HR officer's branch.",
+    )
 
     full_name = models.CharField(max_length=150)
     national_id = models.CharField(max_length=30, blank=True, unique=True, null=True)
@@ -159,9 +163,17 @@ class PayrollRunStatus(models.TextChoices):
 
 
 class PayrollRun(BaseModel):
-    """One row per calendar month payroll cycle."""
+    """
+    One row per (branch, calendar month) payroll cycle — each branch runs
+    its own payroll independently, since "pay your own members" means a
+    branch's payroll never touches another branch's employees or budget.
+    """
     period_month = models.PositiveSmallIntegerField()
     period_year = models.PositiveSmallIntegerField()
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="payroll_runs",
+        help_text="This payroll run only covers employees at this branch.",
+    )
     status = models.CharField(max_length=20, choices=PayrollRunStatus.choices, default=PayrollRunStatus.DRAFT)
     processed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="payroll_runs_processed")
     processed_at = models.DateTimeField(null=True, blank=True)
@@ -169,7 +181,7 @@ class PayrollRun(BaseModel):
 
     class Meta:
         db_table = "payroll_runs"
-        unique_together = ("period_month", "period_year")
+        unique_together = ("period_month", "period_year", "branch")
         ordering = ["-period_year", "-period_month"]
 
     @property
@@ -178,7 +190,7 @@ class PayrollRun(BaseModel):
 
     def __str__(self):
         return f"Payroll {self.period_month}/{self.period_year} ({self.status})"
-
+    
 
 class Payslip(BaseModel):
     payroll_run = models.ForeignKey(PayrollRun, on_delete=models.CASCADE, related_name="payslips")

@@ -26,9 +26,20 @@ from .serializers import (
 
 class EmployeeViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = Employee.objects.select_related("department", "user").all()
+    queryset = Employee.objects.select_related("department", "user", "branch").all()
     filterset_fields = ["department", "employment_status", "employment_type"]
     search_fields = ["employee_number", "full_name", "national_id", "phone"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Employee is the anchor for the whole HR module — leave, attendance,
+        # payroll, performance, and discipline all derive their branch
+        # through employee.branch, same pattern as Ward/ICUBed/MortuaryUnit.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -36,7 +47,16 @@ class EmployeeViewSet(BaseModelViewSet):
         return EmployeeSerializer
 
     def perform_create(self, serializer):
-        serializer.save(registered_by=self.request.user)
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is None:
+            # GROUP_ADMIN registering directly — respect an explicit branch
+            # if sent, never silently guess one.
+            branch_id = self.request.data.get("branch") or self.request.user.branch_id
+        else:
+            # Everyone else — always their own branch, never trusting the payload.
+            branch_id = self.request.user.branch_id
+        serializer.save(registered_by=self.request.user, branch_id=branch_id)
 
     @action(detail=False, methods=["get"], url_path="active")
     def active(self, request):
@@ -61,7 +81,10 @@ class EmployeeViewSet(BaseModelViewSet):
 
 
 class LeaveTypeViewSet(BaseModelViewSet):
-    permission_classes = [IsHROfficer]
+    # Leave policy catalog — deliberately NOT branch-scoped. "Annual Leave",
+    # "Sick Leave", etc. are the same policy chain-wide, same reasoning as
+    # Medicine's catalog staying shared while MedicineBatch stock is
+    # branch-owned.
     queryset = LeaveType.objects.filter(is_active=True)
     serializer_class = LeaveTypeSerializer
     permission_classes = [ReadOnlyOrSuperAdmin]
@@ -70,9 +93,17 @@ class LeaveTypeViewSet(BaseModelViewSet):
 
 class LeaveRequestViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = LeaveRequest.objects.select_related("employee", "leave_type").all()
+    queryset = LeaveRequest.objects.select_related("employee", "employee__branch", "leave_type").all()
     serializer_class = LeaveRequestSerializer
     filterset_fields = ["employee", "leave_type", "status"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(employee__branch_id__in=accessible)
+        return qs
 
     @action(detail=True, methods=["post"], url_path="approve")
     def approve(self, request, pk=None):
@@ -112,9 +143,17 @@ class LeaveRequestViewSet(BaseModelViewSet):
 
 class AttendanceViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = Attendance.objects.select_related("employee").all()
+    queryset = Attendance.objects.select_related("employee", "employee__branch").all()
     serializer_class = AttendanceSerializer
     filterset_fields = ["employee", "date", "status"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(employee__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(recorded_by=self.request.user)
@@ -127,9 +166,21 @@ class AttendanceViewSet(BaseModelViewSet):
 
 class PayrollRunViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = PayrollRun.objects.prefetch_related("payslips__employee").all()
+    queryset = PayrollRun.objects.select_related("branch").prefetch_related("payslips__employee").all()
     filterset_fields = ["status", "period_year"]
     http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # PayrollRun is now itself branch-owned — each branch runs its own
+        # payroll for the same period independently (see the model's
+        # unique_together change). A branch's payroll never touches
+        # another branch's employees or budget.
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -138,21 +189,36 @@ class PayrollRunViewSet(BaseModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """
-        Generates a draft payroll run: one Payslip per ACTIVE employee, seeded
-        from Employee.basic_salary with zero allowances/deductions. Accountant
-        edits individual payslips afterward (via PayslipViewSet) before marking
-        the run PROCESSED.
+        Generates a draft payroll run: one Payslip per ACTIVE employee at
+        the requesting HR officer's own branch, seeded from
+        Employee.basic_salary with zero allowances/deductions. Accountant
+        edits individual payslips afterward (via PayslipViewSet) before
+        marking the run PROCESSED.
         """
         serializer = GeneratePayrollSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if PayrollRun.objects.filter(period_month=data["period_month"], period_year=data["period_year"]).exists():
-            raise ValidationError({"detail": "A payroll run already exists for this period."})
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+        if accessible is None:
+            # GROUP_ADMIN generating directly — respect an explicit branch
+            # if sent, never silently guess one.
+            branch_id = request.data.get("branch") or request.user.branch_id
+            if not branch_id:
+                raise ValidationError({"branch": "As a Group Admin, you must specify which branch this payroll run is for."})
+        else:
+            branch_id = request.user.branch_id
+
+        if PayrollRun.objects.filter(period_month=data["period_month"], period_year=data["period_year"], branch_id=branch_id).exists():
+            raise ValidationError({"detail": "A payroll run already exists for this period at this branch."})
 
         with transaction.atomic():
-            run = PayrollRun.objects.create(period_month=data["period_month"], period_year=data["period_year"])
-            employees = Employee.objects.filter(employment_status__in=[EmploymentStatus.ACTIVE, EmploymentStatus.ON_LEAVE])
+            run = PayrollRun.objects.create(period_month=data["period_month"], period_year=data["period_year"], branch_id=branch_id)
+            employees = Employee.objects.filter(
+                branch_id=branch_id,
+                employment_status__in=[EmploymentStatus.ACTIVE, EmploymentStatus.ON_LEAVE],
+            )
             for emp in employees:
                 Payslip.objects.create(payroll_run=run, employee=emp, basic_salary=emp.basic_salary)
 
@@ -181,10 +247,18 @@ class PayrollRunViewSet(BaseModelViewSet):
 
 class PayslipViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = Payslip.objects.select_related("employee", "payroll_run").all()
+    queryset = Payslip.objects.select_related("employee", "employee__branch", "payroll_run").all()
     serializer_class = PayslipSerializer
     filterset_fields = ["payroll_run", "employee"]
     http_method_names = ["get", "patch", "head", "options"]  # created only via PayrollRunViewSet.create
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(payroll_run__branch_id__in=accessible)
+        return qs
 
     def perform_update(self, serializer):
         payroll_run = serializer.instance.payroll_run
@@ -195,9 +269,17 @@ class PayslipViewSet(BaseModelViewSet):
 
 class PerformanceReviewViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = PerformanceReview.objects.select_related("employee", "reviewer").all()
+    queryset = PerformanceReview.objects.select_related("employee", "employee__branch", "reviewer").all()
     serializer_class = PerformanceReviewSerializer
     filterset_fields = ["employee"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(employee__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)
@@ -205,9 +287,17 @@ class PerformanceReviewViewSet(BaseModelViewSet):
 
 class DisciplinaryRecordViewSet(BaseModelViewSet):
     permission_classes = [IsHROfficer]
-    queryset = DisciplinaryRecord.objects.select_related("employee").all()
+    queryset = DisciplinaryRecord.objects.select_related("employee", "employee__branch").all()
     serializer_class = DisciplinaryRecordSerializer
     filterset_fields = ["employee", "severity"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(employee__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(issued_by=self.request.user)

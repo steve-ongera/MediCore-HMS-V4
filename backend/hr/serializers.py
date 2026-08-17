@@ -19,6 +19,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
     leave_type_name = serializers.CharField(source="leave_type.name", read_only=True)
     approved_by_name = serializers.CharField(source="approved_by.get_full_name", read_only=True)
     days_requested = serializers.IntegerField(read_only=True)
+    branch_name = serializers.CharField(source="employee.branch.name", read_only=True, default=None)
 
     class Meta:
         model = LeaveRequest
@@ -26,6 +27,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             "id", "employee", "employee_name", "leave_type", "leave_type_name",
             "start_date", "end_date", "days_requested", "reason", "status",
             "approved_by", "approved_by_name", "approved_at", "rejection_reason", "created_at",
+            "branch_name",
         ]
         read_only_fields = ["id", "status", "approved_by", "approved_at", "created_at"]
 
@@ -36,10 +38,11 @@ class RejectLeaveSerializer(serializers.Serializer):
 
 class AttendanceSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.full_name", read_only=True)
+    branch_name = serializers.CharField(source="employee.branch.name", read_only=True, default=None)
 
     class Meta:
         model = Attendance
-        fields = ["id", "employee", "employee_name", "date", "clock_in", "clock_out", "status", "notes", "recorded_by"]
+        fields = ["id", "employee", "employee_name", "date", "clock_in", "clock_out", "status", "notes", "recorded_by", "branch_name"]
         read_only_fields = ["id", "recorded_by"]
 
 
@@ -60,28 +63,29 @@ class PayslipSerializer(serializers.ModelSerializer):
 
 class PayrollRunSerializer(serializers.ModelSerializer):
     processed_by_name = serializers.CharField(source="processed_by.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     payslips = PayslipSerializer(many=True, read_only=True)
     total_net_pay = serializers.SerializerMethodField()
 
     class Meta:
         model = PayrollRun
         fields = [
-            "id", "period_month", "period_year", "status", "processed_by",
+            "id", "period_month", "period_year", "branch", "branch_name", "status", "processed_by",
             "processed_by_name", "processed_at", "notes", "payslips", "total_net_pay",
         ]
-        read_only_fields = ["id", "status", "processed_by", "processed_at"]
+        read_only_fields = ["id", "status", "processed_by", "processed_at", "branch"]
 
     def get_total_net_pay(self, obj):
         return str(obj.total_net_pay)
 
-
 class PayrollRunListSerializer(serializers.ModelSerializer):
     total_net_pay = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = PayrollRun
-        fields = ["id", "period_month", "period_year", "status", "total_net_pay", "employee_count"]
+        fields = ["id", "period_month", "period_year", "status", "total_net_pay", "employee_count", "branch_name"]
 
     def get_total_net_pay(self, obj):
         return str(obj.total_net_pay)
@@ -98,6 +102,7 @@ class GeneratePayrollSerializer(serializers.Serializer):
 class PerformanceReviewSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.full_name", read_only=True)
     reviewer_name = serializers.CharField(source="reviewer.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="employee.branch.name", read_only=True, default=None)
 
     class Meta:
         model = PerformanceReview
@@ -105,6 +110,7 @@ class PerformanceReviewSerializer(serializers.ModelSerializer):
             "id", "employee", "employee_name", "reviewer", "reviewer_name",
             "review_period_start", "review_period_end", "score", "strengths",
             "areas_for_improvement", "goals_next_period", "employee_comments", "reviewed_at",
+            "branch_name",
         ]
         read_only_fields = ["id", "reviewer", "reviewed_at"]
 
@@ -112,12 +118,14 @@ class PerformanceReviewSerializer(serializers.ModelSerializer):
 class DisciplinaryRecordSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.full_name", read_only=True)
     issued_by_name = serializers.CharField(source="issued_by.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="employee.branch.name", read_only=True, default=None)
 
     class Meta:
         model = DisciplinaryRecord
         fields = [
             "id", "employee", "employee_name", "severity", "incident_date",
             "description", "action_taken", "issued_by", "issued_by_name", "created_at_display",
+            "branch_name",
         ]
         read_only_fields = ["id", "issued_by", "created_at_display"]
 
@@ -126,6 +134,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
     user_username = serializers.CharField(source="user.username", read_only=True)
     years_of_service = serializers.FloatField(read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     leave_requests = LeaveRequestSerializer(many=True, read_only=True)
     performance_reviews = PerformanceReviewSerializer(many=True, read_only=True)
@@ -134,7 +143,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = [
-            "id", "employee_number", "user", "user_username", "full_name", "national_id",
+            "id", "employee_number", "user", "user_username", "branch", "branch_name",
+            "full_name", "national_id",
             "gender", "date_of_birth", "phone", "email", "address", "job_title",
             "department", "department_name", "employment_type", "employment_status",
             "date_hired", "date_terminated", "years_of_service", "basic_salary",
@@ -142,15 +152,16 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "next_of_kin_relationship", "registered_by",
             "leave_requests", "performance_reviews", "disciplinary_records", "created_at",
         ]
-        read_only_fields = ["id", "employee_number", "registered_by", "created_at"]
+        read_only_fields = ["id", "employee_number", "registered_by", "created_at", "branch"]
 
 
 class EmployeeListSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = Employee
         fields = [
             "id", "employee_number", "full_name", "job_title", "department_name",
-            "employment_type", "employment_status", "date_hired", "phone",
+            "employment_type", "employment_status", "date_hired", "phone", "branch_name",
         ]
