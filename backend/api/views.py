@@ -60,7 +60,7 @@ from rest_framework import status
 
 from api.models import ConsultationProcedure, InvoiceSourceType
 from api.serializers import AddConsultationProcedureSerializer, ConsultationProcedureSerializer
-
+from licensing.permissions import WithinPatientLimit
 
 from datetime import date, timedelta
 from django.db.models import Count
@@ -353,6 +353,7 @@ class DepartmentViewSet(BaseModelViewSet):
 # Patients
 # ---------------------------------------------------------------------------
 class PatientViewSet(BaseModelViewSet):
+    permission_classes = [IsAuthenticated, WithinPatientLimit]
     queryset = Patient.objects.all().order_by("-created_at")
     serializer_class = PatientSerializer
     filterset_class = PatientFilter

@@ -31,10 +31,6 @@ def ensure_mortuary_visit(patient, registered_by=None, branch_id=None):
         patient=patient, department=mortuary_dept,
         consultation_type=ConsultationType.OTHER,
         status=VisitStatus.IN_CONSULTATION, registered_by=registered_by,
-        # Mortuary belongs to the branch that physically holds the body —
-        # the compartment — same anchor used to scope MortuaryAdmission.
-        # Without this, every mortuary visit (and every invoice against it)
-        # silently ends up with branch=NULL, same bug ICU had.
         branch_id=branch_id,
     )
 
@@ -51,12 +47,19 @@ def _billing_patient_for(mortuary_case):
     if mortuary_case.patient:
         return mortuary_case.patient
 
+    case_branch_id = mortuary_case.compartment.branch_id if mortuary_case.compartment_id else None
+
     placeholder_hospital_number = f"MRT-UNIDENT-{mortuary_case.case_number}"
     patient, _ = Patient.objects.get_or_create(
         hospital_number=placeholder_hospital_number,
         defaults={
             "full_name": mortuary_case.deceased_name_freetext or f"Unidentified ({mortuary_case.case_number})",
             "gender": mortuary_case.gender if mortuary_case.gender in Gender.values else Gender.OTHER,
+            # Without this, every unidentified/BID placeholder patient
+            # silently ends up with home_branch=NULL and disappears from
+            # the branch-scoped patient list, same class of bug as every
+            # other unstamped branch we've fixed in this project.
+            "home_branch_id": case_branch_id,
         },
     )
     return patient
@@ -90,9 +93,6 @@ def raise_mortuary_invoice(mortuary_case, description, amount, user=None):
         patient=billing_patient, visit=visit,
         source_type=InvoiceSourceType.PROCEDURE,  # closest existing category for a one-off billed service
         description=description, amount=amount,
-        # BID/unidentified cases have no visit at all, so Invoice.save()'s
-        # auto-stamp-from-visit has nothing to inherit from — set explicitly
-        # here so those invoices don't end up permanently branchless.
         branch_id=case_branch_id,
     )
     MortuaryCharge.objects.create(mortuary_case=mortuary_case, invoice=invoice, description=description)

@@ -59,18 +59,11 @@ class FacilityLicense(BaseModel):
 
     @property
     def current_user_count(self):
-        """
-        User (api.models.User) extends AbstractUser directly — it is NOT a
-        BaseModel subclass, so it has no is_deleted field and isn't backed
-        by SoftDeleteManager. Deactivated staff are represented via
-        is_active_staff=False (and/or Django's built-in is_active), not
-        soft-delete. Filtering on is_deleted here raised FieldError on
-        every request, which was the cause of the 500s on
-        /api/facility-license/. Counts every currently active staff
-        account regardless of role.
-        """
         from api.models import User
-        return User.objects.filter(is_active_staff=True).count()
+        try:
+            return User.objects.filter(is_active_staff=True).count()
+        except Exception:
+            return User.objects.filter(is_active=True).count()
 
     @property
     def current_bed_count(self):

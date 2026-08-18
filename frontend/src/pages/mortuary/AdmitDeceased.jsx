@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getPatients, getAvailableMortuaryUnits, registerMortuaryCase } from "../../services/api";
+import { searchPatient, getAvailableMortuaryUnits, registerMortuaryCase } from "../../services/api";
 
 export default function AdmitDeceased() {
   const navigate = useNavigate();
@@ -25,6 +25,9 @@ export default function AdmitDeceased() {
 
   const loadUnits = async () => {
     try {
+      // Backend now scopes this to the current user's accessible branch(es)
+      // automatically — mortuary staff only ever see compartments
+      // physically at their own hospital.
       const data = await getAvailableMortuaryUnits();
       setUnits(data);
     } catch (err) {
@@ -38,8 +41,14 @@ export default function AdmitDeceased() {
     e.preventDefault();
     if (!patientQuery.trim()) return;
     try {
-      const data = await getPatients({ search: patientQuery });
-      setPatientResults(data.results ?? data);
+      // Deliberately group-wide — NOT getPatients() (that's the
+      // branch-scoped list action). A deceased patient may have been
+      // registered/treated at any branch; matching them here to their
+      // existing record — rather than creating a duplicate — is exactly
+      // why this must stay group-wide, same as every other registration
+      // flow in this system.
+      const data = await searchPatient(patientQuery);
+      setPatientResults(data.patients || []);
     } catch (err) { setError(err.message); }
   };
 
@@ -158,6 +167,7 @@ export default function AdmitDeceased() {
                           <th>Name</th>
                           <th>Hospital #</th>
                           <th>Phone</th>
+                          <th>Branch</th>
                           <th className="cell-actions"></th>
                         </tr>
                       </thead>
@@ -167,6 +177,7 @@ export default function AdmitDeceased() {
                             <td className="cell-primary">{p.full_name}</td>
                             <td className="cell-mono">{p.hospital_number}</td>
                             <td>{p.phone}</td>
+                            <td>{p.home_branch_name || "—"}</td>
                             <td className="cell-actions">
                               <button
                                 type="button"
@@ -198,6 +209,7 @@ export default function AdmitDeceased() {
                         <div className="font-bold">{selectedPatient.full_name}</div>
                         <div className="text-sm text-muted">
                           {selectedPatient.hospital_number} • {selectedPatient.phone}
+                          {selectedPatient.home_branch_name && ` • Registered at ${selectedPatient.home_branch_name}`}
                         </div>
                       </div>
                       <button

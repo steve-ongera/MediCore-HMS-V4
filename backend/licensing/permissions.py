@@ -56,3 +56,20 @@ class WithinUserLimit(BasePermission):
             self.message = "This facility's license has expired. Contact MediCore to renew."
             return False
         return license_obj.current_user_count < license_obj.max_users
+    
+    
+
+class WithinPatientLimit(BasePermission):
+    SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
+    message = "This facility's license does not permit registering more patients. Contact MediCore to upgrade your package."
+
+    def has_permission(self, request, view):
+        if request.method in self.SAFE_METHODS:
+            return True
+        license_obj = get_active_license()
+        if not license_obj:
+            return True
+        if license_obj.is_expired:
+            self.message = "This facility's license has expired. Contact MediCore to renew."
+            return False
+        return license_obj.current_patient_count < license_obj.max_patients
