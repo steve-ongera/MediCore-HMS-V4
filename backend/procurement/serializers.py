@@ -19,19 +19,21 @@ class PurchaseRequisitionSerializer(serializers.ModelSerializer):
     requested_by_name = serializers.CharField(source="requested_by.get_full_name", read_only=True)
     hod_approved_by_name = serializers.CharField(source="hod_approved_by.get_full_name", read_only=True)
     budget_line_id = serializers.UUIDField(source="budget_line.id", read_only=True, default=None)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     items = RequisitionItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = PurchaseRequisition
         fields = [
             "id", "requisition_number", "department", "department_name", "budget_line", "budget_line_id",
+            "branch", "branch_name",
             "category", "requested_by", "requested_by_name", "status", "justification",
             "hod_approved_by", "hod_approved_by_name", "hod_approved_at", "rejection_reason",
             "items", "created_at",
         ]
         read_only_fields = [
             "id", "requisition_number", "requested_by", "status",
-            "hod_approved_by", "hod_approved_at", "created_at",
+            "hod_approved_by", "hod_approved_at", "created_at", "branch",
         ]
         
         
@@ -41,17 +43,6 @@ class RequisitionItemInputSerializer(serializers.Serializer):
     quantity_requested = serializers.IntegerField(min_value=1)
     estimated_unit_cost = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, allow_null=True)
 
-
-class CreateRequisitionSerializer(serializers.Serializer):
-    budget_line = serializers.UUIDField()
-    category = serializers.ChoiceField(choices=[c[0] for c in RequisitionCategory.choices])
-    justification = serializers.CharField(required=False, allow_blank=True, default="")
-    items = RequisitionItemInputSerializer(many=True)
-
-    def validate_items(self, value):
-        if not value:
-            raise serializers.ValidationError("At least one item is required.")
-        return value
 
 class CreateRequisitionSerializer(serializers.Serializer):
     budget_line = serializers.UUIDField()
@@ -109,6 +100,7 @@ class GoodsReceiptSerializer(serializers.ModelSerializer):
     po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
     supplier_name = serializers.CharField(source="purchase_order.supplier.name", read_only=True)
     supplier_contact_phone = serializers.CharField(source="purchase_order.supplier.phone", read_only=True)
+    branch_name = serializers.CharField(source="purchase_order.branch.name", read_only=True, default=None)
     received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
     inspected_by_name = serializers.CharField(source="inspected_by.get_full_name", read_only=True)
     destination_location_name = serializers.CharField(source="destination_location.name", read_only=True)
@@ -118,6 +110,7 @@ class GoodsReceiptSerializer(serializers.ModelSerializer):
         model = GoodsReceipt
         fields = [
             "id", "grn_number", "purchase_order", "po_number", "supplier_name", "supplier_contact_phone",
+            "branch_name",
             "received_by", "received_by_name", "receiver_contact_phone",
             "delivered_by_name", "delivered_by_phone", "delivered_by_company",
             "delivery_note_ref",
@@ -146,23 +139,12 @@ class CreateGoodsReceiptSerializer(serializers.Serializer):
         if not value:
             raise serializers.ValidationError("At least one received item is required.")
         return value
-    po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
-    supplier_name = serializers.CharField(source="purchase_order.supplier.name", read_only=True)
-    received_by_name = serializers.CharField(source="received_by.get_full_name", read_only=True)
-    items = GoodsReceiptItemSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = GoodsReceipt
-        fields = [
-            "id", "grn_number", "purchase_order", "po_number", "supplier_name",
-            "received_by", "received_by_name", "delivery_note_ref", "notes", "items", "received_at",
-        ]
-        read_only_fields = ["id", "grn_number", "received_by", "received_at"]
 
 
 class PurchaseOrderSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source="supplier.name", read_only=True)
     requisition_number = serializers.CharField(source="requisition.requisition_number", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
     items = PurchaseOrderItemSerializer(many=True, read_only=True)
     total_amount = serializers.SerializerMethodField()
@@ -172,10 +154,11 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         model = PurchaseOrder
         fields = [
             "id", "po_number", "requisition", "requisition_number", "supplier", "supplier_name",
+            "branch", "branch_name",
             "status", "order_date", "expected_delivery_date", "notes", "created_by",
             "created_by_name", "items", "total_amount", "created_at", "goods_receipts",
         ]
-        read_only_fields = ["id", "po_number", "status", "order_date", "created_by", "created_at"]
+        read_only_fields = ["id", "po_number", "status", "order_date", "created_by", "created_at", "branch"]
 
     def get_total_amount(self, obj):
         return str(obj.total_amount)
@@ -183,11 +166,12 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
 class PurchaseOrderListSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source="supplier.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     total_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = PurchaseOrder
-        fields = ["id", "po_number", "supplier_name", "status", "order_date", "expected_delivery_date", "total_amount"]
+        fields = ["id", "po_number", "supplier_name", "branch_name", "status", "order_date", "expected_delivery_date", "total_amount"]
 
     def get_total_amount(self, obj):
         return str(obj.total_amount)
@@ -214,29 +198,17 @@ class CreatePurchaseOrderSerializer(serializers.Serializer):
         return value
 
 
-
-
-class CreateGoodsReceiptSerializer(serializers.Serializer):
-    purchase_order = serializers.UUIDField()
-    delivery_note_ref = serializers.CharField(required=False, allow_blank=True, default="")
-    notes = serializers.CharField(required=False, allow_blank=True, default="")
-    items = ReceiptItemInputSerializer(many=True)
-
-    def validate_items(self, value):
-        if not value:
-            raise serializers.ValidationError("At least one received item is required.")
-        return value
-
-
 class SupplierInvoiceSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source="supplier.name", read_only=True)
     po_number = serializers.CharField(source="purchase_order.po_number", read_only=True)
+    branch_name = serializers.CharField(source="purchase_order.branch.name", read_only=True, default=None)
     balance = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = SupplierInvoice
         fields = [
             "id", "invoice_number", "supplier_invoice_ref", "purchase_order", "po_number",
+            "branch_name",
             "supplier", "supplier_name", "amount", "amount_paid", "balance", "status",
             "due_date", "recorded_by", "created_at",
         ]
@@ -246,12 +218,13 @@ class SupplierInvoiceSerializer(serializers.ModelSerializer):
 class SupplierPaymentSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source="supplier_invoice.supplier.name", read_only=True)
     invoice_number = serializers.CharField(source="supplier_invoice.invoice_number", read_only=True)
+    branch_name = serializers.CharField(source="supplier_invoice.purchase_order.branch.name", read_only=True, default=None)
     paid_by_name = serializers.CharField(source="paid_by.get_full_name", read_only=True)
 
     class Meta:
         model = SupplierPayment
         fields = [
-            "id", "payment_number", "supplier_invoice", "invoice_number", "supplier_name",
+            "id", "payment_number", "supplier_invoice", "invoice_number", "supplier_name", "branch_name",
             "amount", "method", "reference_number", "paid_by", "paid_by_name", "paid_at",
         ]
         read_only_fields = ["id", "payment_number", "paid_by", "paid_at"]

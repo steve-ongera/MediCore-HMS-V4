@@ -1638,7 +1638,6 @@ def _last_12_months(end):
         months.append((yy, mm))
     return months
 
-
 class ReportsView(APIView):
     """
     GET /api/reports/?type=daily_revenue|doctor_revenue|department_revenue|patient_statistics
@@ -1650,12 +1649,23 @@ class ReportsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(request.user)
+        branch_name = None if accessible is None else (request.user.branch.name if request.user.branch_id else None)
+
         report_type = request.query_params.get("type", "daily_revenue")
         date_from = request.query_params.get("date_from") or str(date.today() - timedelta(days=30))
         date_to = request.query_params.get("date_to") or str(date.today())
 
+        # These two base querysets feed most of the legacy reports below —
+        # filtering them once here covers daily_revenue, doctor_revenue,
+        # department_revenue, lab_revenue, radiology_revenue,
+        # consultation_revenue, inpatient_revenue, opd_daily, revenue_report.
         payments = Payment.objects.filter(paid_at__date__gte=date_from, paid_at__date__lte=date_to)
         invoices = Invoice.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to)
+        if accessible is not None:
+            payments = payments.filter(branch_id__in=accessible)
+            invoices = invoices.filter(branch_id__in=accessible)
 
         # -------------------------------------------------------------
         # Legacy simple reports (unchanged)
@@ -1666,6 +1676,8 @@ class ReportsView(APIView):
                 for row in payments.values("paid_at__date").annotate(total=Sum("amount"))
             }
             otc_qs = OTCSale.objects.filter(sold_at__date__gte=date_from, sold_at__date__lte=date_to)
+            if accessible is not None:
+                otc_qs = otc_qs.filter(branch_id__in=accessible)
             otc_by_day = {
                 row["sold_at__date"]: row["total"] or 0
                 for row in otc_qs.values("sold_at__date").annotate(total=Sum("amount_paid"))
@@ -1680,7 +1692,7 @@ class ReportsView(APIView):
                 }
                 for d in all_days
             ]
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "doctor_revenue":
             data = list(
@@ -1688,54 +1700,71 @@ class ReportsView(APIView):
                 .values("visit__doctor__first_name", "visit__doctor__last_name")
                 .annotate(total=Sum("amount_paid")).order_by("-total")
             )
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "department_revenue":
             data = list(
                 invoices.filter(source_type=InvoiceSourceType.CONSULTATION)
                 .values("visit__department__name").annotate(total=Sum("amount_paid")).order_by("-total")
             )
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "patient_statistics":
+            # "total_patients" / "new_patients_in_range" read from
+            # home_branch — the branch this report's audience actually
+            # registers patients at. "total_visits_in_range" reads from
+            # visit.branch — the branch that's actually treating patients
+            # today, which may include patients who first registered
+            # elsewhere (patient records are deliberately group-wide).
+            patients_qs = Patient.objects.all()
+            new_patients_qs = Patient.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to)
+            visits_range_qs = Visit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to)
+            if accessible is not None:
+                patients_qs = patients_qs.filter(home_branch_id__in=accessible)
+                new_patients_qs = new_patients_qs.filter(home_branch_id__in=accessible)
+                visits_range_qs = visits_range_qs.filter(branch_id__in=accessible)
             data = {
-                "total_patients": Patient.objects.count(),
-                "new_patients_in_range": Patient.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to).count(),
-                "total_visits_in_range": Visit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to).count(),
+                "total_patients": patients_qs.count(),
+                "new_patients_in_range": new_patients_qs.count(),
+                "total_visits_in_range": visits_range_qs.count(),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "medicine_sales":
+            dispenses_qs = PharmacyDispense.objects.filter(dispensed_at__date__gte=date_from, dispensed_at__date__lte=date_to)
+            if accessible is not None:
+                dispenses_qs = dispenses_qs.filter(prescription__consultation__visit__branch_id__in=accessible)
             data = list(
-                PharmacyDispense.objects.filter(dispensed_at__date__gte=date_from, dispensed_at__date__lte=date_to)
-                .values("prescription__medicine__name")
+                dispenses_qs.values("prescription__medicine__name")
                 .annotate(total_qty=Sum("quantity_dispensed")).order_by("-total_qty")
             )
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "otc_sales":
+            otc_items_qs = OTCSaleItem.objects.filter(sale__sold_at__date__gte=date_from, sale__sold_at__date__lte=date_to)
+            if accessible is not None:
+                otc_items_qs = otc_items_qs.filter(sale__branch_id__in=accessible)
             data = list(
-                OTCSaleItem.objects.filter(sale__sold_at__date__gte=date_from, sale__sold_at__date__lte=date_to)
-                .values("medicine__name")
+                otc_items_qs.values("medicine__name")
                 .annotate(total_qty=Sum("quantity"), total_revenue=Sum("subtotal")).order_by("-total_revenue")
             )
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "lab_revenue":
             data = list(invoices.filter(source_type=InvoiceSourceType.LAB).aggregate(total=Sum("amount_paid")).items())
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "radiology_revenue":
             data = list(invoices.filter(source_type=InvoiceSourceType.RADIOLOGY).aggregate(total=Sum("amount_paid")).items())
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "consultation_revenue":
             data = list(invoices.filter(source_type=InvoiceSourceType.CONSULTATION).aggregate(total=Sum("amount_paid")).items())
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         elif report_type == "inpatient_revenue":
             data = list(invoices.filter(source_type=InvoiceSourceType.INPATIENT).aggregate(total=Sum("amount_paid")).items())
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "data": data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, "data": data})
 
         # -------------------------------------------------------------
         # New analytical reports: cards + charts + summary table
@@ -1743,6 +1772,8 @@ class ReportsView(APIView):
         elif report_type == "opd_daily":
             target_date = date_to
             visits_qs = Visit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to)
+            if accessible is not None:
+                visits_qs = visits_qs.filter(branch_id__in=accessible)
             total_visits = visits_qs.count()
             total_patients = visits_qs.values("patient").distinct().count()
             dept_breakdown = list(visits_qs.values("department__name").annotate(count=Count("id")).order_by("-count")[:10])
@@ -1750,7 +1781,10 @@ class ReportsView(APIView):
             revenue = payments.filter(invoice__source_type=InvoiceSourceType.CONSULTATION).aggregate(t=Sum("amount"))["t"] or 0
 
             last_7 = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
-            trend = [{"name": d.isoformat(), "value": Visit.objects.filter(visit_date__date=d).count()} for d in last_7]
+            trend_source = Visit.objects.all()
+            if accessible is not None:
+                trend_source = trend_source.filter(branch_id__in=accessible)
+            trend = [{"name": d.isoformat(), "value": trend_source.filter(visit_date__date=d).count()} for d in last_7]
 
             data = {
                 "cards": [
@@ -1770,28 +1804,36 @@ class ReportsView(APIView):
                     "visit_number", "patient__full_name", "department__name", "status", "visit_date"
                 ).order_by("-visit_date")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "ipd_report":
             from inpatient.models import Admission, AdmissionStatus, Ward
 
             admissions_qs = Admission.objects.filter(admission_date__date__gte=date_from, admission_date__date__lte=date_to)
-            active_count = Admission.objects.filter(status=AdmissionStatus.ADMITTED).count()
+            active_qs = Admission.objects.filter(status=AdmissionStatus.ADMITTED)
+            discharged_qs = Admission.objects.filter(discharge_date__date__gte=date_from, discharge_date__date__lte=date_to)
+            los_source_qs = Admission.objects.filter(status=AdmissionStatus.DISCHARGED, discharge_date__date__gte=date_from, discharge_date__date__lte=date_to)
+            wards_qs = Ward.objects.filter(is_active=True)
+            if accessible is not None:
+                admissions_qs = admissions_qs.filter(visit__branch_id__in=accessible)
+                active_qs = active_qs.filter(visit__branch_id__in=accessible)
+                discharged_qs = discharged_qs.filter(visit__branch_id__in=accessible)
+                los_source_qs = los_source_qs.filter(visit__branch_id__in=accessible)
+                wards_qs = wards_qs.filter(branch_id__in=accessible)
+
+            active_count = active_qs.count()
             admitted_in_range = admissions_qs.count()
-            discharged_in_range = Admission.objects.filter(
-                discharge_date__date__gte=date_from, discharge_date__date__lte=date_to
-            ).count()
-            los_list = [
-                a.length_of_stay_days for a in Admission.objects.filter(
-                    status=AdmissionStatus.DISCHARGED, discharge_date__date__gte=date_from, discharge_date__date__lte=date_to
-                )
-            ]
+            discharged_in_range = discharged_qs.count()
+            los_list = [a.length_of_stay_days for a in los_source_qs]
             avg_los = round(sum(los_list) / len(los_list), 1) if los_list else 0
 
-            ward_occ = [{"name": w.name, "value": w.occupied_beds} for w in Ward.objects.filter(is_active=True)]
+            ward_occ = [{"name": w.name, "value": w.occupied_beds} for w in wards_qs]
             type_breakdown = list(admissions_qs.values("admission_type").annotate(count=Count("id")))
             last_7 = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
-            trend = [{"name": d.isoformat(), "value": Admission.objects.filter(admission_date__date=d).count()} for d in last_7]
+            trend_source = Admission.objects.all()
+            if accessible is not None:
+                trend_source = trend_source.filter(visit__branch_id__in=accessible)
+            trend = [{"name": d.isoformat(), "value": trend_source.filter(admission_date__date=d).count()} for d in last_7]
 
             data = {
                 "cards": [
@@ -1810,9 +1852,11 @@ class ReportsView(APIView):
                     "admission_number", "patient__full_name", "bed__ward__name", "admission_type", "status", "admission_date"
                 ).order_by("-admission_date")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "mch_report":
+            # MCH module not branch-scoped in this pass — mch/models.py
+            # hasn't been reviewed for a branch field. Left as group-wide.
             from mch.models import AntenatalProfile, DeliveryRecord, ANCVisit, ChildImmunization, PregnancyStatus, ImmunizationStatus
 
             active_pregnancies = AntenatalProfile.objects.filter(status=PregnancyStatus.ACTIVE).count()
@@ -1844,16 +1888,22 @@ class ReportsView(APIView):
                     "delivery_number", "profile__mother__full_name", "mode_of_delivery", "outcome", "delivery_date"
                 ).order_by("-delivery_date")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "revenue_report":
             total_revenue = payments.aggregate(t=Sum("amount"))["t"] or 0
-            outstanding_balance = sum((inv.balance for inv in Invoice.objects.filter(status__in=["UNPAID", "PARTIAL"])))
+            outstanding_invoices_qs = Invoice.objects.filter(status__in=["UNPAID", "PARTIAL"])
+            if accessible is not None:
+                outstanding_invoices_qs = outstanding_invoices_qs.filter(branch_id__in=accessible)
+            outstanding_balance = sum((inv.balance for inv in outstanding_invoices_qs))
             method_breakdown = list(payments.values("method").annotate(total=Sum("amount")))
             source_breakdown = list(invoices.values("source_type").annotate(total=Sum("amount_paid")))
             last_7 = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+            payment_trend_source = Payment.objects.all()
+            if accessible is not None:
+                payment_trend_source = payment_trend_source.filter(branch_id__in=accessible)
             trend = [
-                {"name": d.isoformat(), "value": float(Payment.objects.filter(paid_at__date=d).aggregate(t=Sum("amount"))["t"] or 0)}
+                {"name": d.isoformat(), "value": float(payment_trend_source.filter(paid_at__date=d).aggregate(t=Sum("amount"))["t"] or 0)}
                 for d in last_7
             ]
 
@@ -1875,17 +1925,24 @@ class ReportsView(APIView):
                     "receipt_number", "invoice__invoice_number", "amount", "method", "paid_at"
                 ).order_by("-paid_at")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "drug_consumption":
             dispenses_qs = PharmacyDispense.objects.filter(dispensed_at__date__gte=date_from, dispensed_at__date__lte=date_to)
             otc_qs = OTCSaleItem.objects.filter(sale__sold_at__date__gte=date_from, sale__sold_at__date__lte=date_to)
+            stock_txn_qs = StockTransaction.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to)
+            if accessible is not None:
+                dispenses_qs = dispenses_qs.filter(prescription__consultation__visit__branch_id__in=accessible)
+                otc_qs = otc_qs.filter(sale__branch_id__in=accessible)
+                stock_txn_qs = stock_txn_qs.filter(batch__branch_id__in=accessible)
+
             total_dispensed_qty = (dispenses_qs.aggregate(t=Sum("quantity_dispensed"))["t"] or 0) + \
                                    (otc_qs.aggregate(t=Sum("quantity"))["t"] or 0)
+            # Medicine catalog / low-stock stays a group-wide figure — see
+            # the earlier note in this project about current_stock summing
+            # across every branch's batches; not resolved in this pass.
             low_stock_count = len([m for m in Medicine.objects.all() if m.is_low_stock])
-            stock_transactions_count = StockTransaction.objects.filter(
-                created_at__date__gte=date_from, created_at__date__lte=date_to
-            ).count()
+            stock_transactions_count = stock_txn_qs.count()
 
             combined = {}
             for row in dispenses_qs.values("prescription__medicine__name").annotate(qty=Sum("quantity_dispensed")):
@@ -1898,14 +1955,14 @@ class ReportsView(APIView):
             top_medicine = top10[0][0] if top10 else "—"
 
             last_7 = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+            dispense_trend_source = PharmacyDispense.objects.all()
+            if accessible is not None:
+                dispense_trend_source = dispense_trend_source.filter(prescription__consultation__visit__branch_id__in=accessible)
             trend = [
-                {"name": d.isoformat(), "value": PharmacyDispense.objects.filter(dispensed_at__date=d).aggregate(t=Sum("quantity_dispensed"))["t"] or 0}
+                {"name": d.isoformat(), "value": dispense_trend_source.filter(dispensed_at__date=d).aggregate(t=Sum("quantity_dispensed"))["t"] or 0}
                 for d in last_7
             ]
-            txn_type_breakdown = list(
-                StockTransaction.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to)
-                .values("transaction_type").annotate(count=Count("id"))
-            )
+            txn_type_breakdown = list(stock_txn_qs.values("transaction_type").annotate(count=Count("id")))
 
             data = {
                 "cards": [
@@ -1923,27 +1980,33 @@ class ReportsView(APIView):
                 },
                 "table": [{"medicine": n, "total_quantity": q} for n, q in top10],
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "disease_statistics":
             diagnoses_qs = ConsultationDiagnosis.objects.filter(
                 consultation__started_at__date__gte=date_from, consultation__started_at__date__lte=date_to
             )
+            month_qs = ConsultationDiagnosis.objects.filter(consultation__started_at__date__gte=date.today().replace(day=1))
+            if accessible is not None:
+                diagnoses_qs = diagnoses_qs.filter(consultation__visit__branch_id__in=accessible)
+                month_qs = month_qs.filter(consultation__visit__branch_id__in=accessible)
+
             total_diagnoses = diagnoses_qs.count()
             unique_patients = diagnoses_qs.values("consultation__visit__patient").distinct().count()
             top_row = list(diagnoses_qs.values("icd10_code__description").annotate(count=Count("id")).order_by("-count")[:1])
             top_diagnosis = top_row[0]["icd10_code__description"] if top_row else "—"
-            this_month_count = ConsultationDiagnosis.objects.filter(
-                consultation__started_at__date__gte=date.today().replace(day=1)
-            ).count()
+            this_month_count = month_qs.count()
 
             top10 = list(
                 diagnoses_qs.values("icd10_code__code", "icd10_code__description")
                 .annotate(count=Count("id")).order_by("-count")[:10]
             )
             last_7 = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+            trend_source = ConsultationDiagnosis.objects.all()
+            if accessible is not None:
+                trend_source = trend_source.filter(consultation__visit__branch_id__in=accessible)
             trend = [
-                {"name": d.isoformat(), "value": ConsultationDiagnosis.objects.filter(consultation__started_at__date=d).count()}
+                {"name": d.isoformat(), "value": trend_source.filter(consultation__started_at__date=d).count()}
                 for d in last_7
             ]
             category_breakdown = list(
@@ -1969,10 +2032,12 @@ class ReportsView(APIView):
                     for r in top10
                 ],
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "lab_tech_report":
             orders = LabOrder.objects.filter(ordered_at__date__gte=date_from, ordered_at__date__lte=date_to)
+            if accessible is not None:
+                orders = orders.filter(consultation__visit__branch_id__in=accessible)
             completed = orders.filter(status=LabOrderStatus.COMPLETED)
             avg_turnaround = None
             completed_with_time = [o for o in completed.select_related("result") if hasattr(o, "result") and o.result]
@@ -1997,10 +2062,12 @@ class ReportsView(APIView):
                 },
                 "table": list(orders.select_related("test").values("test__name", "status", "ordered_at")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "radiologist_report":
             orders = RadiologyOrder.objects.filter(ordered_at__date__gte=date_from, ordered_at__date__lte=date_to)
+            if accessible is not None:
+                orders = orders.filter(consultation__visit__branch_id__in=accessible)
             data = {
                 "cards": [
                     {"label": "Total Orders", "value": orders.count()},
@@ -2018,18 +2085,27 @@ class ReportsView(APIView):
                 },
                 "table": list(orders.select_related("test").values("test__name", "status", "ordered_at")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "pharmacist_report":
             dispenses = PharmacyDispense.objects.filter(dispensed_at__date__gte=date_from, dispensed_at__date__lte=date_to)
+            expiring_batches_qs = MedicineBatch.objects.filter(expiry_date__lte=date.today() + timedelta(days=30), expiry_date__gte=date.today(), quantity_remaining__gt=0)
+            otc_sales_qs = OTCSale.objects.filter(sold_at__date__gte=date_from, sold_at__date__lte=date_to)
+            stock_txn_qs = StockTransaction.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to)
+            if accessible is not None:
+                dispenses = dispenses.filter(prescription__consultation__visit__branch_id__in=accessible)
+                expiring_batches_qs = expiring_batches_qs.filter(branch_id__in=accessible)
+                otc_sales_qs = otc_sales_qs.filter(branch_id__in=accessible)
+                stock_txn_qs = stock_txn_qs.filter(batch__branch_id__in=accessible)
+
             low_stock = len([m for m in Medicine.objects.all() if m.is_low_stock])
-            expiring_soon = MedicineBatch.objects.filter(expiry_date__lte=date.today() + timedelta(days=30), expiry_date__gte=date.today(), quantity_remaining__gt=0).count()
+            expiring_soon = expiring_batches_qs.count()
             data = {
                 "cards": [
                     {"label": "Dispensed (range)", "value": dispenses.count()},
                     {"label": "Low Stock Items", "value": low_stock},
                     {"label": "Batches Expiring (30d)", "value": expiring_soon},
-                    {"label": "OTC Sales (range)", "value": OTCSale.objects.filter(sold_at__date__gte=date_from, sold_at__date__lte=date_to).count()},
+                    {"label": "OTC Sales (range)", "value": otc_sales_qs.count()},
                 ],
                 "charts": {
                     "top_meds": {"title": "Top Medicines Dispensed", "type": "bar",
@@ -2037,19 +2113,23 @@ class ReportsView(APIView):
                     "trend": {"title": "Dispenses — Daily", "type": "line",
                             "data": [{"name": str(d), "value": dispenses.filter(dispensed_at__date=d).count()} for d in sorted(set(x.dispensed_at.date() for x in dispenses))]},
                     "stock_txn": {"title": "Stock Transactions", "type": "pie",
-                                "data": [{"name": r["transaction_type"], "value": r["count"]} for r in StockTransaction.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to).values("transaction_type").annotate(count=Count("id"))]},
+                                "data": [{"name": r["transaction_type"], "value": r["count"]} for r in stock_txn_qs.values("transaction_type").annotate(count=Count("id"))]},
                 },
                 "table": list(dispenses.select_related("prescription__medicine").values("prescription__medicine__name", "quantity_dispensed", "dispensed_at")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "mortuary_report":
             from mortuary.models import MortuaryAdmission, MortuaryStatus
             cases = MortuaryAdmission.objects.filter(admitted_at__date__gte=date_from, admitted_at__date__lte=date_to)
+            in_storage_qs = MortuaryAdmission.objects.filter(status=MortuaryStatus.ADMITTED)
+            if accessible is not None:
+                cases = cases.filter(compartment__branch_id__in=accessible)
+                in_storage_qs = in_storage_qs.filter(compartment__branch_id__in=accessible)
             data = {
                 "cards": [
                     {"label": "Cases (range)", "value": cases.count()},
-                    {"label": "Currently In Storage", "value": MortuaryAdmission.objects.filter(status=MortuaryStatus.ADMITTED).count()},
+                    {"label": "Currently In Storage", "value": in_storage_qs.count()},
                     {"label": "Released (range)", "value": cases.filter(status=MortuaryStatus.RELEASED).count()},
                     {"label": "Avg Days in Storage", "value": round(sum(c.days_in_storage for c in cases) / cases.count(), 1) if cases.count() else 0},
                 ],
@@ -2063,9 +2143,12 @@ class ReportsView(APIView):
                 },
                 "table": list(cases.values("case_number", "deceased_name_freetext", "source", "status", "admitted_at")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "ambulance_report":
+            # Ambulance module not branch-scoped in this pass —
+            # ambulance/models.py hasn't been reviewed for a branch field.
+            # Left as group-wide.
             from ambulance.models import AmbulanceDispatch, DispatchStatus
             dispatches = AmbulanceDispatch.objects.filter(requested_at__date__gte=date_from, requested_at__date__lte=date_to)
             data = {
@@ -2085,7 +2168,7 @@ class ReportsView(APIView):
                 },
                 "table": list(dispatches.select_related("ambulance").values("dispatch_number", "ambulance__registration_number", "dispatch_type", "status", "requested_at")[:200]),
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "yearly_revenue_trend":
             year = int(request.query_params.get("year") or date.today().year)
@@ -2093,15 +2176,19 @@ class ReportsView(APIView):
             month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+            payment_year_qs = Payment.objects.filter(paid_at__year=year)
+            otc_year_qs = OTCSale.objects.filter(sold_at__year=year)
+            if accessible is not None:
+                payment_year_qs = payment_year_qs.filter(branch_id__in=accessible)
+                otc_year_qs = otc_year_qs.filter(branch_id__in=accessible)
+
             hospital_by_month = {
                 row["paid_at__month"]: row["total"] or 0
-                for row in Payment.objects.filter(paid_at__year=year)
-                .values("paid_at__month").annotate(total=Sum("amount"))
+                for row in payment_year_qs.values("paid_at__month").annotate(total=Sum("amount"))
             }
             otc_by_month = {
                 row["sold_at__month"]: row["total"] or 0
-                for row in OTCSale.objects.filter(sold_at__year=year)
-                .values("sold_at__month").annotate(total=Sum("amount_paid"))
+                for row in otc_year_qs.values("sold_at__month").annotate(total=Sum("amount_paid"))
             }
 
             data = [
@@ -2115,10 +2202,15 @@ class ReportsView(APIView):
                 for m in range(1, 13)
             ]
 
-            # Years that actually have data, so the frontend dropdown only offers
-            # real options (falls back to the current year if there's no data yet).
-            hospital_years = Payment.objects.values_list("paid_at__year", flat=True).distinct()
-            otc_years = OTCSale.objects.values_list("sold_at__year", flat=True).distinct()
+            # Years that actually have data at THIS branch, so the frontend
+            # dropdown only offers real options for the current context.
+            hospital_years_qs = Payment.objects.all()
+            otc_years_qs = OTCSale.objects.all()
+            if accessible is not None:
+                hospital_years_qs = hospital_years_qs.filter(branch_id__in=accessible)
+                otc_years_qs = otc_years_qs.filter(branch_id__in=accessible)
+            hospital_years = hospital_years_qs.values_list("paid_at__year", flat=True).distinct()
+            otc_years = otc_years_qs.values_list("sold_at__year", flat=True).distinct()
             available_years = sorted(set(list(hospital_years) + list(otc_years)), reverse=True)
             if not available_years:
                 available_years = [date.today().year]
@@ -2126,6 +2218,7 @@ class ReportsView(APIView):
             return Response({
                 "type": report_type,
                 "year": year,
+                "branch_name": branch_name,
                 "available_years": available_years,
                 "data": data,
             })
@@ -2133,9 +2226,10 @@ class ReportsView(APIView):
         elif report_type == "patient_demographics":
             # Distinct patients who had a visit inside the selected date range —
             # same range as the rest of the overview charts on this page.
-            patient_ids = Visit.objects.filter(
-                visit_date__date__gte=date_from, visit_date__date__lte=date_to
-            ).values_list("patient_id", flat=True).distinct()
+            visit_source = Visit.objects.filter(visit_date__date__gte=date_from, visit_date__date__lte=date_to)
+            if accessible is not None:
+                visit_source = visit_source.filter(branch_id__in=accessible)
+            patient_ids = visit_source.values_list("patient_id", flat=True).distinct()
             patients_qs = Patient.objects.filter(id__in=patient_ids)
 
             age_counts = {}
@@ -2162,7 +2256,7 @@ class ReportsView(APIView):
                     "gender": {"title": "Patients by Gender", "type": "pie", "data": gender_data},
                 },
             }
-            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, **data})
+            return Response({"type": report_type, "date_from": date_from, "date_to": date_to, "branch_name": branch_name, **data})
 
         elif report_type == "disease_top_12m":
             # Rolling 12-month window ending today — deliberately ignores
@@ -2174,6 +2268,9 @@ class ReportsView(APIView):
             diagnoses_qs = ConsultationDiagnosis.objects.filter(
                 consultation__started_at__date__gte=start, consultation__started_at__date__lte=end
             )
+            if accessible is not None:
+                diagnoses_qs = diagnoses_qs.filter(consultation__visit__branch_id__in=accessible)
+
             top = list(
                 diagnoses_qs.values("icd10_code__code", "icd10_code__description")
                 .annotate(count=Count("id")).order_by("-count")[:10]
@@ -2201,7 +2298,7 @@ class ReportsView(APIView):
                     },
                 },
             }
-            return Response({"type": report_type, "start": start.isoformat(), "end": end.isoformat(), **data})
+            return Response({"type": report_type, "start": start.isoformat(), "end": end.isoformat(), "branch_name": branch_name, **data})
 
         elif report_type == "disease_monthly_detail":
             icd10_code = request.query_params.get("icd10_code")
@@ -2216,6 +2313,8 @@ class ReportsView(APIView):
                 consultation__started_at__year=year,
                 consultation__started_at__month=month,
             ).select_related("consultation__visit__patient", "icd10_code")
+            if accessible is not None:
+                diagnoses_qs = diagnoses_qs.filter(consultation__visit__branch_id__in=accessible)
 
             disease_name = (
                 ICD10Code.objects.filter(code=icd10_code).values_list("description", flat=True).first()
@@ -2239,6 +2338,7 @@ class ReportsView(APIView):
                 "icd10_code": icd10_code,
                 "year": year,
                 "month": month,
+                "branch_name": branch_name,
                 "cards": [
                     {"label": "Total Cases", "value": diagnoses_qs.count()},
                     {"label": "Most Affected Age Group", "value": most_affected_age_group},
@@ -2254,7 +2354,8 @@ class ReportsView(APIView):
 
         else:
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
-
+        
+        
 class BulkPaymentViewSet(viewsets.GenericViewSet):
     """
     Patient-search-first bulk payment flow. Doesn't touch PaymentViewSet or

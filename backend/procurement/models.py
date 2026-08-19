@@ -48,6 +48,10 @@ class PurchaseRequisition(BaseModel):
         "finance.Budget", null=True, blank=True, on_delete=models.PROTECT, related_name="requisitions",
         help_text="The department's active fiscal-period budget this requisition draws against."
     )
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="requisitions",
+        help_text="Which branch is raising this requisition. Set automatically from the requester's own branch.",
+    )
     category = models.CharField(max_length=20, choices=RequisitionCategory.choices, default=RequisitionCategory.OTHER)
     requested_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="requisitions_made")
     status = models.CharField(max_length=25, choices=RequisitionStatus.choices, default=RequisitionStatus.PENDING_HOD_APPROVAL)
@@ -101,9 +105,19 @@ class PurchaseOrderStatus(models.TextChoices):
 
 
 class PurchaseOrder(BaseModel):
+    """
+    Has its own branch field, deliberately not just derived from
+    requisition.branch — a PO can be raised directly against a supplier
+    with no requisition attached at all (see create() in the view), so it
+    needs an anchor of its own rather than assuming one always exists.
+    """
     po_number = models.CharField(max_length=30, unique=True, editable=False)
     requisition = models.ForeignKey(PurchaseRequisition, null=True, blank=True, on_delete=models.SET_NULL, related_name="purchase_orders")
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name="purchase_orders")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="purchase_orders",
+        help_text="Which branch this PO is for. Inherited from the linked requisition if present, otherwise set from the creating user's own branch.",
+    )
     status = models.CharField(max_length=20, choices=PurchaseOrderStatus.choices, default=PurchaseOrderStatus.OPEN)
     order_date = models.DateField(auto_now_add=True)
     expected_delivery_date = models.DateField(null=True, blank=True)

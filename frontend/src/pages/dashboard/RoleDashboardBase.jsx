@@ -1,3 +1,4 @@
+//src/pages/dashboard/RoleDashboardBase.jsx 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -54,7 +55,7 @@ export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActio
   }
   if (!data) return null;
 
-  const { cards = [], line, bar, pie } = data;
+  const { cards = [], line, bar, pie, branch_name } = data;
 
   return (
     <>
@@ -62,11 +63,19 @@ export default function RoleDashboardBase({ eyebrow, title, subtitle, quickActio
         <div>
           <div className="page-eyebrow">{eyebrow}</div>
           <h1 className="page-title">{title}</h1>
-          <p className="page-subtitle">{subtitle}</p>
+          <p className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+            {subtitle}
+            {branch_name && (
+              <span className="tag" style={{ fontWeight: 600 }}>
+                
+                {branch_name}
+              </span>
+            )}
+          </p>
         </div>
         <div className="page-header__actions">
           <button className="btn btn-secondary" onClick={load}>
-            <i className="bi bi-arrow-clockwise  me-1"></i> Refresh
+            <i className="bi bi-arrow-clockwise me-1"></i> Refresh
           </button>
         </div>
       </div>

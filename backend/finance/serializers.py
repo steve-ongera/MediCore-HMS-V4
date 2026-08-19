@@ -43,6 +43,7 @@ class JournalEntrySerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
     posted_by_name = serializers.CharField(source="posted_by.get_full_name", read_only=True)
     fiscal_period_name = serializers.CharField(source="fiscal_period.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     lines = JournalEntryLineSerializer(many=True, read_only=True)
     total_debit = serializers.SerializerMethodField()
     total_credit = serializers.SerializerMethodField()
@@ -52,11 +53,12 @@ class JournalEntrySerializer(serializers.ModelSerializer):
         model = JournalEntry
         fields = [
             "id", "entry_number", "entry_date", "fiscal_period", "fiscal_period_name",
+            "branch", "branch_name",
             "reference", "description", "source", "status", "created_by", "created_by_name",
             "posted_by", "posted_by_name", "posted_at", "lines", "total_debit", "total_credit",
             "is_balanced", "created_at",
         ]
-        read_only_fields = ["id", "entry_number", "status", "created_by", "posted_by", "posted_at", "created_at"]
+        read_only_fields = ["id", "entry_number", "status", "created_by", "posted_by", "posted_at", "created_at", "branch"]
 
     def get_total_debit(self, obj):
         return str(obj.total_debit)
@@ -67,10 +69,11 @@ class JournalEntrySerializer(serializers.ModelSerializer):
 
 class JournalEntryListSerializer(serializers.ModelSerializer):
     total_debit = serializers.SerializerMethodField()
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
 
     class Meta:
         model = JournalEntry
-        fields = ["id", "entry_number", "entry_date", "description", "source", "status", "total_debit"]
+        fields = ["id", "entry_number", "entry_date", "description", "source", "status", "total_debit", "branch_name"]
 
     def get_total_debit(self, obj):
         return str(obj.total_debit)
@@ -114,6 +117,7 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     department_name = serializers.CharField(source="department.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     submitted_by_name = serializers.CharField(source="submitted_by.get_full_name", read_only=True)
     approved_by_name = serializers.CharField(source="approved_by.get_full_name", read_only=True)
 
@@ -121,13 +125,14 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model = Expense
         fields = [
             "id", "expense_number", "category", "category_name", "department", "department_name",
+            "branch", "branch_name",
             "amount", "expense_date", "description", "receipt_reference", "status",
             "submitted_by", "submitted_by_name", "approved_by", "approved_by_name",
             "approved_at", "rejection_reason", "journal_entry", "created_at",
         ]
         read_only_fields = [
             "id", "expense_number", "status", "submitted_by", "approved_by",
-            "approved_at", "journal_entry", "created_at",
+            "approved_at", "journal_entry", "created_at", "branch",
         ]
 
 
@@ -138,6 +143,7 @@ class RejectExpenseSerializer(serializers.Serializer):
 class BudgetSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
     fiscal_period_name = serializers.CharField(source="fiscal_period.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     spent_amount = serializers.SerializerMethodField()
     committed_amount = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
@@ -148,10 +154,11 @@ class BudgetSerializer(serializers.ModelSerializer):
         model = Budget
         fields = [
             "id", "department", "department_name", "fiscal_period", "fiscal_period_name",
+            "branch", "branch_name",
             "allocated_amount", "spent_amount", "committed_amount", "remaining_amount",
             "available_amount", "utilization_percent", "notes", "created_by",
         ]
-        read_only_fields = ["id", "created_by"]
+        read_only_fields = ["id", "created_by", "branch"]
 
     def get_spent_amount(self, obj):
         return str(obj.spent_amount)
@@ -177,6 +184,7 @@ class CashDropSerializer(serializers.ModelSerializer):
 
 class CashierShiftSerializer(serializers.ModelSerializer):
     cashier_name = serializers.CharField(source="cashier.get_full_name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     approved_by_name = serializers.CharField(source="approved_by.get_full_name", read_only=True)
     cash_drops = CashDropSerializer(many=True, read_only=True)
     running_expected_cash = serializers.SerializerMethodField()
@@ -184,12 +192,12 @@ class CashierShiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = CashierShift
         fields = [
-            "id", "cashier", "cashier_name", "opening_float", "opened_at",
+            "id", "cashier", "cashier_name", "branch", "branch_name", "opening_float", "opened_at",
             "closed_at", "counted_cash", "expected_cash", "variance", "variance_notes",
             "status", "approved_by", "approved_by_name", "approved_at", "cash_drops", "running_expected_cash",
         ]
         read_only_fields = [
-            "id", "cashier", "opened_at", "closed_at", "expected_cash", "variance",
+            "id", "cashier", "branch", "opened_at", "closed_at", "expected_cash", "variance",
             "status", "approved_by", "approved_at",
         ]
 

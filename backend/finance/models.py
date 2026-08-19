@@ -14,7 +14,13 @@ class AccountType(models.TextChoices):
 
 
 class Account(BaseModel):
-    """Chart of Accounts. Self-referencing for sub-accounts (e.g. 'Cash' under 'Current Assets')."""
+    """
+    Chart of Accounts. Self-referencing for sub-accounts (e.g. 'Cash' under
+    'Current Assets'). Deliberately NOT branch-scoped — the chart of
+    accounts is shared org-wide structure, same reasoning as Medicine's
+    catalog and LeaveType's policy catalog staying shared while the actual
+    activity against them (stock batches, leave requests) is branch-owned.
+    """
     code = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=150)
     account_type = models.CharField(max_length=20, choices=AccountType.choices)
@@ -40,6 +46,7 @@ class Account(BaseModel):
 
 
 class FiscalPeriod(BaseModel):
+    """Deliberately NOT branch-scoped — the fiscal calendar is shared org-wide."""
     name = models.CharField(max_length=50, unique=True, help_text="e.g. 'July 2026'")
     start_date = models.DateField()
     end_date = models.DateField()
@@ -73,6 +80,10 @@ class JournalEntry(BaseModel):
     entry_number = models.CharField(max_length=30, unique=True, editable=False)
     entry_date = models.DateField()
     fiscal_period = models.ForeignKey(FiscalPeriod, null=True, blank=True, on_delete=models.SET_NULL, related_name="journal_entries")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="journal_entries",
+        help_text="Which branch this journal entry belongs to. Set automatically from the posting user's branch.",
+    )
     reference = models.CharField(max_length=100, blank=True, help_text="e.g. receipt number, PO number, payslip number.")
     description = models.TextField()
     source = models.CharField(max_length=30, choices=JournalEntrySource.choices, default=JournalEntrySource.MANUAL)
@@ -123,6 +134,7 @@ class JournalEntryLine(BaseModel):
 
 
 class ExpenseCategory(BaseModel):
+    """Deliberately NOT branch-scoped — expense categories are a shared org-wide list."""
     name = models.CharField(max_length=100, unique=True)
     default_account = models.ForeignKey(Account, null=True, blank=True, on_delete=models.SET_NULL, related_name="expense_categories")
     is_active = models.BooleanField(default=True)
@@ -146,6 +158,10 @@ class Expense(BaseModel):
     expense_number = models.CharField(max_length=30, unique=True, editable=False)
     category = models.ForeignKey(ExpenseCategory, on_delete=models.PROTECT, related_name="expenses")
     department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.SET_NULL, related_name="expenses")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="expenses",
+        help_text="Which branch incurred this expense. Set automatically from the submitting user's branch.",
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
     expense_date = models.DateField()
     description = models.TextField(blank=True)
@@ -174,25 +190,36 @@ class Expense(BaseModel):
 
 
 class Budget(BaseModel):
+    """
+    Now scoped per (department, fiscal_period, branch) — each branch runs
+    its own budget for a department, since Department is shared org-wide
+    structure but the money allocated to it is branch-owned, same
+    reasoning as PayrollRun becoming per-branch in the HR module.
+    """
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="budgets")
     fiscal_period = models.ForeignKey(FiscalPeriod, on_delete=models.CASCADE, related_name="budgets")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="budgets",
+        help_text="This budget line only covers this branch's spend against this department.",
+    )
     allocated_amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
     notes = models.TextField(blank=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="budgets_created")
 
     class Meta:
         db_table = "budgets"
-        unique_together = ("department", "fiscal_period")
+        unique_together = ("department", "fiscal_period", "branch")
 
     @property
     def spent_amount(self):
-        return sum((
-            e.amount for e in Expense.objects.filter(
-                department=self.department, status="PAID",
-                expense_date__gte=self.fiscal_period.start_date,
-                expense_date__lte=self.fiscal_period.end_date,
-            )
-        ), start=0)
+        qs = Expense.objects.filter(
+            department=self.department, status="PAID",
+            expense_date__gte=self.fiscal_period.start_date,
+            expense_date__lte=self.fiscal_period.end_date,
+        )
+        if self.branch_id:
+            qs = qs.filter(branch_id=self.branch_id)
+        return sum((e.amount for e in qs), start=0)
 
     @property
     def remaining_amount(self):
@@ -223,10 +250,8 @@ class Budget(BaseModel):
 
     def __str__(self):
         return f"{self.department.name} - {self.fiscal_period.name}"
-    
-    
-    
-    
+
+
 class ShiftStatus(models.TextChoices):
     OPEN = "OPEN", "Open"
     CLOSED = "CLOSED", "Closed"
@@ -242,6 +267,10 @@ class CashierShift(BaseModel):
     a small tolerance requires supervisor approval to close.
     """
     cashier = models.ForeignKey(User, on_delete=models.PROTECT, related_name="cashier_shifts")
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, on_delete=models.PROTECT, related_name="cashier_shifts",
+        help_text="Set automatically from the cashier's own branch at shift open.",
+    )
     opening_float = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
     opened_at = models.DateTimeField(auto_now_add=True)
 
