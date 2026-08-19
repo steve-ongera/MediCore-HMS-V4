@@ -855,6 +855,7 @@ class BulkPayment(BaseModel):
         help_text="Denormalized from the invoices being paid — every invoice in a single bulk payment belongs to the same branch.",
     )
     cashier = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="bulk_payments_processed")
+    qr_code = models.ImageField(upload_to="receipts/bulk_qr/", null=True, blank=True)
     paid_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
