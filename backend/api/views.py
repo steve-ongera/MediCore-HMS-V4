@@ -332,7 +332,7 @@ class UserViewSet(BaseModelViewSet):
 # Departments (lookup table)
 # ---------------------------------------------------------------------------
 class DepartmentViewSet(BaseModelViewSet):
-    queryset = Department.objects.filter(is_active=True)
+    queryset = Department.objects.select_related("branch", "head_of_department").filter(is_active=True)
     serializer_class = DepartmentSerializer
     search_fields = ["name"]
 
@@ -341,12 +341,36 @@ class DepartmentViewSet(BaseModelViewSet):
         # app and stays open, matching existing behavior. But create/update/
         # delete — including assigning a Head of Department, which affects
         # who can approve that department's requisitions — is an
-        # administrative action and must require auth. The old
-        # `permission_classes = []` disabled auth for ALL actions, not just
-        # reads; this scopes it back down.
+        # administrative action and must require auth.
         if self.action in ("list", "retrieve"):
             return []
         return [IsAuthenticated()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(branch_id__in=accessible)
+        return qs
+
+    def perform_create(self, serializer):
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is None:
+            branch_id = self.request.data.get("branch") or self.request.user.branch_id
+            if not branch_id:
+                raise ValidationError({"branch": "As a Group Admin, you must specify which branch this department belongs to."})
+        else:
+            branch_id = self.request.user.branch_id
+        serializer.save(branch_id=branch_id)
+
+    def perform_update(self, serializer):
+        from branches.permissions import get_accessible_branch_ids
+        accessible = get_accessible_branch_ids(self.request.user)
+        if accessible is not None and serializer.instance.branch_id and serializer.instance.branch_id not in accessible:
+            raise PermissionDenied("This department belongs to a different branch.")
+        serializer.save()
 
 
 # ---------------------------------------------------------------------------

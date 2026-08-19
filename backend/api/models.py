@@ -113,7 +113,11 @@ class AuditLog(models.Model):
 # Hospital structure
 # ---------------------------------------------------------------------------
 class Department(BaseModel):
-    name = models.CharField(max_length=120, unique=True)
+    name = models.CharField(max_length=120)
+    branch = models.ForeignKey(
+        "branches.Branch", null=True, blank=True, on_delete=models.PROTECT, related_name="departments",
+        help_text="Which branch this department belongs to. A department name can repeat across branches (e.g. 'ICU / HDU' exists separately at each hospital) but must be unique within one branch.",
+    )
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -123,6 +127,7 @@ class Department(BaseModel):
 
     class Meta:
         db_table = "departments"
+        unique_together = ("name", "branch")
 
     def __str__(self):
         return self.name
