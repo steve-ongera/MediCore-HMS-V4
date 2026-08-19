@@ -34,6 +34,7 @@ const NAV_GROUPS = [
       { to: "/billing/payments", label: "Payments", icon: "bi-receipt" },
       { to: "/billing/till", label: "Cash Till", icon: "bi-safe", roles: [ROLES.CASHIER] },
       { to: "/billing/request-refund", label: "Request Refund", icon: "bi-arrow-counterclockwise", roles: [ROLES.CASHIER] },
+      { to: "/billing/qr-scanner", label: "QR Code Scanner", icon: "bi-qr-code-scan" },
     ],
   },
   {

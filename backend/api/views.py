@@ -2555,18 +2555,18 @@ class QRVerifyBulkPaymentView(APIView):
 
 
 class QRScanLookupView(APIView):
-    """
-    POST /api/qr-scan/  { raw_text: "<decoded QR string>" }
-    Accepts the raw decoded text from ANY QR code in the system (Payment,
-    OTCSale, BulkPayment) and looks up the matching record based on the
-    prefix pattern each type encodes. Single entry point for a universal
-    scanner page, rather than needing to know in advance which type of
-    receipt is being scanned.
-    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        raw_text = request.data.get("raw_text", "")
+        # Support multiple frontend property naming styles
+        raw_text = (
+            request.data.get("raw_text") 
+            or request.data.get("qr_data") 
+            or request.data.get("text") 
+            or request.data.get("data") 
+            or ""
+        ).strip()
+
         if not raw_text:
             return Response({"detail": "No QR text provided."}, status=400)
 
@@ -2585,7 +2585,6 @@ class QRScanLookupView(APIView):
             })
 
         if raw_text.startswith("RECEIPT:"):
-            # matches PaymentViewSet.perform_create's existing QR payload format: "RECEIPT:{receipt_number}|AMOUNT:{amount}|INVOICE:{invoice_number}"
             receipt_number = raw_text.split("|")[0].replace("RECEIPT:", "").strip()
             payment = Payment.objects.filter(receipt_number=receipt_number).first()
             if not payment:
@@ -2600,7 +2599,6 @@ class QRScanLookupView(APIView):
             })
 
         if raw_text.startswith("OTC:"):
-            # matches OTCSaleViewSet.create's existing QR payload format: "OTC:{sale_number}|AMOUNT:{total_amount}"
             sale_number = raw_text.split("|")[0].replace("OTC:", "").strip()
             sale = OTCSale.objects.filter(sale_number=sale_number).first()
             if not sale:
@@ -2615,6 +2613,7 @@ class QRScanLookupView(APIView):
             })
 
         return Response({"valid": False, "detail": "QR code format not recognized by this system."}, status=400)
+    
     
     
 class ITSupportDashboardView(APIView):

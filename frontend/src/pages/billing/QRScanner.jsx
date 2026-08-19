@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
 import { scanQRCode } from "../../services/api";
 
@@ -13,7 +13,6 @@ export default function QRScanner() {
 
   useEffect(() => {
     return () => {
-      // stop the camera stream on unmount so it doesn't keep running in the background
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
       }
@@ -35,7 +34,7 @@ export default function QRScanner() {
           scanner.stop();
           setScanning(false);
         },
-        () => { /* per-frame scan failure — expected constantly while aiming, ignore */ }
+        () => {}
       );
     } catch (err) {
       setError("Could not access camera: " + err.message);
@@ -67,50 +66,193 @@ export default function QRScanner() {
   };
 
   return (
-    <div>
-      <h1>QR Code Scanner</h1>
-      <p>Scan any receipt QR code in the system — single payments, walk-in pharmacy sales, or bulk payments — to verify its authenticity and view the underlying record.</p>
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-eyebrow">Verification</div>
+          <h1 className="page-title">QR Code Scanner</h1>
+          <p className="page-subtitle">
+            Scan any receipt QR code — single payments, walk-in pharmacy sales, or bulk payments — to verify its authenticity and view the underlying record.
+          </p>
+        </div>
+        <div className="page-header__actions">
+          <Link to="/" className="btn btn-secondary btn-sm">
+            <i className="bi bi-arrow-left me-1"></i>
+            Back
+          </Link>
+        </div>
+      </div>
 
-      <div id="qr-reader" style={{ width: 320, maxWidth: "100%" }}></div>
-
-      {!scanning ? (
-        <button type="button" onClick={startScanning}>Start Camera Scan</button>
-      ) : (
-        <button type="button" onClick={stopScanning}>Stop Scanning</button>
-      )}
-
-      <h2>Or Paste QR Text Manually</h2>
-      <form onSubmit={handleManualSubmit}>
-        <input
-          type="text"
-          placeholder="Paste decoded QR text here"
-          value={manualText}
-          onChange={(e) => setManualText(e.target.value)}
-        />
-        <button type="submit">Verify</button>
-      </form>
-
-      {result && (
-        <div style={{ border: "1px solid #ccc", padding: "12px", marginTop: "12px", background: result.valid ? "#d4edda" : "#f8d7da" }}>
-          {result.valid ? (
-            <>
-              <h3>✅ Verified — {result.type.replace("_", " ")}</h3>
-              {result.receipt_number && <p>Receipt #: {result.receipt_number}</p>}
-              {result.sale_number && <p>Sale #: {result.sale_number}</p>}
-              {result.patient_name && <p>Patient: {result.patient_name}</p>}
-              {result.customer_name && <p>Customer: {result.customer_name}</p>}
-              {(result.total_amount || result.amount) && <p>Amount: KES {result.total_amount || result.amount}</p>}
-              {(result.paid_at || result.sold_at) && <p>Date: {new Date(result.paid_at || result.sold_at).toLocaleString()}</p>}
-              {result.detail_url && (
-                <button type="button" onClick={() => navigate(result.detail_url)}>View Full Record</button>
-              )}
-            </>
-          ) : (
-            <h3>❌ Not Verified — {result.detail}</h3>
-          )}
+      {error && (
+        <div className="card" style={{ marginBottom: "var(--space-4)", borderColor: "var(--danger)", background: "var(--danger-soft)" }}>
+          <div className="card-body">
+            <div className="text-danger">
+              <i className="bi bi-exclamation-circle me-1"></i> {error}
+            </div>
+          </div>
         </div>
       )}
-    </div>
+
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-body">
+          <div className="text-center" style={{ marginBottom: "var(--space-4)" }}>
+            <div 
+              id="qr-reader" 
+              style={{ 
+                width: "100%", 
+                maxWidth: "400px", 
+                margin: "0 auto",
+                borderRadius: "var(--radius-md)",
+                overflow: "hidden",
+                background: "var(--gray-900)"
+              }}
+            ></div>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            {!scanning ? (
+              <button type="button" className="btn btn-primary" onClick={startScanning}>
+                <i className="bi bi-camera me-2"></i>
+                Start Camera Scan
+              </button>
+            ) : (
+              <button type="button" className="btn btn-danger" onClick={stopScanning}>
+                <i className="bi bi-stop-circle me-2"></i>
+                Stop Scanning
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: "var(--space-6)" }}>
+        <div className="card-header">
+          <h5 className="card-title">
+            <i className="bi bi-keyboard me-1"></i>
+            Or Paste QR Text Manually
+          </h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleManualSubmit}>
+            <div className="field-row">
+              <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                <div className="input-icon-wrap">
+                  <i className="bi bi-qr-code icon"></i>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Paste decoded QR text here"
+                    value={manualText}
+                    onChange={(e) => setManualText(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="field" style={{ marginBottom: 0, display: "flex", alignItems: "flex-end" }}>
+                <button type="submit" className="btn btn-primary" style={{ marginTop: "var(--space-3)" }}>
+                  <i className="bi bi-check-circle me-1"></i>
+                  Verify
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {result && (
+        <div className={`card ${result.valid ? 'card-valid' : 'card-invalid'}`} style={{ 
+          borderColor: result.valid ? "var(--success)" : "var(--danger)",
+          background: result.valid ? "var(--success-soft)" : "var(--danger-soft)",
+        }}>
+          <div className="card-body">
+            {result.valid ? (
+              <>
+                <div className="flex items-center gap-3" style={{ marginBottom: "var(--space-4)" }}>
+                  <div className="stat-card__icon tone-success" style={{ width: "48px", height: "48px" }}>
+                    <i className="bi bi-check-circle-fill" style={{ fontSize: "24px" }}></i>
+                  </div>
+                  <div>
+                    <h5 className="card-title" style={{ color: "var(--success-strong)" }}>
+                      Verified — {result.type?.replace("_", " ") || "Record"}
+                    </h5>
+                    <span className="badge badge-success">Authentic</span>
+                  </div>
+                </div>
+
+                <div className="info-grid">
+                  {result.receipt_number && (
+                    <div className="info-item">
+                      <div className="info-item__label">Receipt #</div>
+                      <div className="info-item__value cell-mono">{result.receipt_number}</div>
+                    </div>
+                  )}
+                  {result.sale_number && (
+                    <div className="info-item">
+                      <div className="info-item__label">Sale #</div>
+                      <div className="info-item__value cell-mono">{result.sale_number}</div>
+                    </div>
+                  )}
+                  {result.patient_name && (
+                    <div className="info-item">
+                      <div className="info-item__label">Patient</div>
+                      <div className="info-item__value">{result.patient_name}</div>
+                    </div>
+                  )}
+                  {result.customer_name && (
+                    <div className="info-item">
+                      <div className="info-item__label">Customer</div>
+                      <div className="info-item__value">{result.customer_name}</div>
+                    </div>
+                  )}
+                  {(result.total_amount || result.amount) && (
+                    <div className="info-item">
+                      <div className="info-item__label">Amount</div>
+                      <div className="info-item__value font-mono font-semibold">
+                        KES {result.total_amount || result.amount}
+                      </div>
+                    </div>
+                  )}
+                  {(result.paid_at || result.sold_at) && (
+                    <div className="info-item">
+                      <div className="info-item__label">Date</div>
+                      <div className="info-item__value text-sm text-muted">
+                        {new Date(result.paid_at || result.sold_at).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {result.detail_url && (
+                  <div className="form-actions" style={{ marginTop: "var(--space-4)" }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-primary"
+                      onClick={() => navigate(result.detail_url)}
+                    >
+                      <i className="bi bi-eye me-2"></i>
+                      View Full Record
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-3" style={{ marginBottom: "var(--space-4)" }}>
+                  <div className="stat-card__icon tone-danger" style={{ width: "48px", height: "48px" }}>
+                    <i className="bi bi-x-circle-fill" style={{ fontSize: "24px" }}></i>
+                  </div>
+                  <div>
+                    <h5 className="card-title" style={{ color: "var(--danger-strong)" }}>
+                      Not Verified
+                    </h5>
+                    <span className="badge badge-danger">Invalid</span>
+                  </div>
+                </div>
+                <p className="text-danger">{result.detail || "This QR code could not be verified."}</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
