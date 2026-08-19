@@ -52,53 +52,6 @@ export default function BulkPaymentReceipt() {
   };
 
   /**
-   * Generates a simple, lightweight QR Code Canvas Data URL for verification demo
-   */
-  const generateQrCodeDataUrl = (text) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 120;
-      canvas.height = 120;
-      const ctx = canvas.getContext("2d");
-
-      // Draw standard clean QR placeholder box with outer border & corner markers
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 120, 120);
-
-      ctx.strokeStyle = "#1e40af";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(2, 2, 116, 116);
-
-      // Corner Position Markers
-      const drawMarker = (x, y) => {
-        ctx.fillStyle = "#1e40af";
-        ctx.fillRect(x, y, 28, 28);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(x + 4, y + 4, 20, 20);
-        ctx.fillStyle = "#1e40af";
-        ctx.fillRect(x + 8, y + 8, 12, 12);
-      };
-
-      drawMarker(8, 8);
-      drawMarker(84, 8);
-      drawMarker(8, 84);
-
-      // Simulated Data Grid
-      ctx.fillStyle = "#111827";
-      for (let i = 0; i < 14; i++) {
-        for (let j = 0; j < 14; j++) {
-          if ((i < 5 && j < 5) || (i > 9 && j < 5) || (i < 5 && j > 9)) continue;
-          if ((i * 7 + j * 13) % 3 === 0) {
-            ctx.fillRect(10 + i * 7, 10 + j * 7, 5, 5);
-          }
-        }
-      }
-
-      resolve(canvas.toDataURL("image/png"));
-    });
-  };
-
-  /**
    * Generates the PDF using jsPDF + jspdf-autotable
    */
   const generatePdf = async () => {
@@ -109,11 +62,9 @@ export default function BulkPaymentReceipt() {
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 12; // Tightened margin for slim document structure
 
-    // Load hospital logo & generate QR code
+    // Load hospital logo & backend-stored verification QR image
     const logoImg = await loadImage(medicoreLogo);
-    const qrDataUrl = await generateQrCodeDataUrl(
-      `RECEIPT:${receipt.receipt_number}|PATIENT:${receipt.hospital_number}|AMT:${receipt.total_amount}`
-    );
+    const qrImg = receipt.qr_code_url ? await loadImage(receipt.qr_code_url) : null;
 
     // 1. Header Rendering
     if (logoImg) {
@@ -311,9 +262,13 @@ export default function BulkPaymentReceipt() {
 
     finalY += 18;
 
-    // B. Left: QR Code Verification Block
-    if (qrDataUrl) {
-      doc.addImage(qrDataUrl, "PNG", margin, finalY, 22, 22);
+    // B. Left: QR Code Verification Block (Using stored QR Image)
+    if (qrImg) {
+      try {
+        doc.addImage(qrImg, "PNG", margin, finalY, 22, 22);
+      } catch (e) {
+        console.warn("Could not render QR code in PDF:", e);
+      }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(...DARK_TEXT);
@@ -519,12 +474,17 @@ export default function BulkPaymentReceipt() {
             </div>
           </div>
           {receipt.lines.length > 0 && (
-            <div className="card-footer">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-tertiary text-sm">
-                  Showing {receipt.lines.length} invoice{receipt.lines.length !== 1 ? "s" : ""}
-                </span>
-              </div>
+            <div className="card-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="text-tertiary text-sm">
+                Showing {receipt.lines.length} invoice{receipt.lines.length !== 1 ? "s" : ""}
+              </span>
+              
+              {receipt.qr_code_url && (
+                <div style={{ textAlign: "center" }}>
+                  <img src={receipt.qr_code_url} alt="Receipt verification QR code" style={{ width: "80px", height: "80px" }} />
+                  <p style={{ fontSize: "0.75em", margin: 0 }}>Scan to verify</p>
+                </div>
+              )}
             </div>
           )}
         </div>

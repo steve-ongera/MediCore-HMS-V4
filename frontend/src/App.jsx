@@ -276,6 +276,7 @@ import CreateCarePlan from "./pages/carecoordination/CreateCarePlan.jsx";
 import AllFollowUpTasks from "./pages/carecoordination/AllFollowUpTasks.jsx";
 
 import BranchManagement from "./pages/branches/BranchManagement.jsx";
+import QRScanner from "./pages/billing/QRScanner.jsx";
 
 // Preserves query params (e.g. ?invoice=xxx) when redirecting old /payments
 // links to the new /billing/payments path.
@@ -827,6 +828,7 @@ export default function App() {
 
         <Route path="/billing/bulk-payment" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPayment /></ProtectedRoute>} />
         <Route path="/billing/bulk-payment/:id/receipt" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT]}><BulkPaymentReceipt /></ProtectedRoute>} />
+        <Route path="/billing/qr-scanner" element={<ProtectedRoute allowedRoles={[ROLES.CASHIER, ROLES.ACCOUNTANT, ROLES.SUPER_ADMIN, ROLES.IT_SUPPORT_OFFICER]}><QRScanner /></ProtectedRoute>} />
 
         <Route path="/laboratory/reports" element={<ProtectedRoute allowedRoles={[ROLES.LAB_TECHNOLOGIST]}><LabTechReport /></ProtectedRoute>} />
         <Route path="/laboratory/catalog" element={<ProtectedRoute allowedRoles={[ROLES.LAB_TECHNOLOGIST]}><LabTestCatalogManagement /></ProtectedRoute>} />

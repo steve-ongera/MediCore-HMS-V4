@@ -2356,7 +2356,15 @@ class ReportsView(APIView):
             return Response({"detail": "Unknown report type."}, status=status.HTTP_400_BAD_REQUEST)
         
         
-class BulkPaymentViewSet(viewsets.GenericViewSet):
+from rest_framework import status, viewsets, mixins
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from django.db import transaction
+
+# Ensure your app imports (models, serializers, generate_qr_code, permissions) are present above
+
+class BulkPaymentViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """
     Patient-search-first bulk payment flow. Doesn't touch PaymentViewSet or
     InvoiceViewSet — those remain exactly as they are for the existing
@@ -2461,8 +2469,11 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
 
         with transaction.atomic():
             bulk_payment = BulkPayment.objects.create(
-                patient=patient, total_amount=data["amount"], method=data["method"],
-                reference_number=data.get("reference_number", ""), cashier=request.user,
+                patient=patient, 
+                total_amount=data["amount"], 
+                method=data["method"],
+                reference_number=data.get("reference_number", ""), 
+                cashier=request.user,
                 branch_id=invoices[0].branch_id,
             )
 
@@ -2476,35 +2487,136 @@ class BulkPaymentViewSet(viewsets.GenericViewSet):
                 amount_for_this_invoice = min(remaining, invoice_balance)
 
                 payment = Payment.objects.create(
-                    invoice=invoice, amount=amount_for_this_invoice, method=data["method"],
-                    reference_number=data.get("reference_number", ""), cashier=request.user,
+                    invoice=invoice, 
+                    amount=amount_for_this_invoice, 
+                    method=data["method"],
+                    reference_number=data.get("reference_number", ""), 
+                    cashier=request.user,
                 )
                 BulkPaymentLine.objects.create(
-                    bulk_payment=bulk_payment, invoice=invoice, payment=payment,
+                    bulk_payment=bulk_payment, 
+                    invoice=invoice, 
+                    payment=payment,
                     amount_applied=amount_for_this_invoice,
                 )
                 remaining -= amount_for_this_invoice
 
-        return Response(BulkPaymentSerializer(bulk_payment).data, status=status.HTTP_201_CREATED)
+            # Generate and store the QR code — encodes a verification URL
+            # pointing at this bulk payment's own receipt endpoint.
+            verification_url = f"{request.build_absolute_uri('/')[:-1]}/api/qr-verify/bulk-payment/{bulk_payment.id}/"
+            qr_payload = f"BULK-RECEIPT:{bulk_payment.receipt_number}|VERIFY:{verification_url}"
+            bulk_payment.qr_code = generate_qr_code(qr_payload, f"bulk_receipt_{bulk_payment.receipt_number}")
+            bulk_payment.save(update_fields=["qr_code"])
+
+        return Response(BulkPaymentSerializer(bulk_payment, context={"request": request}).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["get"], url_path="receipt")
     def receipt(self, request, pk=None):
         """Combined receipt — every invoice covered by this bulk transaction, with per-service breakdown."""
         bulk_payment = self.get_object()
-        return Response(BulkPaymentSerializer(bulk_payment).data)
+        return Response(BulkPaymentSerializer(bulk_payment, context={"request": request}).data)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = BulkPaymentSerializer(page, many=True)
+            serializer = BulkPaymentSerializer(page, many=True, context={"request": request})
             return self.get_paginated_response(serializer.data)
-        serializer = BulkPaymentSerializer(queryset, many=True)
+        serializer = BulkPaymentSerializer(queryset, many=True, context={"request": request})
         return Response(serializer.data)
-        
+
+class QRVerifyBulkPaymentView(APIView):
+    """
+    GET /api/qr-verify/bulk-payment/<id>/
+    Public-ish verification endpoint — deliberately allows any authenticated
+    staff member (not just cashiers) to verify a receipt's authenticity by
+    scanning it, since verification might reasonably happen at any front
+    desk or by an auditor. Returns only what's needed to confirm legitimacy,
+    not full financial internals.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, bulk_payment_id):
+        bulk_payment = BulkPayment.objects.filter(pk=bulk_payment_id).first()
+        if not bulk_payment:
+            return Response({"valid": False, "detail": "No matching bulk payment record found."}, status=404)
+
+        return Response({
+            "valid": True,
+            "receipt_number": bulk_payment.receipt_number,
+            "patient_name": bulk_payment.patient.full_name,
+            "hospital_number": bulk_payment.patient.hospital_number,
+            "total_amount": str(bulk_payment.total_amount),
+            "method": bulk_payment.method,
+            "cashier_name": bulk_payment.cashier.get_full_name() if bulk_payment.cashier else None,
+            "paid_at": bulk_payment.paid_at,
+            "invoice_count": bulk_payment.lines.count(),
+        })
+
+
+class QRScanLookupView(APIView):
+    """
+    POST /api/qr-scan/  { raw_text: "<decoded QR string>" }
+    Accepts the raw decoded text from ANY QR code in the system (Payment,
+    OTCSale, BulkPayment) and looks up the matching record based on the
+    prefix pattern each type encodes. Single entry point for a universal
+    scanner page, rather than needing to know in advance which type of
+    receipt is being scanned.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        raw_text = request.data.get("raw_text", "")
+        if not raw_text:
+            return Response({"detail": "No QR text provided."}, status=400)
+
+        if raw_text.startswith("BULK-RECEIPT:"):
+            receipt_number = raw_text.split("|")[0].replace("BULK-RECEIPT:", "").strip()
+            bulk_payment = BulkPayment.objects.filter(receipt_number=receipt_number).first()
+            if not bulk_payment:
+                return Response({"valid": False, "type": "BULK_PAYMENT", "detail": "No matching bulk payment found."}, status=404)
+            return Response({
+                "valid": True, "type": "BULK_PAYMENT",
+                "receipt_number": bulk_payment.receipt_number,
+                "patient_name": bulk_payment.patient.full_name,
+                "total_amount": str(bulk_payment.total_amount),
+                "paid_at": bulk_payment.paid_at,
+                "detail_url": f"/billing/bulk-payment/{bulk_payment.id}/receipt",
+            })
+
+        if raw_text.startswith("RECEIPT:"):
+            # matches PaymentViewSet.perform_create's existing QR payload format: "RECEIPT:{receipt_number}|AMOUNT:{amount}|INVOICE:{invoice_number}"
+            receipt_number = raw_text.split("|")[0].replace("RECEIPT:", "").strip()
+            payment = Payment.objects.filter(receipt_number=receipt_number).first()
+            if not payment:
+                return Response({"valid": False, "type": "PAYMENT", "detail": "No matching payment found."}, status=404)
+            return Response({
+                "valid": True, "type": "PAYMENT",
+                "receipt_number": payment.receipt_number,
+                "patient_name": payment.invoice.patient.full_name,
+                "amount": str(payment.amount),
+                "paid_at": payment.paid_at,
+                "detail_url": f"/billing/payments?invoice={payment.invoice_id}",
+            })
+
+        if raw_text.startswith("OTC:"):
+            # matches OTCSaleViewSet.create's existing QR payload format: "OTC:{sale_number}|AMOUNT:{total_amount}"
+            sale_number = raw_text.split("|")[0].replace("OTC:", "").strip()
+            sale = OTCSale.objects.filter(sale_number=sale_number).first()
+            if not sale:
+                return Response({"valid": False, "type": "OTC_SALE", "detail": "No matching OTC sale found."}, status=404)
+            return Response({
+                "valid": True, "type": "OTC_SALE",
+                "sale_number": sale.sale_number,
+                "customer_name": sale.customer_name or "Walk-in Customer",
+                "total_amount": str(sale.total_amount),
+                "sold_at": sale.sold_at,
+                "detail_url": f"/pharmacy",
+            })
+
+        return Response({"valid": False, "detail": "QR code format not recognized by this system."}, status=400)
     
-
-
+    
 class ITSupportDashboardView(APIView):
     permission_classes = [IsITSupportOrSuperAdmin]
 

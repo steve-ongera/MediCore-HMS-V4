@@ -35,6 +35,7 @@ router.register(r"invoices", views.InvoiceViewSet, basename="invoice")
 router.register(r"payments", views.PaymentViewSet, basename="payment")
 router.register(r"bulk-payments", views.BulkPaymentViewSet, basename="bulk-payment")
 
+
 # =============================================================================
 # Queue
 # =============================================================================
@@ -109,6 +110,8 @@ urlpatterns = [
     path("reports/", views.ReportsView.as_view(), name="reports"),
     path("transactions/", views.AllTransactionsView.as_view(), name="transactions"),
     path("it-support/dashboard/", views.ITSupportDashboardView.as_view()),
+    path("qr-verify/bulk-payment/<uuid:bulk_payment_id>/", views.QRVerifyBulkPaymentView.as_view()),
+    path("qr-scan/", views.QRScanLookupView.as_view()),
 
     # =========================================================================
     # API Endpoints

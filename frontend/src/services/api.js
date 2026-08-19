@@ -991,7 +991,7 @@ export const getBranches = (params) => unwrap(client.get(`/branches/${qs(params)
 export const createBranch = (payload) => unwrap(client.post("/branches/", payload));
 export const updateBranch = (id, payload) => unwrap(client.patch(`/branches/${id}/`, payload));
 export const assignBranchStaff = (payload) => unwrap(client.post("/branch-staff-assignments/", payload));
-
+export const scanQRCode = (rawText) => unwrap(client.post("/qr-scan/", { raw_text: rawText }));
 
 // ---------------------------------------------------------------------------
 // Helper: build multipart FormData for endpoints that accept file uploads
