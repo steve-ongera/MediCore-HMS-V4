@@ -1,49 +1,52 @@
+from datetime import timedelta
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.exceptions import ValidationError, MethodNotAllowed
 
 from api.views import BaseModelViewSet
-from api.models import Patient
 from api.permissions import ReadOnlyOrSuperAdmin
+from api.models import Patient, Invoice
+from api.serializers import InvoiceSerializer
 
 from .models import (
-    AntenatalProfile, ANCVisit, DeliveryRecord, Child, PostnatalVisit,
-    VaccineCatalog, ChildImmunization, GrowthMonitoring,
-    PregnancyStatus, ImmunizationStatus,DeliveryCharge,
+    AntenatalProfile, PregnancyStatus, ANCVisit, DeliveryRecord, DeliveryCharge,
+    PostnatalVisit, Child, VaccineCatalog, ChildImmunization, ImmunizationStatus,
+    GrowthMonitoring,
 )
 from .serializers import (
     AntenatalProfileSerializer, AntenatalProfileListSerializer, RegisterANCSerializer,
     ANCVisitSerializer, DeliveryRecordSerializer, RecordDeliverySerializer,
-    ChildSerializer, ChildListSerializer, PostnatalVisitSerializer,
+    PostnatalVisitSerializer, ChildSerializer, ChildListSerializer,
     VaccineCatalogSerializer, ChildImmunizationSerializer, GrowthMonitoringSerializer,
     AddChargeSerializer, DeliveryChargeSerializer,
 )
-
-from api.models import Patient, Invoice
-from api.serializers import InvoiceSerializer
-from .serializers import AddChargeSerializer
-
 from .services import ensure_mch_visit, raise_mch_invoice, schedule_immunizations_for_child
 
-# Flat facility fees for now — move to a configurable fee schedule later if needed.
 ANC_VISIT_FEE = 500
+DELIVERY_FEE = 5000
 PNC_VISIT_FEE = 300
-DELIVERY_FEE = 8000
 
-
-# Add this import at the top of views.py, alongside your other imports:
-# from api.models import Patient, Invoice
-# from api.serializers import InvoiceSerializer
-# (adjust the module paths to match wherever Invoice / InvoiceSerializer
-#  actually live in your api app — same place AdmissionViewSet.billing gets them)
 
 def _accessible_branch_ids(user):
     from branches.permissions import get_accessible_branch_ids
     return get_accessible_branch_ids(user)
+
+
+def _resolve_branch_id(request):
+    """
+    Standard branch-stamping logic used across every module in this
+    project: GROUP_ADMIN may pass an explicit `branch` in the request body
+    (never silently guessed), everyone else always gets their own branch,
+    never trusting the payload.
+    """
+    accessible = _accessible_branch_ids(request.user)
+    if accessible is None:
+        return request.data.get("branch") or request.user.branch_id
+    return request.user.branch_id
 
 
 class AntenatalProfileViewSet(BaseModelViewSet):
@@ -53,10 +56,6 @@ class AntenatalProfileViewSet(BaseModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        # AntenatalProfile has no branch field of its own — derived through
-        # visit.branch, same pattern as ICU/Mortuary. Applied here so
-        # retrieve/billing/add-charge/record-delivery via get_object() are
-        # also branch-restricted.
         accessible = _accessible_branch_ids(self.request.user)
         if accessible is not None:
             qs = qs.filter(visit__branch_id__in=accessible)
@@ -76,8 +75,10 @@ class AntenatalProfileViewSet(BaseModelViewSet):
         if not mother:
             raise ValidationError({"mother": "Patient not found."})
 
+        branch_id = _resolve_branch_id(request)
+
         with transaction.atomic():
-            visit = ensure_mch_visit(mother, registered_by=request.user)
+            visit = ensure_mch_visit(mother, registered_by=request.user, branch_id=branch_id)
             profile = AntenatalProfile.objects.create(
                 mother=mother,
                 gravida=data["gravida"],
@@ -104,7 +105,7 @@ class AntenatalProfileViewSet(BaseModelViewSet):
         data = serializer.validated_data
 
         with transaction.atomic():
-            mch_visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=request.user)
+            mch_visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=request.user, branch_id=_resolve_branch_id(request))
 
             delivery = DeliveryRecord.objects.create(
                 profile=profile,
@@ -123,7 +124,7 @@ class AntenatalProfileViewSet(BaseModelViewSet):
             )
             delivery.invoice = invoice
             delivery.save(update_fields=["invoice"])
-            
+
             DeliveryCharge.objects.create(
                 delivery=delivery, invoice=invoice,
                 description=f"Delivery Fee - {data['mode_of_delivery']}",
@@ -156,16 +157,11 @@ class AntenatalProfileViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="billing")
     def billing(self, request, pk=None):
-        """
-        Consolidated bill for this mother's MCH care — ANC visits, deliveries,
-        PNC visits, immunizations, and any manually added charges — all raised
-        against the same shared MCH Visit. Same pattern as AdmissionViewSet.billing.
-        """
         profile = self.get_object()
 
         if not profile.visit:
             with transaction.atomic():
-                profile.visit = ensure_mch_visit(profile.mother, registered_by=request.user)
+                profile.visit = ensure_mch_visit(profile.mother, registered_by=request.user, branch_id=_resolve_branch_id(request))
                 profile.save(update_fields=["visit"])
 
         invoices = Invoice.objects.filter(visit=profile.visit).order_by("created_at")
@@ -197,19 +193,12 @@ class AntenatalProfileViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="add-charge")
     def add_charge(self, request, pk=None):
-        """
-        Ad-hoc billing for anything that doesn't fit a fixed catalog item —
-        e.g. an ultrasound scan, a specialist review fee, extra consumables.
-        Raised against the same shared MCH Visit as every automated charge,
-        so it shows up in this profile's billing and in Billing/Payments
-        exactly like everything else.
-        """
         profile = self.get_object()
         serializer = AddChargeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
-            visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=request.user)
+            visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=request.user, branch_id=_resolve_branch_id(request))
             if not profile.visit:
                 profile.visit = visit
                 profile.save(update_fields=["visit"])
@@ -221,8 +210,8 @@ class AntenatalProfileViewSet(BaseModelViewSet):
             )
 
         return Response(InvoiceSerializer(invoice).data, status=status.HTTP_201_CREATED)
-    
-    
+
+
 class ANCVisitViewSet(BaseModelViewSet):
     queryset = ANCVisit.objects.select_related("profile__mother", "profile__visit", "profile__visit__branch").all()
     serializer_class = ANCVisitSerializer
@@ -239,12 +228,11 @@ class ANCVisitViewSet(BaseModelViewSet):
         profile = serializer.validated_data["profile"]
         visit_number = ANCVisit.objects.filter(profile=profile).count() + 1
         with transaction.atomic():
-            mch_visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=self.request.user)
+            mch_visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=self.request.user, branch_id=_resolve_branch_id(self.request))
             anc_visit = serializer.save(attended_by=self.request.user, visit_number=visit_number)
             invoice = raise_mch_invoice(profile.mother, mch_visit, f"ANC Visit #{visit_number} - {profile.anc_number}", ANC_VISIT_FEE)
             anc_visit.invoice = invoice
             anc_visit.save(update_fields=["invoice"])
-
 
 
 class DeliveryRecordViewSet(BaseModelViewSet):
@@ -265,20 +253,13 @@ class DeliveryRecordViewSet(BaseModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="add-charge")
     def add_charge(self, request, pk=None):
-        """
-        Ad-hoc billing scoped to a specific delivery — e.g. surgical
-        consumables for a C-section, blood transfusion, extended theatre
-        time. Raised against the same shared MCH Visit as every other
-        charge for this pregnancy, with the delivery number folded into the
-        description for a clean audit trail on the bill.
-        """
         delivery = self.get_object()
         serializer = AddChargeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         profile = delivery.profile
         with transaction.atomic():
-            visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=request.user)
+            visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=request.user, branch_id=_resolve_branch_id(request))
             if not profile.visit:
                 profile.visit = visit
                 profile.save(update_fields=["visit"])
@@ -299,8 +280,8 @@ class DeliveryRecordViewSet(BaseModelViewSet):
             DeliveryChargeSerializer(charge).data,
             status=status.HTTP_201_CREATED,
         )
-        
-        
+
+
 class PostnatalVisitViewSet(BaseModelViewSet):
     queryset = PostnatalVisit.objects.select_related("profile__mother", "child", "profile__visit", "profile__visit__branch").all()
     serializer_class = PostnatalVisitSerializer
@@ -316,7 +297,7 @@ class PostnatalVisitViewSet(BaseModelViewSet):
     def perform_create(self, serializer):
         profile = serializer.validated_data["profile"]
         with transaction.atomic():
-            mch_visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=self.request.user)
+            mch_visit = profile.visit or ensure_mch_visit(profile.mother, registered_by=self.request.user, branch_id=_resolve_branch_id(self.request))
             pnc_visit = serializer.save(attended_by=self.request.user)
             invoice = raise_mch_invoice(profile.mother, mch_visit, f"PNC Visit Day {pnc_visit.visit_day} - {profile.anc_number}", PNC_VISIT_FEE)
             pnc_visit.invoice = invoice
@@ -329,9 +310,6 @@ class ChildViewSet(BaseModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        # Child derives branch from the mother's antenatal profile's visit,
-        # not from any field on Child itself — walks the same path
-        # ChildSerializer.get_branch_name uses.
         accessible = _accessible_branch_ids(self.request.user)
         if accessible is not None:
             qs = qs.filter(mother__antenatal_profiles__visit__branch_id__in=accessible).distinct()
@@ -348,7 +326,6 @@ class ChildViewSet(BaseModelViewSet):
 
 
 class VaccineCatalogViewSet(BaseModelViewSet):
-    # Vaccine catalog — deliberately NOT branch-scoped, shared org-wide.
     queryset = VaccineCatalog.objects.filter(is_active=True)
     serializer_class = VaccineCatalogSerializer
     permission_classes = [ReadOnlyOrSuperAdmin]
@@ -382,7 +359,7 @@ class ChildImmunizationViewSet(BaseModelViewSet):
             immunization.administered_by = request.user
 
             if immunization.vaccine.price and immunization.vaccine.price > 0:
-                mch_visit = ensure_mch_visit(immunization.child.mother, registered_by=request.user)
+                mch_visit = ensure_mch_visit(immunization.child.mother, registered_by=request.user, branch_id=_resolve_branch_id(request))
                 invoice = raise_mch_invoice(
                     immunization.child.mother, mch_visit,
                     f"Immunization - {immunization.vaccine.name} ({immunization.child.child_number})",
