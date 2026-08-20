@@ -79,8 +79,8 @@ export default function AntenatalRegister() {
         para: Number(form.para),
         lmp: form.lmp,
         blood_group: form.blood_group,
-        height_cm: form.height_cm || undefined,
-        booking_weight_kg: form.booking_weight_kg || undefined,
+        height_cm: form.height_cm !== "" ? Number(form.height_cm) : null,
+        booking_weight_kg: form.booking_weight_kg !== "" ? Number(form.booking_weight_kg) : null,
         hiv_status: form.hiv_status,
         high_risk: form.high_risk,
         risk_factors: form.risk_factors,
@@ -316,7 +316,7 @@ export default function AntenatalRegister() {
                 <label className="field-label" style={{ marginBottom: 0 }}>High Risk Pregnancy</label>
                 <input
                   type="checkbox"
-                  className="input"
+                  className="checkbox"
                   style={{ width: "auto", margin: 0 }}
                   checked={form.high_risk}
                   onChange={handleFormChange("high_risk")}

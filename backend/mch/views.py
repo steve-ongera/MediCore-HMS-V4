@@ -41,10 +41,26 @@ DELIVERY_FEE = 8000
 # (adjust the module paths to match wherever Invoice / InvoiceSerializer
 #  actually live in your api app — same place AdmissionViewSet.billing gets them)
 
+def _accessible_branch_ids(user):
+    from branches.permissions import get_accessible_branch_ids
+    return get_accessible_branch_ids(user)
+
+
 class AntenatalProfileViewSet(BaseModelViewSet):
-    queryset = AntenatalProfile.objects.select_related("mother").all()
+    queryset = AntenatalProfile.objects.select_related("mother", "visit", "visit__branch").all()
     filterset_fields = ["status", "high_risk"]
     search_fields = ["anc_number", "mother__full_name", "mother__hospital_number"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # AntenatalProfile has no branch field of its own — derived through
+        # visit.branch, same pattern as ICU/Mortuary. Applied here so
+        # retrieve/billing/add-charge/record-delivery via get_object() are
+        # also branch-restricted.
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(visit__branch_id__in=accessible)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -208,9 +224,16 @@ class AntenatalProfileViewSet(BaseModelViewSet):
     
     
 class ANCVisitViewSet(BaseModelViewSet):
-    queryset = ANCVisit.objects.select_related("profile__mother").all()
+    queryset = ANCVisit.objects.select_related("profile__mother", "profile__visit", "profile__visit__branch").all()
     serializer_class = ANCVisitSerializer
     filterset_fields = ["profile"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(profile__visit__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         profile = serializer.validated_data["profile"]
@@ -225,10 +248,17 @@ class ANCVisitViewSet(BaseModelViewSet):
 
 
 class DeliveryRecordViewSet(BaseModelViewSet):
-    queryset = DeliveryRecord.objects.select_related("profile__mother").prefetch_related("charges__invoice").all()
+    queryset = DeliveryRecord.objects.select_related("profile__mother", "profile__visit", "profile__visit__branch").prefetch_related("charges__invoice").all()
     serializer_class = DeliveryRecordSerializer
     filterset_fields = ["profile", "mode_of_delivery", "outcome"]
     http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(profile__visit__branch_id__in=accessible)
+        return qs
 
     def create(self, request, *args, **kwargs):
         raise MethodNotAllowed("POST", detail="Delivery records are created only via AntenatalProfile.record-delivery.")
@@ -272,9 +302,16 @@ class DeliveryRecordViewSet(BaseModelViewSet):
         
         
 class PostnatalVisitViewSet(BaseModelViewSet):
-    queryset = PostnatalVisit.objects.select_related("profile__mother", "child").all()
+    queryset = PostnatalVisit.objects.select_related("profile__mother", "child", "profile__visit", "profile__visit__branch").all()
     serializer_class = PostnatalVisitSerializer
     filterset_fields = ["profile", "child"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(profile__visit__branch_id__in=accessible)
+        return qs
 
     def perform_create(self, serializer):
         profile = serializer.validated_data["profile"]
@@ -290,6 +327,16 @@ class ChildViewSet(BaseModelViewSet):
     queryset = Child.objects.select_related("mother", "delivery").all()
     search_fields = ["child_number", "full_name", "mother__full_name"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Child derives branch from the mother's antenatal profile's visit,
+        # not from any field on Child itself — walks the same path
+        # ChildSerializer.get_branch_name uses.
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(mother__antenatal_profiles__visit__branch_id__in=accessible).distinct()
+        return qs
+
     def get_serializer_class(self):
         if self.action == "list":
             return ChildListSerializer
@@ -301,6 +348,7 @@ class ChildViewSet(BaseModelViewSet):
 
 
 class VaccineCatalogViewSet(BaseModelViewSet):
+    # Vaccine catalog — deliberately NOT branch-scoped, shared org-wide.
     queryset = VaccineCatalog.objects.filter(is_active=True)
     serializer_class = VaccineCatalogSerializer
     permission_classes = [ReadOnlyOrSuperAdmin]
@@ -311,6 +359,13 @@ class ChildImmunizationViewSet(BaseModelViewSet):
     queryset = ChildImmunization.objects.select_related("vaccine", "child").all()
     serializer_class = ChildImmunizationSerializer
     filterset_fields = ["child", "status"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(child__mother__antenatal_profiles__visit__branch_id__in=accessible).distinct()
+        return qs
 
     @action(detail=True, methods=["post"], url_path="administer")
     def administer(self, request, pk=None):
@@ -349,6 +404,13 @@ class GrowthMonitoringViewSet(BaseModelViewSet):
     queryset = GrowthMonitoring.objects.select_related("child").all()
     serializer_class = GrowthMonitoringSerializer
     filterset_fields = ["child"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        accessible = _accessible_branch_ids(self.request.user)
+        if accessible is not None:
+            qs = qs.filter(child__mother__antenatal_profiles__visit__branch_id__in=accessible).distinct()
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(recorded_by=self.request.user)

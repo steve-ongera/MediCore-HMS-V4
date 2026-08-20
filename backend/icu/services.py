@@ -49,7 +49,16 @@ def raise_icu_invoice(icu_admission, description, amount):
 
 def charge_icu_bed_day(icu_admission, charge_date=None):
     """Idempotent — one charge per calendar day, same pattern as inpatient's generate_daily_bed_charges."""
-    from .models import ICUBedCharge
+    from .models import ICUBedCharge, ICUAdmissionStatus
+
+    # Never bill for a stay that's already closed — mirrors how inpatient's
+    # generate_daily_bed_charges only ever iterates ADMITTED admissions,
+    # and how mortuary's days_in_storage caps at released_at. Without this,
+    # ICUAdmissionViewSet.billing's "top up to today" call would keep
+    # invoicing bed-days after the patient was discharged and the bed
+    # freed, since nothing else here checks status.
+    if icu_admission.status != ICUAdmissionStatus.ADMITTED:
+        return None
 
     charge_date = charge_date or date.today()
     if ICUBedCharge.objects.filter(icu_admission=icu_admission, charge_date=charge_date).exists():

@@ -8,6 +8,7 @@ from .models import (
 
 class ANCVisitSerializer(serializers.ModelSerializer):
     attended_by_name = serializers.CharField(source="attended_by.get_full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ANCVisit
@@ -16,13 +17,20 @@ class ANCVisitSerializer(serializers.ModelSerializer):
             "bp_systolic", "bp_diastolic", "fundal_height_cm", "fetal_heartbeat_bpm",
             "fetal_presentation", "urinalysis", "hemoglobin_level", "notes",
             "next_appointment", "attended_by", "attended_by_name", "invoice", "visit_date",
+            "branch_name",
         ]
         read_only_fields = ["id", "visit_number", "attended_by", "invoice", "visit_date"]
+
+    def get_branch_name(self, obj):
+        visit = obj.profile.visit
+        return visit.branch.name if visit and visit.branch_id else None
+
 
 
 class DeliveryRecordSerializer(serializers.ModelSerializer):
     mother_name = serializers.CharField(source="profile.mother.full_name", read_only=True)
     attended_by_name = serializers.CharField(source="attended_by.get_full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = DeliveryRecord
@@ -30,8 +38,14 @@ class DeliveryRecordSerializer(serializers.ModelSerializer):
             "id", "delivery_number", "profile", "mother_name", "delivery_date",
             "mode_of_delivery", "outcome", "place_of_delivery", "attended_by",
             "attended_by_name", "complications", "blood_loss_ml", "admission", "invoice",
+            "branch_name",
         ]
         read_only_fields = ["id", "delivery_number", "attended_by", "invoice"]
+
+    def get_branch_name(self, obj):
+        visit = obj.profile.visit
+        return visit.branch.name if visit and visit.branch_id else None
+
 
 
 class ChildImmunizationSerializer(serializers.ModelSerializer):
@@ -59,12 +73,15 @@ class GrowthMonitoringSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "recorded_by", "recorded_at"]
 
 
+
+
 class ChildSerializer(serializers.ModelSerializer):
     mother_name = serializers.CharField(source="mother.full_name", read_only=True)
     mother_hospital_number = serializers.CharField(source="mother.hospital_number", read_only=True)
     age_months = serializers.IntegerField(read_only=True)
     immunizations = ChildImmunizationSerializer(many=True, read_only=True)
     growth_records = GrowthMonitoringSerializer(many=True, read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Child
@@ -72,9 +89,18 @@ class ChildSerializer(serializers.ModelSerializer):
             "id", "child_number", "mother", "mother_name", "mother_hospital_number",
             "delivery", "full_name", "sex", "date_of_birth", "birth_weight_kg",
             "birth_length_cm", "apgar_score_1min", "apgar_score_5min", "patient",
-            "age_months", "registered_by", "immunizations", "growth_records",
+            "age_months", "registered_by", "immunizations", "growth_records", "branch_name",
         ]
         read_only_fields = ["id", "child_number", "registered_by"]
+
+    def get_branch_name(self, obj):
+        # Child derives branch from the mother's active AntenatalProfile
+        # visit — a child isn't itself tied to a Visit, so this walks
+        # through mother -> most recent antenatal profile's visit.
+        profile = obj.mother.antenatal_profiles.filter(visit__isnull=False).order_by("-created_at").first()
+        if profile and profile.visit and profile.visit.branch_id:
+            return profile.visit.branch.name
+        return None
 
 
 class ChildListSerializer(serializers.ModelSerializer):
@@ -89,6 +115,7 @@ class ChildListSerializer(serializers.ModelSerializer):
 class PostnatalVisitSerializer(serializers.ModelSerializer):
     mother_name = serializers.CharField(source="profile.mother.full_name", read_only=True)
     attended_by_name = serializers.CharField(source="attended_by.get_full_name", read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = PostnatalVisit
@@ -96,9 +123,13 @@ class PostnatalVisitSerializer(serializers.ModelSerializer):
             "id", "profile", "mother_name", "child", "visit_day", "mother_bp_systolic",
             "mother_bp_diastolic", "mother_temp_c", "lochia_assessment",
             "breastfeeding_status", "child_weight_kg", "child_temp_c", "notes",
-            "attended_by", "attended_by_name", "invoice", "visit_date",
+            "attended_by", "attended_by_name", "invoice", "visit_date", "branch_name",
         ]
         read_only_fields = ["id", "attended_by", "invoice", "visit_date"]
+
+    def get_branch_name(self, obj):
+        visit = obj.profile.visit
+        return visit.branch.name if visit and visit.branch_id else None
 
 
 class AntenatalProfileSerializer(serializers.ModelSerializer):
@@ -108,6 +139,7 @@ class AntenatalProfileSerializer(serializers.ModelSerializer):
     visits = ANCVisitSerializer(many=True, read_only=True)
     deliveries = DeliveryRecordSerializer(many=True, read_only=True)
     postnatal_visits = PostnatalVisitSerializer(many=True, read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = AntenatalProfile
@@ -116,24 +148,34 @@ class AntenatalProfileSerializer(serializers.ModelSerializer):
             "gravida", "para", "lmp", "edd", "gestational_age_weeks", "blood_group",
             "height_cm", "booking_weight_kg", "hiv_status", "high_risk", "risk_factors",
             "status", "registered_by", "visit", "visits", "deliveries", "postnatal_visits",
+            "branch_name",
         ]
         read_only_fields = ["id", "anc_number", "edd", "registered_by", "visit"]
+
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
 
 
 class AntenatalProfileListSerializer(serializers.ModelSerializer):
     mother_name = serializers.CharField(source="mother.full_name", read_only=True)
     hospital_number = serializers.CharField(source="mother.hospital_number", read_only=True)
     gestational_age_weeks = serializers.IntegerField(read_only=True)
+    branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = AntenatalProfile
         fields = [
             "id", "anc_number", "mother_name", "hospital_number", "gravida",
-            "para", "edd", "gestational_age_weeks", "high_risk", "status",
+            "para", "edd", "gestational_age_weeks", "high_risk", "status", "branch_name",
         ]
+
+    def get_branch_name(self, obj):
+        return obj.visit.branch.name if obj.visit_id and obj.visit.branch_id else None
 
 
 class VaccineCatalogSerializer(serializers.ModelSerializer):
+    # Vaccine catalog — deliberately NOT branch-scoped, shared org-wide list,
+    # same reasoning as Medicine/LeaveType/Account.
     is_active = serializers.BooleanField(default=True)
 
     class Meta:
